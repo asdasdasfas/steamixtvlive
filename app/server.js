@@ -191,25 +191,22 @@ http.createServer((req, res) => {
   if (req.url.startsWith('/p2095/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:2095', '/p2095/')
   if (req.url.startsWith('/p8080/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:8080', '/p8080/')
 
-  // HLS segments - try backend first (dzcvip1.xyz may proxy /hls/ to CDN with whitelisted IP), fallback to CDN
+  // HLS segments - proxy through the redirect-discovered CDN target
   if (req.url.startsWith('/hls/')) {
     const hashMatch = req.url.match(/\/hls\/([^\/?#]+)/)
     const hash = hashMatch ? hashMatch[1] : null
-    // Target 1: backend (dzcvip1.xyz:2095) - might handle /hls/ paths and proxy to CDN
-    // Target 2: CDN from redirect cache
-    let target = 'http://dzcvip1.xyz:2095'
-    let cdnTarget = (hash && hlsTargets[hash]) || null
-    if (!cdnTarget) {
+    let target = (hash && hlsTargets[hash]) || null
+    if (!target) {
       const values = Object.values(proxyTargets)
-      if (values.length > 0) cdnTarget = values[values.length - 1]
+      if (values.length > 0) target = values[values.length - 1]
     }
-    if (!cdnTarget) cdnTarget = hlsDefaultTarget
-    // Set CDN referer for auth
-    if (cdnTarget) {
-      const cdnKey = cdnTarget.replace(/^https?:\/\//, '')
+    if (!target) target = hlsDefaultTarget
+    // Set CDN referer/origin for auth (matches what CDN expects)
+    if (target) {
+      const cdnKey = target.replace(/^https?:\/\//, '')
       if (proxyReferers[cdnKey]) {
         req.headers['referer'] = proxyReferers[cdnKey]
-        req.headers['origin'] = cdnTarget.replace(/\/+$/, '')
+        req.headers['origin'] = target.replace(/\/+$/, '')
       }
     }
     return fetchAndProxy(req, res, target, '')
