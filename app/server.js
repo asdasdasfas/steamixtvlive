@@ -22,8 +22,9 @@ const PROXIES = [
   { prefix: '/p2095/', target: 'http://dzcvip1.xyz:2095' },
 ]
 
-function proxyRequest(req, res, target) {
-  const url = new URL(target + req.url)
+function proxyRequest(req, res, target, prefix) {
+  const path = req.url.startsWith(prefix) ? '/' + req.url.slice(prefix.length) : req.url
+  const url = new URL(target + path)
   const opts = {
     hostname: url.hostname, port: url.port,
     path: url.pathname + url.search, method: req.method,
@@ -41,7 +42,7 @@ function proxyRequest(req, res, target) {
 http.createServer((req, res) => {
   for (const p of PROXIES) {
     if (req.url.startsWith(p.prefix)) {
-      return proxyRequest(req, res, p.target)
+      return proxyRequest(req, res, p.target, p.prefix)
     }
   }
   let url = req.url.split('?')[0]
