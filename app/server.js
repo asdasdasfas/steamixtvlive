@@ -16,16 +16,6 @@ const MIME = {
   '.ts': 'video/mp2t', '.mp4': 'video/mp4', '.mkv': 'video/x-matroska',
 }
 
-const proxy = httpProxy.createProxyServer({
-  changeOrigin: true,
-  proxyTimeout: 30000,
-})
-
-proxy.on('error', (err, req, res) => {
-  if (res.writeHead) res.writeHead(502, { 'Access-Control-Allow-Origin': '*' })
-  if (res.end) res.end('Bad Gateway')
-})
-
 const PROXIES = [
   { prefix: '/xtream-api/', target: 'http://ctn34.xyz:8080' },
   { prefix: '/p8080/', target: 'http://ctn34.xyz:8080' },
@@ -33,24 +23,35 @@ const PROXIES = [
   { prefix: '/p2095/', target: 'http://dzcvip1.xyz:2095' },
 ]
 
+const proxy = httpProxy.createProxyServer({ changeOrigin: true, proxyTimeout: 30000 })
+
+proxy.on('error', (err, req, res) => {
+  try { res.writeHead(502, { 'Access-Control-Allow-Origin': '*' }); res.end('Bad Gateway') } catch {}
+})
+
+proxy.on('proxyReq', (proxyReq, req) => {
+  const prefix = (req as any).__proxyPrefix
+  if (prefix && req.url) {
+    const newPath = '/' + req.url.slice(prefix.length)
+    proxyReq.path = newPath
+  }
+})
+
 http.createServer((req, res) => {
-  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', '*')
   if (req.method === 'OPTIONS') { res.writeHead(200); res.end(); return }
 
-  // Proxy routes
   for (const p of PROXIES) {
-    if (req.url.startsWith(p.prefix)) {
-      const newPath = req.url.replace(p.prefix.replace(/\/$/, ''), '')
-      proxy.web(req, res, { target: p.target, pathRewrite: { ['^' + p.prefix.replace(/\/$/, '')]: '' } })
+    if (req.url && req.url.startsWith(p.prefix)) {
+      (req as any).__proxyPrefix = p.prefix
+      proxy.web(req, res, { target: p.target })
       return
     }
   }
 
-  // Static files
-  let url = req.url.split('?')[0]
+  let url = (req.url || '/').split('?')[0]
   let filePath = url === '/' ? '/index.html' : url
   let fullPath = path.join(DIST, filePath)
   fs.readFile(fullPath, (err, data) => {
