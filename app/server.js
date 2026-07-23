@@ -1,7 +1,6 @@
 import http from 'node:http'
 import fs from 'node:fs'
 import path from 'node:path'
-import dns from 'node:dns'
 import { fileURLToPath } from 'node:url'
 
 const PORT = process.env.PORT || 5173
@@ -32,8 +31,8 @@ function fetchAndProxy(req, res, targetBase, pathPrefix) {
     path: u.pathname + u.search,
     method: req.method,
     headers: { ...req.headers, 'Host': u.host, 'Connection': 'close' },
-    timeout: 10000,
-    lookup: (host, opt, cb) => dns.lookup(host, { family: 4, hints: dns.ADDRCONFIG }, cb),
+    timeout: 15000,
+    family: 4,
   }
   const chunks = []
   req.on('data', c => chunks.push(c))
@@ -93,12 +92,14 @@ http.createServer((req, res) => {
     const slashIdx = rest.indexOf('/')
     if (slashIdx > 0) {
       const hostPort = rest.slice(0, slashIdx)
-      const target = proxyTargets[hostPort]
+      let target = proxyTargets[hostPort]
+      // Fallback: use hlsTarget if specific host not found
+      if (!target && hlsTarget) target = hlsTarget
       if (target) {
         return fetchAndProxy(req, res, target, '/_p/' + hostPort)
       }
     }
-    // Cache miss - return error instead of falling through to static files
+    // Cache miss - return error
     res.writeHead(502); res.end('Proxy target not found'); return
   }
 
