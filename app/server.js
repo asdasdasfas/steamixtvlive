@@ -15,47 +15,60 @@ const MIME = {
   '.ts': 'video/mp2t', '.mp4': 'video/mp4', '.mkv': 'video/x-matroska',
 }
 
-function fetchUrl(url, method, headers, body, redirects = 5) {
-  return new Promise((resolve, reject) => {
-    if (redirects <= 0) return reject(new Error('Too many redirects'))
-    const u = new URL(url)
-    const opts = {
-      hostname: u.hostname, port: u.port || 80,
-      path: u.pathname + u.search,
-      method, headers: { ...headers, 'Host': u.host, 'Connection': 'close' },
-      timeout: 30000,
-    }
-    const req = http.request(opts, res => {
-      if (res.statusCode >= 301 && res.statusCode <= 308 && res.headers.location) {
-        const loc = res.headers.location
-        const nextUrl = loc.startsWith('http') ? loc : `${u.protocol}//${u.host}${loc}`
-        res.resume()
-        return fetchUrl(nextUrl, method, headers, body, redirects - 1).then(resolve).catch(reject)
-      }
-      resolve(res)
-    })
-    req.on('error', reject)
-    req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')) })
-    if (body) req.write(body)
-    req.end()
-  })
-}
+// Dynamic proxy cache for redirect targets
+const proxyTargets = {}
 
-function proxyTo(req, res, hostname, port, prefix) {
-  const path = req.url.startsWith(prefix) ? '/' + req.url.slice(prefix.length) : req.url
-  const url = `http://${hostname}${port ? ':' + port : ''}${path}`
+function fetchAndProxy(req, res, targetBase, pathPrefix) {
+  let path = req.url
+  if (pathPrefix && req.url.startsWith(pathPrefix)) {
+    path = '/' + req.url.slice(pathPrefix.length)
+  }
+  const url = targetBase + path
+  const u = new URL(url)
+  const opts = {
+    hostname: u.hostname, port: u.port || 80,
+    path: u.pathname + u.search,
+    method: req.method,
+    headers: { ...req.headers, 'Host': u.host, 'Connection': 'close' },
+    timeout: 30000,
+  }
   const chunks = []
-  req.on('data', (c) => chunks.push(c))
+  req.on('data', c => chunks.push(c))
   req.on('end', () => {
     const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined
-    fetchUrl(url, req.method, req.headers, body)
-      .then(proxyRes => {
+    const proxyReq = http.request(opts, proxyRes => {
+      // Handle redirect: rewrite Location to go through our proxy
+      if (proxyRes.statusCode >= 301 && proxyRes.statusCode <= 308 && proxyRes.headers.location) {
+        const loc = proxyRes.headers.location
+        // If redirect is HTTP, rewrite to HTTPS via our proxy
+        if (loc.startsWith('http://')) {
+          const redirectUrl = new URL(loc)
+          const proxyPath = '/_p/' + redirectUrl.hostname + ':' + (redirectUrl.port || 80) + redirectUrl.pathname + redirectUrl.search
+          // Cache this target for future /hls/ requests
+          const key = redirectUrl.hostname + ':' + (redirectUrl.port || 80)
+          proxyTargets[key] = 'http://' + key
+          const headers = { ...proxyRes.headers, location: proxyPath, 'access-control-allow-origin': '*' }
+          delete headers['transfer-encoding']
+          res.writeHead(proxyRes.statusCode, headers)
+          res.end()
+          return
+        }
+      }
+      // Normal response
+      const ct = proxyRes.headers['content-type'] || ''
+      let data = Buffer.alloc(0)
+      proxyRes.on('data', c => data = Buffer.concat([data, c]))
+      proxyRes.on('end', () => {
         const headers = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
         delete headers['transfer-encoding']
         res.writeHead(proxyRes.statusCode || 200, headers)
-        proxyRes.pipe(res)
+        res.end(data)
       })
-      .catch(() => { try { res.writeHead(502); res.end('Proxy Error') } catch {} })
+    })
+    proxyReq.on('error', () => { try { res.writeHead(502); res.end('Proxy Error') } catch {} })
+    proxyReq.on('timeout', () => { proxyReq.destroy(); try { res.writeHead(504); res.end('Timeout') } catch {} })
+    if (body) proxyReq.write(body)
+    proxyReq.end()
   })
 }
 
@@ -65,25 +78,29 @@ http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Headers', '*')
   if (req.method === 'OPTIONS') { res.writeHead(200); res.end(); return }
 
-  // Proxy Xtream API → ctn34.xyz:8080
-  if (req.url.startsWith('/xtream-api/')) {
-    return proxyTo(req, res, 'ctn34.xyz', 8080, '/xtream-api/')
+  // Dynamic proxy for redirect targets: /_p/host:port/path
+  if (req.url.startsWith('/_p/')) {
+    const rest = req.url.slice(4) // remove '/_p/'
+    const slashIdx = rest.indexOf('/')
+    if (slashIdx > 0) {
+      const hostPort = rest.slice(0, slashIdx)
+      const target = proxyTargets[hostPort]
+      if (target) {
+        return fetchAndProxy(req, res, target, '/_p/' + hostPort)
+      }
+    }
   }
-  // Proxy Xtream → dzcvip1.xyz:2095
-  if (req.url.startsWith('/xtream/')) {
-    return proxyTo(req, res, 'dzcvip1.xyz', 2095, '/xtream/')
-  }
-  // Proxy p2095 → dzcvip1.xyz:2095
-  if (req.url.startsWith('/p2095/')) {
-    return proxyTo(req, res, 'dzcvip1.xyz', 2095, '/p2095/')
-  }
-  // Proxy p8080 → dzcvip1.xyz:8080
-  if (req.url.startsWith('/p8080/')) {
-    return proxyTo(req, res, 'dzcvip1.xyz', 8080, '/p8080/')
-  }
-  // Proxy /hls/* → dzcvip1.xyz:2095 (HLS TS segments from m3u8)
+
+  // Static proxy routes
+  if (req.url.startsWith('/xtream-api/')) return fetchAndProxy(req, res, 'http://ctn34.xyz:8080', '/xtream-api/')
+  if (req.url.startsWith('/xtream/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:2095', '/xtream/')
+  if (req.url.startsWith('/p2095/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:2095', '/p2095/')
+  if (req.url.startsWith('/p8080/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:8080', '/p8080/')
+
+  // HLS segments - try last known redirect target for 2095 first, then fallback
   if (req.url.startsWith('/hls/')) {
-    return proxyTo(req, res, 'dzcvip1.xyz', 2095, '/hls/')
+    const target = proxyTargets['dzcvip1.xyz:2095'] || 'http://dzcvip1.xyz:2095'
+    return fetchAndProxy(req, res, target, '/hls/')
   }
 
   // Static files
