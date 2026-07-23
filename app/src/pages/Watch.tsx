@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
-import { liveUrl, seriesUrls, fetchVodInfo, fetchSeriesInfo, vodUrlTesters, vodUrlWithExt } from '@/lib/supabase'
+import { liveUrl, seriesUrls, fetchVodInfo, fetchSeriesInfo, vodUrlTesters, vodUrlWithExt, proxyUrl } from '@/lib/supabase'
 import { getChannelById } from '@/lib/rotation'
 import VideoPlayer from '@/sections/VideoPlayer'
 import LivePlayer from '@/sections/LivePlayer'
@@ -61,10 +61,10 @@ export default function Watch() {
               allUrls.push(...vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, id)))
             }
           }
-          if (streamId) {
-            allUrls.push(`/xtream/movie/${xtream_user}/${xtream_pass}/${streamId}.m3u8`)
-            allUrls.push(`/xtream/movie/${xtream_user}/${xtream_pass}/${streamId}.mp4`)
-            allUrls.push(`/xtream/movie/${xtream_user}/${xtream_pass}/${streamId}`)
+          if (streamId && base_url) {
+            allUrls.push(proxyUrl(base_url, `/movie/${xtream_user}/${xtream_pass}/${streamId}.m3u8`))
+            allUrls.push(proxyUrl(base_url, `/movie/${xtream_user}/${xtream_pass}/${streamId}.mp4`))
+            allUrls.push(proxyUrl(base_url, `/movie/${xtream_user}/${xtream_pass}/${streamId}`))
             allUrls.push(`/p2095/movie/${xtream_user}/${xtream_pass}/${streamId}.mkv`)
             allUrls.push(`/p2095/movie/${xtream_user}/${xtream_pass}/${streamId}.m3u8`)
             allUrls.push(`/p2095/movie/${xtream_user}/${xtream_pass}/${streamId}.mp4`)
@@ -78,7 +78,7 @@ export default function Watch() {
           if (!cancelled) setTitle(`Dizi ${streamId}`)
         } else {
           const primaryUrl = liveUrl(base_url, xtream_user, xtream_pass, sid)
-          const fbUrl = `/p2095/live/${xtream_user}/${xtream_pass}/${sid}.m3u8`
+          const fbUrl = proxyUrl(base_url, `/live/${xtream_user}/${xtream_pass}/${sid}.m3u8`)
           if (!cancelled) { setUrl(primaryUrl); setFallbackUrls([fbUrl]); setTitle(`Kanal ${streamId}`) }
         }
       } else {

@@ -17,7 +17,9 @@ const MIME = {
 
 // Dynamic proxy cache for redirect targets
 const proxyTargets = {}
-let hlsTarget = null // last known redirect target for HLS segments
+// HLS targets keyed by the hash segment from /hls/{hash}/ paths
+const hlsTargets = {}
+let hlsDefaultTarget = 'http://dzcvip1.xyz:2095'
 
 function fetchAndProxy(req, res, targetBase, pathPrefix) {
   let path = req.url
@@ -46,15 +48,17 @@ function fetchAndProxy(req, res, targetBase, pathPrefix) {
         if (loc.startsWith('http://')) {
           const redirectUrl = new URL(loc)
           const proxyPath = '/_p/' + redirectUrl.hostname + ':' + (redirectUrl.port || 80) + redirectUrl.pathname + redirectUrl.search
-          // Cache this target for future /hls/ requests
-          const key = redirectUrl.hostname + ':' + (redirectUrl.port || 80)
-          proxyTargets[key] = 'http://' + key
-          // Also cache under original target host so /hls/ can find it
-          const origUrl = new URL(targetBase)
-          const origKey = origUrl.hostname + ':' + (origUrl.port || 80)
-          proxyTargets[origKey] = 'http://' + key
-          // Track for /hls/ segments regardless of which port was used
-          hlsTarget = 'http://' + key
+          // Cache this target
+           const key = redirectUrl.hostname + ':' + (redirectUrl.port || 80)
+           const targetUrl = 'http://' + key
+           proxyTargets[key] = targetUrl
+           // Also cache under original target host
+           const origUrl = new URL(targetBase)
+           const origKey = origUrl.hostname + ':' + (origUrl.port || 80)
+           proxyTargets[origKey] = targetUrl
+           // Track per-hash for /hls/ segments
+           const hlsMatch = loc.match(/\/hls\/([^\/?#]+)/)
+           if (hlsMatch) hlsTargets[hlsMatch[1]] = targetUrl
           const headers = { ...proxyRes.headers, location: proxyPath, 'access-control-allow-origin': '*' }
           delete headers['transfer-encoding']
           res.writeHead(proxyRes.statusCode, headers)
@@ -93,8 +97,11 @@ http.createServer((req, res) => {
     if (slashIdx > 0) {
       const hostPort = rest.slice(0, slashIdx)
       let target = proxyTargets[hostPort]
-      // Fallback: use hlsTarget if specific host not found
-      if (!target && hlsTarget) target = hlsTarget
+      // Fallback: try any known proxy target
+      if (!target) {
+        const values = Object.values(proxyTargets)
+        if (values.length > 0) target = values[values.length - 1]
+      }
       if (target) {
         return fetchAndProxy(req, res, target, '/_p/' + hostPort)
       }
@@ -103,15 +110,40 @@ http.createServer((req, res) => {
     res.writeHead(502); res.end('Proxy target not found'); return
   }
 
+  // Dynamic proxy: /dyn/{base64url(base_url)}/{path}
+  if (req.url.startsWith('/dyn/')) {
+    const afterDyn = req.url.slice(5) // skip '/dyn/'
+    const slashIdx = afterDyn.indexOf('/')
+    if (slashIdx > 0) {
+      const encoded = afterDyn.slice(0, slashIdx)
+      try {
+        const decoded = Buffer.from(encoded.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString()
+        if (decoded.startsWith('http://') || decoded.startsWith('https://')) {
+          const targetBase = decoded.replace(/\/+$/, '')
+          const prefix = '/dyn/' + encoded
+          return fetchAndProxy(req, res, targetBase, prefix)
+        }
+      } catch {}
+    }
+    res.writeHead(502); res.end('Invalid proxy path'); return
+  }
+
   // Static proxy routes
   if (req.url.startsWith('/xtream-api/')) return fetchAndProxy(req, res, 'http://ctn34.xyz:8080', '/xtream-api/')
   if (req.url.startsWith('/xtream/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:2095', '/xtream/')
   if (req.url.startsWith('/p2095/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:2095', '/p2095/')
   if (req.url.startsWith('/p8080/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:8080', '/p8080/')
 
-  // HLS segments - path IS the actual backend path, don't strip prefix
+  // HLS segments - try hash-specific target, fallback to any known target, then default
   if (req.url.startsWith('/hls/')) {
-    const target = hlsTarget || 'http://dzcvip1.xyz:2095'
+    const hashMatch = req.url.match(/\/hls\/([^\/?#]+)/)
+    const hash = hashMatch ? hashMatch[1] : null
+    let target = (hash && hlsTargets[hash]) || null
+    if (!target) {
+      const values = Object.values(proxyTargets)
+      if (values.length > 0) target = values[values.length - 1]
+    }
+    if (!target) target = hlsDefaultTarget
     return fetchAndProxy(req, res, target, '')
   }
 

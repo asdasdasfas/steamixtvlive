@@ -63,6 +63,14 @@ export async function updatePassword(username: string, newPass: string): Promise
   return supabasePatch(`/rest/v1/users?username=eq.${encodeURIComponent(username)}`, { password: newPass })
 }
 
+function encBase(base: string): string {
+  return btoa(base).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+export function proxyUrl(base: string, path: string): string {
+  return `/dyn/${encBase(base)}${path.startsWith('/') ? path : '/' + path}`
+}
+
 export interface XtreamLiveStream {
   num: number; name: string; stream_type: string; stream_id: number
   stream_icon: string; epg_channel_id: string; added: string; category_id: string
@@ -94,8 +102,8 @@ export interface XtreamSeriesInfo {
   episodes: Record<string, { id: string; episode_num: string; title: string; plot: string; stream_id: number; container_extension: string; season: string; info: { duration: string } }[]>
 }
 
-function xtUrl(_base: string, user: string, pass: string) {
-  return `/xtream-api/player_api.php?username=${user}&password=${pass}`
+function xtUrl(base: string, user: string, pass: string) {
+  return proxyUrl(base, `/player_api.php?username=${user}&password=${pass}`)
 }
 
 export async function fetchCategories(base: string, user: string, pass: string, type: 'live' | 'movie' | 'series') {
@@ -113,10 +121,10 @@ export async function fetchLiveStreams(base: string, user: string, pass: string,
   return res.json() as Promise<XtreamLiveStream[]>
 }
 
-function normalizeIcon(_base: string, icon: string | undefined | null, _id?: number | string): string {
-  if (icon && icon.startsWith('http://')) return `/xtream-api${icon.replace(/^https?:\/\/[^\/]+/, '')}`
+function normalizeIcon(base: string, icon: string | undefined | null, _id?: number | string): string {
+  if (icon && icon.startsWith('http://')) return proxyUrl(base, icon.replace(/^https?:\/\/[^\/]+/, ''))
   if (icon && icon.startsWith('https://')) return icon
-  if (icon && icon.startsWith('/')) return `/xtream-api${icon}`
+  if (icon && icon.startsWith('/')) return proxyUrl(base, icon)
   if (icon) return icon
   return ''
 }
@@ -151,32 +159,32 @@ export async function fetchSeriesInfo(base: string, user: string, pass: string, 
   return res.json() as Promise<XtreamSeriesInfo>
 }
 
-export function liveUrl(_base: string, user: string, pass: string, id: number) {
-  return `/xtream/live/${user}/${pass}/${id}.m3u8`
+export function liveUrl(base: string, user: string, pass: string, id: number) {
+  return proxyUrl(base, `/live/${user}/${pass}/${id}.m3u8`)
 }
 
 export type UrlTester = (base: string, user: string, pass: string, id: number) => string
 
 export const vodUrlTesters: UrlTester[] = [
-  (_b, u, p, i) => `/xtream/movie/${u}/${p}/${i}.mkv`,
-  (_b, u, p, i) => `/xtream/movie/${u}/${p}/${i}.m3u8`,
-  (_b, u, p, i) => `/xtream/movie/${u}/${p}/${i}.mp4`,
-  (_b, u, p, i) => `/xtream/movie/${u}/${p}/${i}`,
-  (_b, u, p, i) => `/xtream/vod/${u}/${p}/${i}.m3u8`,
-  (_b, u, p, i) => `/xtream/vod/${u}/${p}/${i}`,
-  // Fallback proxy paths for redirect handling
+  (b, u, p, i) => proxyUrl(b, `/movie/${u}/${p}/${i}.mkv`),
+  (b, u, p, i) => proxyUrl(b, `/movie/${u}/${p}/${i}.m3u8`),
+  (b, u, p, i) => proxyUrl(b, `/movie/${u}/${p}/${i}.mp4`),
+  (b, u, p, i) => proxyUrl(b, `/movie/${u}/${p}/${i}`),
+  (b, u, p, i) => proxyUrl(b, `/vod/${u}/${p}/${i}.m3u8`),
+  (b, u, p, i) => proxyUrl(b, `/vod/${u}/${p}/${i}`),
+  // Fallback with hardcoded servers for known backends
   (_b, u, p, i) => `/p2095/movie/${u}/${p}/${i}.mkv`,
   (_b, u, p, i) => `/p2095/movie/${u}/${p}/${i}.m3u8`,
   (_b, u, p, i) => `/p8080/movie/${u}/${p}/${i}.mkv`,
   (_b, u, p, i) => `/p8080/movie/${u}/${p}/${i}.m3u8`,
 ]
 
-export function vodUrlWithExt(_base: string, user: string, pass: string, id: number, ext: string) {
+export function vodUrlWithExt(base: string, user: string, pass: string, id: number, ext: string) {
   const e = ext.startsWith('.') ? ext : `.${ext}`
-  return `/xtream/movie/${user}/${pass}/${id}${e}`
+  return proxyUrl(base, `/movie/${user}/${pass}/${id}${e}`)
 }
 
-export function seriesUrls(_base: string, user: string, pass: string, id: number, season: string, ep: string, ext?: string, seriesId?: number): string[] {
+export function seriesUrls(base: string, user: string, pass: string, id: number, season: string, ep: string, ext?: string, seriesId?: number): string[] {
   const urls: string[] = []
   const exts = [ext, 'mp4', 'mkv', 'm3u8', 'avi', 'ts', 'webm', 'mov'].filter(Boolean) as string[]
   const sid = seriesId || id
@@ -184,21 +192,21 @@ export function seriesUrls(_base: string, user: string, pass: string, id: number
   const epNum = ep.padStart(2, '0')
 
   for (const x of exts) {
-    urls.push(`/xtream/series/${user}/${pass}/${id}.${x.replace(/^\./, '')}`)
+    urls.push(proxyUrl(base, `/series/${user}/${pass}/${id}.${x.replace(/^\./, '')}`))
   }
-  urls.push(`/xtream/series/${user}/${pass}/${id}`)
+  urls.push(proxyUrl(base, `/series/${user}/${pass}/${id}`))
 
   for (const x of exts) {
-    urls.push(`/xtream/series/${user}/${pass}/${sid}/${sNum}/${ep}.${x.replace(/^\./, '')}`)
-    urls.push(`/xtream/series/${user}/${pass}/${sid}/${sNum}${epNum}.${x.replace(/^\./, '')}`)
+    urls.push(proxyUrl(base, `/series/${user}/${pass}/${sid}/${sNum}/${ep}.${x.replace(/^\./, '')}`))
+    urls.push(proxyUrl(base, `/series/${user}/${pass}/${sid}/${sNum}${epNum}.${x.replace(/^\./, '')}`))
   }
-  urls.push(`/xtream/series/${user}/${pass}/${sid}/${sNum}/${ep}`)
-  urls.push(`/xtream/series/${user}/${pass}/${sid}/${sNum}${epNum}`)
+  urls.push(proxyUrl(base, `/series/${user}/${pass}/${sid}/${sNum}/${ep}`))
+  urls.push(proxyUrl(base, `/series/${user}/${pass}/${sid}/${sNum}${epNum}`))
 
   for (const x of exts) {
-    urls.push(`/xtream/series/${user}/${pass}/${id}/${sNum}/${ep}.${x.replace(/^\./, '')}`)
+    urls.push(proxyUrl(base, `/series/${user}/${pass}/${id}/${sNum}/${ep}.${x.replace(/^\./, '')}`))
   }
-  urls.push(`/xtream/series/${user}/${pass}/${id}/${sNum}/${ep}`)
+  urls.push(proxyUrl(base, `/series/${user}/${pass}/${id}/${sNum}/${ep}`))
 
   return urls
 }
@@ -218,11 +226,11 @@ export function parseSureDuration(sure: string): number {
   return num * 24 * 60 * 60 * 1000
 }
 
-export function posterUrl(_base: string | undefined | null, icon: string | undefined | null, fallbackId?: number | string): string {
-  if (icon && icon.startsWith('http://')) return `/xtream-api${icon.replace(/^https?:\/\/[^\/]+/, '')}`
+export function posterUrl(base: string | undefined | null, icon: string | undefined | null, fallbackId?: number | string): string {
+  if (icon && icon.startsWith('http://')) return proxyUrl(base || '', icon.replace(/^https?:\/\/[^\/]+/, ''))
   if (icon && icon.startsWith('https://')) return icon
-  if (icon && icon.startsWith('/')) return `/xtream-api${icon}`
+  if (icon && icon.startsWith('/')) return proxyUrl(base || '', icon)
   if (icon) return icon
-  if (_base && fallbackId) return `/xtream-api/images/${fallbackId}.jpg`
+  if (base && fallbackId) return proxyUrl(base, `/images/${fallbackId}.jpg`)
   return ''
 }
