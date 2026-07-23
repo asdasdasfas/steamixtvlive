@@ -12,23 +12,18 @@ const consoleLogs = []
 const MAX_LOGS = 500
 
 const LOG_SCRIPT = `<script>
-const __origLog = console.log; const __origErr = console.error; const __origWarn = console.warn
-function __sendLog(level, args) {
-  try {
-    const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a).substring(0,500) : String(a)).join(' ')
-    fetch('/__log', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({level,msg,time:Date.now()}) }).catch(()=>{})
-  } catch(e) {}
-}
-console.log = function() { __origLog.apply(console, arguments); __sendLog('log', arguments) }
-console.error = function() { __origErr.apply(console, arguments); __sendLog('error', arguments) }
-console.warn = function() { __origWarn.apply(console, arguments); __sendLog('warn', arguments) }
-window.onerror = function(msg, url, line, col, err) {
-  __sendLog('uncaught', [msg, url+':'+line].filter(Boolean))
-}
-window.addEventListener('unhandledrejection', function(e) {
-  __sendLog('promise', [e.reason?.message || String(e.reason)])
-})
-console.log('%c[LOG] Console capture active', 'color:lime')
+var __logs=[]; var __oL=console.log; var __oE=console.error; var __oW=console.warn
+function __sl(l,a){try{
+  var m=a.map(function(x){return typeof x==='object'?JSON.stringify(x).substring(0,200):String(x)}).join(' ')
+  __logs.push({l:m,t:Date.now(),v:l}); if(__logs.length>200)__logs.shift()
+  var img=new Image(); img.src='/__log?d='+encodeURIComponent(JSON.stringify({level:l,msg:m,time:Date.now()}))
+}catch(e){}}
+console.log=function(){__oL.apply(console,arguments);__sl('log',arguments)}
+console.error=function(){__oE.apply(console,arguments);__sl('error',arguments)}
+console.warn=function(){__oW.apply(console,arguments);__sl('warn',arguments)}
+window.onerror=function(m,u,li){__sl('uncaught',[m,u+':'+li])}
+window.addEventListener('unhandledrejection',function(e){__sl('promise',[e.reason?.message||String(e.reason)])})
+console.log('%c[LOG] Console capture active','color:lime')
 <\/script>`
 
 const MIME = {
@@ -153,18 +148,29 @@ http.createServer((req, res) => {
     res.writeHead(502); res.end('Invalid proxy path'); return
   }
 
-  // Console log capture endpoint
-  if (req.url === '/__log' && req.method === 'POST') {
-    let logData = ''
-    req.on('data', c => logData += c)
-    req.on('end', () => {
-      try {
-        const entry = JSON.parse(logData)
-        consoleLogs.push(entry)
-        if (consoleLogs.length > MAX_LOGS) consoleLogs.splice(0, consoleLogs.length - MAX_LOGS)
-      } catch {}
-      res.writeHead(200); res.end('ok')
-    })
+  // Console log capture endpoint (GET via Image beacon or POST via fetch)
+  if (req.url.startsWith('/__log')) {
+    if (req.method === 'POST') {
+      let logData = ''
+      req.on('data', c => logData += c)
+      req.on('end', () => {
+        try {
+          const entry = JSON.parse(logData)
+          consoleLogs.push(entry)
+          if (consoleLogs.length > MAX_LOGS) consoleLogs.splice(0, consoleLogs.length - MAX_LOGS)
+        } catch {}
+        res.writeHead(200); res.end('ok')
+      })
+    } else {
+      // GET from Image beacon
+      const url = new URL(req.url, 'http://localhost')
+      const d = url.searchParams.get('d')
+      if (d) {
+        try { const entry = JSON.parse(d); consoleLogs.push(entry); if (consoleLogs.length > MAX_LOGS) consoleLogs.splice(0, consoleLogs.length - MAX_LOGS) } catch {}
+      }
+      res.writeHead(200, { 'Content-Type': 'image/gif' })
+      res.end(Buffer.from('R0lGODlhAQABAAAAACwAAAAAAQABAAA=', 'base64')) // 1x1 transparent gif
+    }
     return
   }
   if (req.url === '/__logs') {
