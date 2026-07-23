@@ -21,66 +21,66 @@ const proxyTargets = {}
 const hlsTargets = {}
 let hlsDefaultTarget = 'http://dzcvip1.xyz:2095'
 
+function cleanHeaders(reqHeaders, targetHost) {
+  const h = { ...reqHeaders, 'Host': targetHost, 'Connection': 'close', 'User-Agent': 'Mozilla/5.0' }
+  const remove = ['origin', 'referer', 'cookie', 'sec-fetch-site', 'sec-fetch-mode', 'sec-fetch-dest', 'sec-fetch-user']
+  for (const k of remove) delete h[k]
+  return h
+}
+
+function makeHttpOpts(urlStr, method, reqHeaders) {
+  const u = new URL(urlStr)
+  return {
+    hostname: u.hostname, port: u.port || 80,
+    path: u.pathname + u.search,
+    method, headers: cleanHeaders(reqHeaders, u.host),
+    timeout: 15000, family: 4,
+  }
+}
+
+function doRequest(reqHeaders, opts, body, redirectCount, res) {
+  if (redirectCount > 5) { res.writeHead(502); res.end('Too many redirects'); return }
+  const proxyReq = http.request(opts, proxyRes => {
+    const sc = proxyRes.statusCode || 200
+    if (sc >= 301 && sc <= 308 && proxyRes.headers.location) {
+      let loc = proxyRes.headers.location
+      if (!loc.startsWith('http://') && !loc.startsWith('https://')) {
+        const base = opts.hostname + (opts.port && opts.port != 80 ? ':' + opts.port : '')
+        loc = 'http://' + base + (loc.startsWith('/') ? loc : '/' + loc)
+      }
+      const redirectUrl = new URL(loc)
+      const key = redirectUrl.hostname + ':' + (redirectUrl.port || 80)
+      proxyTargets[key] = 'http://' + key
+      const hlsMatch = loc.match(/\/hls\/([^\/?#]+)/)
+      if (hlsMatch) hlsTargets[hlsMatch[1]] = 'http://' + key
+      proxyReq.destroy()
+      const newOpts = makeHttpOpts(loc, opts.method, reqHeaders)
+      doRequest(reqHeaders, newOpts, undefined, redirectCount + 1, res)
+      return
+    }
+    const headers = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
+    delete headers['transfer-encoding']
+    res.writeHead(sc, headers)
+    proxyRes.pipe(res)
+  })
+  proxyReq.on('error', () => { try { res.writeHead(502); res.end('Proxy Error') } catch {} })
+  proxyReq.on('timeout', () => { proxyReq.destroy(); try { res.writeHead(504); res.end('Timeout') } catch {} })
+  if (body) proxyReq.write(body)
+  proxyReq.end()
+}
+
 function fetchAndProxy(req, res, targetBase, pathPrefix) {
   let path = req.url
   if (pathPrefix && req.url.startsWith(pathPrefix)) {
     path = '/' + req.url.slice(pathPrefix.length)
   }
   const url = targetBase + path
-  const u = new URL(url)
-  const opts = {
-    hostname: u.hostname, port: u.port || 80,
-    path: u.pathname + u.search,
-    method: req.method,
-    headers: { ...req.headers, 'Host': u.host, 'Connection': 'close' },
-    timeout: 15000,
-    family: 4,
-  }
+  const opts = makeHttpOpts(url, req.method, req.headers)
   const chunks = []
   req.on('data', c => chunks.push(c))
   req.on('end', () => {
     const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined
-    const proxyReq = http.request(opts, proxyRes => {
-      // Handle redirect: rewrite Location to go through our proxy
-      if (proxyRes.statusCode >= 301 && proxyRes.statusCode <= 308 && proxyRes.headers.location) {
-        const loc = proxyRes.headers.location
-        // If redirect is HTTP, rewrite to HTTPS via our proxy
-        if (loc.startsWith('http://')) {
-          const redirectUrl = new URL(loc)
-          const proxyPath = '/_p/' + redirectUrl.hostname + ':' + (redirectUrl.port || 80) + redirectUrl.pathname + redirectUrl.search
-          // Cache this target
-           const key = redirectUrl.hostname + ':' + (redirectUrl.port || 80)
-           const targetUrl = 'http://' + key
-           proxyTargets[key] = targetUrl
-           // Also cache under original target host
-           const origUrl = new URL(targetBase)
-           const origKey = origUrl.hostname + ':' + (origUrl.port || 80)
-           proxyTargets[origKey] = targetUrl
-           // Track per-hash for /hls/ segments
-           const hlsMatch = loc.match(/\/hls\/([^\/?#]+)/)
-           if (hlsMatch) hlsTargets[hlsMatch[1]] = targetUrl
-          const headers = { ...proxyRes.headers, location: proxyPath, 'access-control-allow-origin': '*' }
-          delete headers['transfer-encoding']
-          res.writeHead(proxyRes.statusCode, headers)
-          res.end()
-          return
-        }
-      }
-      // Normal response
-      const ct = proxyRes.headers['content-type'] || ''
-      let data = Buffer.alloc(0)
-      proxyRes.on('data', c => data = Buffer.concat([data, c]))
-      proxyRes.on('end', () => {
-        const headers = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
-        delete headers['transfer-encoding']
-        res.writeHead(proxyRes.statusCode || 200, headers)
-        res.end(data)
-      })
-    })
-    proxyReq.on('error', () => { try { res.writeHead(502); res.end('Proxy Error') } catch {} })
-    proxyReq.on('timeout', () => { proxyReq.destroy(); try { res.writeHead(504); res.end('Timeout') } catch {} })
-    if (body) proxyReq.write(body)
-    proxyReq.end()
+    doRequest(req.headers, opts, body, 0, res)
   })
 }
 
