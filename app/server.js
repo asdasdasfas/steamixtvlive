@@ -47,6 +47,10 @@ function fetchAndProxy(req, res, targetBase, pathPrefix) {
           // Cache this target for future /hls/ requests
           const key = redirectUrl.hostname + ':' + (redirectUrl.port || 80)
           proxyTargets[key] = 'http://' + key
+          // Also cache under original target host so /hls/ can find it
+          const origUrl = new URL(targetBase)
+          const origKey = origUrl.hostname + ':' + (origUrl.port || 80)
+          proxyTargets[origKey] = 'http://' + key
           const headers = { ...proxyRes.headers, location: proxyPath, 'access-control-allow-origin': '*' }
           delete headers['transfer-encoding']
           res.writeHead(proxyRes.statusCode, headers)
