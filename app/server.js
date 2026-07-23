@@ -1,5 +1,4 @@
 import http from 'node:http'
-import httpProxy from 'http-proxy'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -16,26 +15,28 @@ const MIME = {
   '.ts': 'video/mp2t', '.mp4': 'video/mp4', '.mkv': 'video/x-matroska',
 }
 
-const PROXIES = [
-  { prefix: '/xtream-api/', target: 'http://ctn34.xyz:8080' },
-  { prefix: '/p8080/', target: 'http://ctn34.xyz:8080' },
-  { prefix: '/xtream/', target: 'http://dzcvip1.xyz:2095' },
-  { prefix: '/p2095/', target: 'http://dzcvip1.xyz:2095' },
-]
-
-const proxy = httpProxy.createProxyServer({ changeOrigin: true, proxyTimeout: 30000 })
-
-proxy.on('error', (err, req, res) => {
-  try { res.writeHead(502, { 'Access-Control-Allow-Origin': '*' }); res.end('Bad Gateway') } catch {}
-})
-
-proxy.on('proxyReq', (proxyReq, req) => {
-  const prefix = (req as any).__proxyPrefix
-  if (prefix && req.url) {
-    const newPath = '/' + req.url.slice(prefix.length)
-    proxyReq.path = newPath
+function proxyTo(req, res, hostname, port, prefix) {
+  const path = req.url.startsWith(prefix) ? '/' + req.url.slice(prefix.length) : req.url
+  const opts = {
+    hostname, port,
+    path: path,
+    method: req.method,
+    headers: {
+      ...req.headers,
+      'Host': hostname + (port ? ':' + port : ''),
+      'Connection': 'close',
+    },
+    timeout: 30000,
   }
-})
+  const proxyReq = http.request(opts, proxyRes => {
+    const headers = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
+    res.writeHead(proxyRes.statusCode || 200, headers)
+    proxyRes.pipe(res)
+  })
+  proxyReq.on('error', () => { try { res.writeHead(502); res.end('Proxy Error') } catch {} })
+  proxyReq.on('timeout', () => { proxyReq.destroy(); try { res.writeHead(504); res.end('Timeout') } catch {} })
+  req.pipe(proxyReq)
+}
 
 http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -43,14 +44,24 @@ http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Headers', '*')
   if (req.method === 'OPTIONS') { res.writeHead(200); res.end(); return }
 
-  for (const p of PROXIES) {
-    if (req.url && req.url.startsWith(p.prefix)) {
-      (req as any).__proxyPrefix = p.prefix
-      proxy.web(req, res, { target: p.target })
-      return
-    }
+  // Proxy Xtream API → ctn34.xyz:8080
+  if (req.url.startsWith('/xtream-api/')) {
+    return proxyTo(req, res, 'ctn34.xyz', 8080, '/xtream-api/')
+  }
+  // Proxy Xtream → dzcvip1.xyz:2095
+  if (req.url.startsWith('/xtream/')) {
+    return proxyTo(req, res, 'dzcvip1.xyz', 2095, '/xtream/')
+  }
+  // Proxy p2095 → dzcvip1.xyz:2095
+  if (req.url.startsWith('/p2095/')) {
+    return proxyTo(req, res, 'dzcvip1.xyz', 2095, '/p2095/')
+  }
+  // Proxy p8080 → dzcvip1.xyz:8080
+  if (req.url.startsWith('/p8080/')) {
+    return proxyTo(req, res, 'dzcvip1.xyz', 8080, '/p8080/')
   }
 
+  // Static files
   let url = (req.url || '/').split('?')[0]
   let filePath = url === '/' ? '/index.html' : url
   let fullPath = path.join(DIST, filePath)
@@ -67,4 +78,4 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' })
     res.end(data)
   })
-}).listen(PORT, () => console.log(`Server running on port ${PORT}`))
+}).listen(PORT, () => console.log(`Server on port ${PORT}`))
