@@ -39,8 +39,10 @@ function makeHttpOpts(urlStr, method, reqHeaders) {
 }
 
 function doRequest(reqHeaders, opts, body, redirectCount, res) {
-  if (redirectCount > 5) { res.writeHead(502); res.end('Too many redirects'); return }
+  if (redirectCount > 5) { try { res.writeHead(502); res.end('Too many redirects') } catch {}; return }
+  let done = false
   const proxyReq = http.request(opts, proxyRes => {
+    if (done) return; done = true
     const sc = proxyRes.statusCode || 200
     if (sc >= 301 && sc <= 308 && proxyRes.headers.location) {
       let loc = proxyRes.headers.location
@@ -60,11 +62,10 @@ function doRequest(reqHeaders, opts, body, redirectCount, res) {
     }
     const headers = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
     delete headers['transfer-encoding']
-    res.writeHead(sc, headers)
-    proxyRes.pipe(res)
+    try { res.writeHead(sc, headers); proxyRes.pipe(res) } catch {}
   })
-  proxyReq.on('error', () => { try { res.writeHead(502); res.end('Proxy Error') } catch {} })
-  proxyReq.on('timeout', () => { proxyReq.destroy(); try { res.writeHead(504); res.end('Timeout') } catch {} })
+  proxyReq.on('error', () => { if (done) return; done = true; try { res.writeHead(502); res.end('Proxy Error') } catch {} })
+  proxyReq.on('timeout', () => { if (done) return; done = true; proxyReq.destroy(); try { res.writeHead(504); res.end('Timeout') } catch {} })
   if (body) proxyReq.write(body)
   proxyReq.end()
 }

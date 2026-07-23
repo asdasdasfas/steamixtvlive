@@ -119,14 +119,10 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     console.log(`[TRYURL] Sayfa: ${window.location.protocol}//${window.location.host}`)
 
     // Deep fetch check - what does the URL actually return?
-    fetch(currentSrc, { redirect: 'manual' }).then(r => {
-      const isRedirect = r.type === 'opaqueredirect' || (r.status >= 300 && r.status < 400)
-      console.log(`[TRYURL] FETCH test: status=${r.status} ${r.ok?'OK':'FAIL'} redirect=${isRedirect} type=${r.type} url=${r.url?.substring(0,120)}`)
-      if (isRedirect) {
-        console.log(`%c[TRYURL] Redirect detected - will try to follow server-side via proxy`, 'color:orange')
-      } else if (r.ok) {
-        r.clone().text().then(t => console.log(`[TRYURL] FETCH icerik (ilk 300): ${t.substring(0,300)}`)).catch(()=>{})
-      }
+    fetch(currentSrc).then(r => {
+      const ct = r.headers.get('content-type') || ''
+      const cl = r.headers.get('content-length')
+      console.log(`[TRYURL] FETCH test: status=${r.status} ${r.ok?'OK':'FAIL'} ct=${ct} cl=${cl}`)
     }).catch(e => console.log(`[TRYURL] FETCH test HATA: ${e.message}`))
 
     // Destroy previous HLS and reset video element fully
