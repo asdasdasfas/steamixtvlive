@@ -148,8 +148,16 @@ http.createServer((req, res) => {
     res.writeHead(502); res.end('Invalid proxy path'); return
   }
 
+  // Console log view endpoint
+  if (req.url === '/__logs') {
+    res.setHeader('Content-Type', 'application/json')
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.end(JSON.stringify(consoleLogs.slice(-200), null, 2))
+    return
+  }
+
   // Console log capture endpoint (GET via Image beacon or POST via fetch)
-  if (req.url.startsWith('/__log')) {
+  if (req.url === '/__log' || req.url.startsWith('/__log?')) {
     if (req.method === 'POST') {
       let logData = ''
       req.on('data', c => logData += c)
