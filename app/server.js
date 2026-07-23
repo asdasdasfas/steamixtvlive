@@ -254,6 +254,23 @@ http.createServer((req, res) => {
   // Static proxy routes — capture m3u8 responses to discover CDN target
   if (req.url.startsWith('/xtream-api/')) return fetchAndProxy(req, res, 'http://ctn34.xyz:8080', '/xtream-api/')
   if (req.url.startsWith('/xtream/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:2095', '/xtream/')
+  // Generic /p/{base64}/{path} — any base URL (dzcvip1, ctn34, ccgbndrby11, dpsmartone, etc.)
+  // Matches rotation.ts proxyUrl() output
+  if (req.url.startsWith('/p/')) {
+    const match = req.url.match(/^\/p\/([A-Za-z0-9\-_]+)(\/.*)$/)
+    if (match) {
+      const encoded = match[1]
+      const path = match[2]
+      const decoded = Buffer.from(encoded.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString()
+      const target = 'http://' + decoded
+      const prefix = '/p/' + encoded
+      // Use hlsFetchAndProxy for m3u8 requests (CDN discovery), regular proxy for anything else
+      if (path.endsWith('.m3u8')) {
+        return hlsFetchAndProxy(req, res, target, prefix)
+      }
+      return fetchAndProxy(req, res, target, prefix)
+    }
+  }
   if (req.url.startsWith('/p2095/')) return hlsFetchAndProxy(req, res, 'http://dzcvip1.xyz:2095', '/p2095/')
   if (req.url.startsWith('/p8080/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:8080', '/p8080/')
 
