@@ -118,12 +118,13 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     console.log(`[TRYURL] Protokol: ${currentSrc?.startsWith('https') ? 'HTTPS' : currentSrc?.startsWith('http') ? 'HTTP' : currentSrc?.startsWith('/api') ? 'API_PROXY' : 'OTHER'}`)
     console.log(`[TRYURL] Sayfa: ${window.location.protocol}//${window.location.host}`)
 
-    // Deep fetch check - what does the URL actually return?
-    fetch(currentSrc).then(r => {
+    // Quick content-type check (abort body immediately)
+    const ctrl = new AbortController()
+    fetch(currentSrc, { signal: ctrl.signal }).then(r => {
       const ct = r.headers.get('content-type') || ''
-      const cl = r.headers.get('content-length')
-      console.log(`[TRYURL] FETCH test: status=${r.status} ${r.ok?'OK':'FAIL'} ct=${ct} cl=${cl}`)
-    }).catch(e => console.log(`[TRYURL] FETCH test HATA: ${e.message}`))
+      console.log(`[TRYURL] FETCH test: status=${r.status} ct=${ct}`)
+      ctrl.abort() // don't download body
+    }).catch(() => {})
 
     // Destroy previous HLS and reset video element fully
     if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null }
