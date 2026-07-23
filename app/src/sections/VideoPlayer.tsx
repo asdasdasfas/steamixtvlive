@@ -77,14 +77,17 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     }
   }, [])
 
-  // Watchdog: every 2s check if video made progress, if stuck for 5s try next URL
+  // Watchdog: every 2s check if video made progress, if stuck try next URL
   const startWatchdog = useCallback((video: HTMLVideoElement) => {
     clearInterval(watchdogRef.current)
     lastProgressRef.current = video.currentTime || 0
     let stuckCount = 0
     const urlIdx = urlIndexRef.current
     const total = allUrlsRef.current.length
-    console.log(`%c[WATCHDOG] Basladi URL#${urlIdx}/${total}`, 'color:yellow')
+    const currentSrc = allUrlsRef.current[urlIdx] || ''
+    // MKV needs extra time to buffer seek table (metadata at end of file)
+    const maxStuck = currentSrc.endsWith('.mkv') ? 15 : 5
+    console.log(`%c[WATCHDOG] Basladi URL#${urlIdx}/${total} maxStuck=${maxStuck}`, 'color:yellow')
     watchdogRef.current = setInterval(() => {
       if (!video || video.seeking) return
       if (video.readyState >= 2 && video.currentTime > lastProgressRef.current) {
@@ -94,9 +97,9 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         return
       }
       stuckCount++
-      console.log(`[WATCHDOG] Takildi! #${urlIdx}/${total} stuck:${stuckCount}/3 readyState:${video.readyState} currentTime:${video.currentTime.toFixed(2)}s lastProgress:${lastProgressRef.current.toFixed(2)}s buffered:${video.buffered?.length||0}`)
-      if (stuckCount >= 3) {
-        console.log(`%c[WATCHDOG] 3 kez takildi -> SONRAKI URL`, 'color:red')
+      console.log(`[WATCHDOG] Takildi! #${urlIdx}/${total} stuck:${stuckCount}/${maxStuck} readyState:${video.readyState} currentTime:${video.currentTime.toFixed(2)}s lastProgress:${lastProgressRef.current.toFixed(2)}s buffered:${video.buffered?.length||0}`)
+      if (stuckCount >= maxStuck) {
+        console.log(`%c[WATCHDOG] ${maxStuck} kez takildi -> SONRAKI URL`, 'color:red')
         clearInterval(watchdogRef.current)
     if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null }
     if (videoRef.current) videoRef.current.onerror = null

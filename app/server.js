@@ -75,6 +75,7 @@ function doRequest(reqHeaders, opts, body, redirectCount, res) {
       // Store CDN referer for TS auth: playlist URL → referer for subsequent TS segment requests to this host
       if (loc.includes('.m3u8') || loc.includes('.m3u')) {
         proxyReferers[key] = loc
+        hlsDefaultTarget = 'http://' + key
       }
       const hlsMatch = loc.match(/\/hls\/([^\/?#]+)/)
       if (hlsMatch) hlsTargets[hlsMatch[1]] = 'http://' + key
@@ -195,12 +196,7 @@ http.createServer((req, res) => {
   if (req.url.startsWith('/hls/')) {
     const hashMatch = req.url.match(/\/hls\/([^\/?#]+)/)
     const hash = hashMatch ? hashMatch[1] : null
-    let target = (hash && hlsTargets[hash]) || null
-    if (!target) {
-      const values = Object.values(proxyTargets)
-      if (values.length > 0) target = values[values.length - 1]
-    }
-    if (!target) target = hlsDefaultTarget
+    let target = (hash && hlsTargets[hash]) || hlsDefaultTarget
     // Set CDN referer/origin for auth (matches what CDN expects)
     if (target) {
       const cdnKey = target.replace(/^https?:\/\//, '')
