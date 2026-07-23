@@ -1,0 +1,276 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 260 100% 4%;
+    --foreground: 260 30% 97%;
+    --card: 260 80% 6%;
+    --card-foreground: 260 30% 97%;
+    --popover: 260 80% 6%;
+    --popover-foreground: 260 30% 97%;
+    --primary: 217 65% 52%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 20% 10%;
+    --secondary-foreground: 220 15% 90%;
+    --muted: 220 15% 12%;
+    --muted-foreground: 220 10% 55%;
+    --accent: 217 65% 52%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 260 30% 18%;
+    --input: 260 30% 15%;
+    --ring: 280 90% 55%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-[#0f172a] text-foreground antialiased;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  code, pre, .mono {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #0099ff 0%, #a855f7 50%, #0d9488 100%);
+  }
+
+  .glow-violet {
+    box-shadow: 0 0 40px rgba(0, 153, 255, 0.3), 0 0 80px rgba(0, 153, 255, 0.15);
+  }
+
+  .glow-violet-soft {
+    box-shadow: 0 0 60px rgba(0, 153, 255, 0.2);
+  }
+
+  .bg-gamer-dark {
+    background: #0f172a;
+  }
+
+  .bg-gamer-card {
+    background: rgba(18, 0, 36, 0.72);
+    backdrop-filter: blur(12px);
+  }
+
+  .border-gamer {
+    border: 1px solid rgba(0, 153, 255, 0.2);
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.animated-gradient {
+  background: linear-gradient(-45deg, #0f172a, #1e293b, #0f172a, #0f172a);
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.18; transform: scale(1); }
+  50% { opacity: 0.28; transform: scale(1.05); }
+}
+
+.glow-pulse {
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+@keyframes cursor-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.cursor-blink::after {
+  content: '_';
+  animation: cursor-blink 1s step-end infinite;
+}
+
+@keyframes scroll-right {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.scroll-row {
+  animation: scroll-right 30s linear infinite;
+}
+
+.scroll-row:hover {
+  animation-play-state: paused;
+}
+
+.noise-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.04;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+.radial-glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 153, 255, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.btn-gamer {
+  @apply relative overflow-hidden transition-all duration-300;
+}
+
+.btn-gamer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transition: left 0.5s;
+}
+
+.btn-gamer:hover::before {
+  left: 100%;
+}
+
+.card-gamer {
+  @apply transition-all duration-300;
+}
+
+.card-gamer:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(0, 153, 255, 0.2);
+}
+
+.terminal-log {
+  @apply font-mono text-sm;
+  color: #00ff88;
+}
+
+.terminal-log::before {
+  content: '▶ ';
+  color: #60a5fa;
+}
+
+::selection {
+  background: rgba(0, 153, 255, 0.3);
+  color: #fff;
+}
+
+.hero-video video {
+  aspect-ratio: 16 / 10;
+  max-width: 100%;
+  width: 112%;
+  border-radius: 10px;
+  box-shadow: 0 30px 60px #00000080;
+  border: none;
+  position: relative;
+  z-index: 1;
+  transform: scale(1.05);
+  transition: transform .3s ease;
+  will-change: transform;
+}
+
+@media (max-width: 992px) {
+  .hero-video video {
+    width: 100%;
+    transform: scale(1.02);
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  html { font-size: 14px; }
+  body { overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+  .section-mobile { padding-left: 1rem !important; padding-right: 1rem !important; }
+  .hide-mobile { display: none !important; }
+}
+
+@media (min-width: 769px) {
+  .hide-desktop { display: none !important; }
+}
+
+@media (pointer: coarse) {
+  .btn-gamer { min-height: 48px; min-width: 44px; }
+  a, button { min-height: 44px; min-width: 44px; }
+}
+
+@media (max-width: 768px) {
+  .overflow-x-auto { overflow-x: scroll; -webkit-overflow-scrolling: touch; }
+}
+
+@media (max-width: 768px) {
+  .backdrop-blur-sm, .backdrop-blur, .backdrop-blur-md,
+  .backdrop-blur-lg, .backdrop-blur-xl, .backdrop-blur-2xl {
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+  }
+  .bg-gamer-card {
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  [class*="blur-"]:not(.backdrop-blur*) { display: none; }
+  .radial-glow { display: none; }
+  .glow-pulse { animation: none !important; opacity: 0.1 !important; }
+  .noise-overlay { display: none; }
+  .animated-gradient { animation: none; }
+  .hero-video video { will-change: auto; transform: scale(1); }
+  .btn-gamer::before { display: none; }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .btn-gamer:hover::before { display: none; }
+  [class*="hover:scale-"] { transform: none !important; }
+  [class*="hover:shadow-"] { box-shadow: none !important; }
+  .card-gamer:hover { transform: none !important; box-shadow: none !important; }
+}
+
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+}
