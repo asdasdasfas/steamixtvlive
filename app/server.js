@@ -17,6 +17,7 @@ const MIME = {
 
 // Dynamic proxy cache for redirect targets
 const proxyTargets = {}
+let hlsTarget = null // last known redirect target for HLS segments
 
 function fetchAndProxy(req, res, targetBase, pathPrefix) {
   let path = req.url
@@ -51,6 +52,8 @@ function fetchAndProxy(req, res, targetBase, pathPrefix) {
           const origUrl = new URL(targetBase)
           const origKey = origUrl.hostname + ':' + (origUrl.port || 80)
           proxyTargets[origKey] = 'http://' + key
+          // Track for /hls/ segments regardless of which port was used
+          hlsTarget = 'http://' + key
           const headers = { ...proxyRes.headers, location: proxyPath, 'access-control-allow-origin': '*' }
           delete headers['transfer-encoding']
           res.writeHead(proxyRes.statusCode, headers)
@@ -84,7 +87,7 @@ http.createServer((req, res) => {
 
   // Dynamic proxy for redirect targets: /_p/host:port/path
   if (req.url.startsWith('/_p/')) {
-    const rest = req.url.slice(4) // remove '/_p/'
+    const rest = req.url.slice(4)
     const slashIdx = rest.indexOf('/')
     if (slashIdx > 0) {
       const hostPort = rest.slice(0, slashIdx)
@@ -93,6 +96,8 @@ http.createServer((req, res) => {
         return fetchAndProxy(req, res, target, '/_p/' + hostPort)
       }
     }
+    // Cache miss - return error instead of falling through to static files
+    res.writeHead(502); res.end('Proxy target not found'); return
   }
 
   // Static proxy routes
@@ -103,7 +108,7 @@ http.createServer((req, res) => {
 
   // HLS segments - path IS the actual backend path, don't strip prefix
   if (req.url.startsWith('/hls/')) {
-    const target = proxyTargets['dzcvip1.xyz:2095'] || 'http://dzcvip1.xyz:2095'
+    const target = hlsTarget || 'http://dzcvip1.xyz:2095'
     return fetchAndProxy(req, res, target, '')
   }
 
