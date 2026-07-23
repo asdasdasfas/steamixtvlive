@@ -39,7 +39,7 @@ const MIME = {
 const proxyTargets = {}
 // HLS targets keyed by the hash segment from /hls/{hash}/ paths
 const hlsTargets = {}
-let hlsDefaultTarget = 'http://xxfener8717.yyuyy.com:2095'
+let hlsDefaultTarget = 'http://dzcvip1.xyz:2095'
 // Keys in proxyTargets that were set by HLS (.m3u8) redirects (not polluted by movie/series)
 const hlsProxyKeys = []
 // CDN origin playlist URLs (used as Referer for TS segment auth)
@@ -130,6 +130,8 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
     // Non-playlist → proxy normally through backend (maybe it serves TS too)
     return fetchAndProxy(req, res, targetBase, pathPrefix)
   }
+  // Reset per-channel state so old CDN targets don't pollute TS proxy for this channel
+  hlsProxyKeys.length = 0
   const url = targetBase + path
   const opts = makeHttpOpts(url, req.method, req.headers)
   const chunks = []
