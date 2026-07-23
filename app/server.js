@@ -60,6 +60,10 @@ http.createServer((req, res) => {
   if (req.url.startsWith('/p8080/')) {
     return proxyTo(req, res, 'dzcvip1.xyz', 8080, '/p8080/')
   }
+  // Proxy /hls/* → dzcvip1.xyz:2095 (HLS TS segments from m3u8)
+  if (req.url.startsWith('/hls/')) {
+    return proxyTo(req, res, 'dzcvip1.xyz', 2095, '/hls/')
+  }
 
   // Static files
   let url = (req.url || '/').split('?')[0]
