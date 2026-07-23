@@ -15,27 +15,48 @@ const MIME = {
   '.ts': 'video/mp2t', '.mp4': 'video/mp4', '.mkv': 'video/x-matroska',
 }
 
+function fetchUrl(url, method, headers, body, redirects = 5) {
+  return new Promise((resolve, reject) => {
+    if (redirects <= 0) return reject(new Error('Too many redirects'))
+    const u = new URL(url)
+    const opts = {
+      hostname: u.hostname, port: u.port || 80,
+      path: u.pathname + u.search,
+      method, headers: { ...headers, 'Host': u.host, 'Connection': 'close' },
+      timeout: 30000,
+    }
+    const req = http.request(opts, res => {
+      if (res.statusCode >= 301 && res.statusCode <= 308 && res.headers.location) {
+        const loc = res.headers.location
+        const nextUrl = loc.startsWith('http') ? loc : `${u.protocol}//${u.host}${loc}`
+        res.resume()
+        return fetchUrl(nextUrl, method, headers, body, redirects - 1).then(resolve).catch(reject)
+      }
+      resolve(res)
+    })
+    req.on('error', reject)
+    req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')) })
+    if (body) req.write(body)
+    req.end()
+  })
+}
+
 function proxyTo(req, res, hostname, port, prefix) {
   const path = req.url.startsWith(prefix) ? '/' + req.url.slice(prefix.length) : req.url
-  const opts = {
-    hostname, port,
-    path: path,
-    method: req.method,
-    headers: {
-      ...req.headers,
-      'Host': hostname + (port ? ':' + port : ''),
-      'Connection': 'close',
-    },
-    timeout: 30000,
-  }
-  const proxyReq = http.request(opts, proxyRes => {
-    const headers = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
-    res.writeHead(proxyRes.statusCode || 200, headers)
-    proxyRes.pipe(res)
+  const url = `http://${hostname}${port ? ':' + port : ''}${path}`
+  const chunks = []
+  req.on('data', (c) => chunks.push(c))
+  req.on('end', () => {
+    const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined
+    fetchUrl(url, req.method, req.headers, body)
+      .then(proxyRes => {
+        const headers = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
+        delete headers['transfer-encoding']
+        res.writeHead(proxyRes.statusCode || 200, headers)
+        proxyRes.pipe(res)
+      })
+      .catch(() => { try { res.writeHead(502); res.end('Proxy Error') } catch {} })
   })
-  proxyReq.on('error', () => { try { res.writeHead(502); res.end('Proxy Error') } catch {} })
-  proxyReq.on('timeout', () => { proxyReq.destroy(); try { res.writeHead(504); res.end('Timeout') } catch {} })
-  req.pipe(proxyReq)
 }
 
 http.createServer((req, res) => {
