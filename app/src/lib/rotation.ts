@@ -520,12 +520,11 @@ https://dogus.daioncdn.net/kralpoptv/kralpoptv.m3u8?app=f38a38b4-ce55-4040-8676-
 #EXTINF:-1 tvg-id="KRALPOP" tvg-name="KRAL POP" group-title="Diğer" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/kral-pop-tr.png",KRAL POP
 http://dzcvip1.xyz:2095/live/yasar7062/yasar.7062/76544.m3u8`
 function proxyUrl(url: string): string {
-  // Generic proxy: encode host:port as base64, keep path
-  // Works with ANY base URL (dzcvip1.xyz, ctn34.xyz, ccgbndrby11.xyz, dpsmartone.xyz, etc.)
+  // Generic proxy: encode full base URL (protocol://host:port) as base64
   if (url.startsWith('http://') || url.startsWith('https://')) {
     const u = new URL(url)
-    const key = u.hostname + ':' + (u.port || (u.protocol === 'https:' ? 443 : 80))
-    const b64 = btoa(key).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+    const base = u.protocol + '//' + u.hostname + ':' + (u.port || (u.protocol === 'https:' ? 443 : 80))
+    const b64 = btoa(base).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
     return '/p/' + b64 + u.pathname + (u.search || '')
   }
   return url

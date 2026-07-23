@@ -255,16 +255,14 @@ http.createServer((req, res) => {
   if (req.url.startsWith('/xtream-api/')) return fetchAndProxy(req, res, 'http://ctn34.xyz:8080', '/xtream-api/')
   if (req.url.startsWith('/xtream/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:2095', '/xtream/')
   // Generic /p/{base64}/{path} — any base URL (dzcvip1, ctn34, ccgbndrby11, dpsmartone, etc.)
-  // Matches rotation.ts proxyUrl() output
+  // base64 = protocol + "//" + host + ":" + port (e.g. "http://dzcvip1.xyz:2095" or "https://tv-trt1.medya.trt.com.tr:443")
   if (req.url.startsWith('/p/')) {
     const match = req.url.match(/^\/p\/([A-Za-z0-9\-_]+)(\/.*)$/)
     if (match) {
       const encoded = match[1]
       const path = match[2]
-      const decoded = Buffer.from(encoded.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString()
-      const target = 'http://' + decoded
+      const target = Buffer.from(encoded.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString()
       const prefix = '/p/' + encoded
-      // Use hlsFetchAndProxy for m3u8 requests (CDN discovery), regular proxy for anything else
       if (path.endsWith('.m3u8')) {
         return hlsFetchAndProxy(req, res, target, prefix)
       }
