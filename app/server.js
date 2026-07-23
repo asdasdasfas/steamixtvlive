@@ -181,13 +181,6 @@ http.createServer((req, res) => {
     }
     return
   }
-  if (req.url === '/__logs') {
-    res.setHeader('Content-Type', 'application/json')
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.end(JSON.stringify(consoleLogs.slice(-100), null, 2))
-    return
-  }
-
   // Static proxy routes
   if (req.url.startsWith('/xtream-api/')) return fetchAndProxy(req, res, 'http://ctn34.xyz:8080', '/xtream-api/')
   if (req.url.startsWith('/xtream/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:2095', '/xtream/')
