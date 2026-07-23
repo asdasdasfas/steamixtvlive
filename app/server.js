@@ -1,4 +1,5 @@
 import http from 'node:http'
+import https from 'node:https'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -51,18 +52,24 @@ function cleanHeaders(reqHeaders, targetHost) {
 
 function makeHttpOpts(urlStr, method, reqHeaders) {
   const u = new URL(urlStr)
+  const isHttps = u.protocol === 'https:'
   return {
-    hostname: u.hostname, port: u.port || 80,
+    hostname: u.hostname, port: u.port || (isHttps ? 443 : 80),
     path: u.pathname + u.search,
     method, headers: cleanHeaders(reqHeaders, u.host),
     timeout: 15000, family: 4,
+    protocol: u.protocol, // 'http:' or 'https:'
   }
+}
+
+function httpModule(opts) {
+  return opts.protocol === 'https:' ? https : http
 }
 
 function doRequest(reqHeaders, opts, body, redirectCount, res) {
   if (redirectCount > 5) { try { res.writeHead(502); res.end('Too many redirects') } catch {}; return }
   let done = false
-  const proxyReq = http.request(opts, proxyRes => {
+  const proxyReq = httpModule(opts).request(opts, proxyRes => {
     if (done) return; done = true
     const sc = proxyRes.statusCode || 200
     if (sc >= 301 && sc <= 308 && proxyRes.headers.location) {
@@ -131,7 +138,7 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
     const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined
     // Override doRequest to capture m3u8 body
     let done = false
-    const proxyReq = http.request(opts, proxyRes => {
+    const proxyReq = httpModule(opts).request(opts, proxyRes => {
       if (done) return; done = true
       const sc = proxyRes.statusCode || 200
       if (sc >= 301 && sc <= 308 && proxyRes.headers.location) {
