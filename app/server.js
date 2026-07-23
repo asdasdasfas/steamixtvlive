@@ -204,7 +204,9 @@ http.createServer((req, res) => {
       target = proxyTargets[hlsProxyKeys[hlsProxyKeys.length - 1]] || hlsDefaultTarget
     }
     if (!target) target = hlsDefaultTarget
-    console.log(`[HLS-PROXY] ${req.url.substring(0,80)} -> target=${target}`)
+    res.setHeader('X-HLS-Target', target)
+    res.setHeader('X-HLS-Keys', hlsProxyKeys.join(',') || '(empty)')
+    console.log(`[HLS-PROXY] hash=${hash} target=${target} keys=${hlsProxyKeys.join(',')}`)
     // Set CDN referer/origin for auth (matches what CDN expects)
     if (target) {
       const cdnKey = target.replace(/^https?:\/\//, '')
@@ -214,6 +216,18 @@ http.createServer((req, res) => {
       }
     }
     return fetchAndProxy(req, res, target, '')
+  }
+
+  // Debug state endpoint
+  if (req.url === '/__state') {
+    res.setHeader('Content-Type', 'application/json')
+    res.end(JSON.stringify({
+      hlsDefaultTarget,
+      hlsProxyKeys,
+      proxyTargets: Object.keys(proxyTargets),
+      proxyReferers: Object.keys(proxyReferers),
+    }, null, 2))
+    return
   }
 
   // Static files
