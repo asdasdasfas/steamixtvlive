@@ -39,6 +39,8 @@ const proxyTargets = {}
 // HLS targets keyed by the hash segment from /hls/{hash}/ paths
 const hlsTargets = {}
 let hlsDefaultTarget = 'http://dzcvip1.xyz:2095'
+// Keys in proxyTargets that were set by HLS (.m3u8) redirects (not polluted by movie/series)
+const hlsProxyKeys = []
 // CDN origin playlist URLs (used as Referer for TS segment auth)
 const proxyReferers = {}
 
@@ -76,6 +78,7 @@ function doRequest(reqHeaders, opts, body, redirectCount, res) {
       if (loc.includes('.m3u8') || loc.includes('.m3u')) {
         proxyReferers[key] = loc
         hlsDefaultTarget = 'http://' + key
+        if (!hlsProxyKeys.includes(key)) hlsProxyKeys.push(key)
       }
       const hlsMatch = loc.match(/\/hls\/([^\/?#]+)/)
       if (hlsMatch) hlsTargets[hlsMatch[1]] = 'http://' + key
@@ -196,7 +199,12 @@ http.createServer((req, res) => {
   if (req.url.startsWith('/hls/')) {
     const hashMatch = req.url.match(/\/hls\/([^\/?#]+)/)
     const hash = hashMatch ? hashMatch[1] : null
-    let target = (hash && hlsTargets[hash]) || hlsDefaultTarget
+    let target = (hash && hlsTargets[hash]) || null
+    if (!target && hlsProxyKeys.length > 0) {
+      target = proxyTargets[hlsProxyKeys[hlsProxyKeys.length - 1]] || hlsDefaultTarget
+    }
+    if (!target) target = hlsDefaultTarget
+    console.log(`[HLS-PROXY] ${req.url.substring(0,80)} -> target=${target}`)
     // Set CDN referer/origin for auth (matches what CDN expects)
     if (target) {
       const cdnKey = target.replace(/^https?:\/\//, '')
