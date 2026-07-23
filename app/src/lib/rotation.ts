@@ -520,10 +520,11 @@ https://dogus.daioncdn.net/kralpoptv/kralpoptv.m3u8?app=f38a38b4-ce55-4040-8676-
 #EXTINF:-1 tvg-id="KRALPOP" tvg-name="KRAL POP" group-title="Diğer" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/kral-pop-tr.png",KRAL POP
 http://dzcvip1.xyz:2095/live/yasar7062/yasar.7062/76544.m3u8`
 function proxyUrl(url: string): string {
-  // Generic proxy: encode full base URL (protocol://host:port) as base64
-  if (url.startsWith('http://') || url.startsWith('https://')) {
+  // Only proxy HTTP backends (dzcvip1, ctn34, ccgbndrby11, dpsmartone, tv8.daioncdn.net)
+  // HTTPS direct CDN URLs (TRT1, Kanal D, Star TV, etc.) must stay direct — CDNs block proxy IPs
+  if (url.startsWith('http://')) {
     const u = new URL(url)
-    const base = u.protocol + '//' + u.hostname + ':' + (u.port || (u.protocol === 'https:' ? 443 : 80))
+    const base = u.protocol + '//' + u.hostname + ':' + (u.port || 80)
     const b64 = btoa(base).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
     return '/p/' + b64 + u.pathname + (u.search || '')
   }
