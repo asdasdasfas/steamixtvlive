@@ -43,8 +43,9 @@ let hlsDefaultTarget = 'http://dzcvip1.xyz:2095'
 const proxyReferers = {}
 
 function cleanHeaders(reqHeaders, targetHost) {
-  const h = { ...reqHeaders, 'Host': targetHost, 'Connection': 'close', 'User-Agent': 'Mozilla/5.0' }
-  const remove = ['origin', 'cookie', 'sec-fetch-site', 'sec-fetch-mode', 'sec-fetch-dest', 'sec-fetch-user']
+  const h = { ...reqHeaders, 'Host': targetHost, 'Connection': 'close' }
+  // Only strip headers that cause 403 from backend (ctn34.xyz), keep everything for CDN
+  const remove = ['sec-fetch-site', 'sec-fetch-mode', 'sec-fetch-dest', 'sec-fetch-user']
   for (const k of remove) delete h[k]
   return h
 }
@@ -203,10 +204,13 @@ http.createServer((req, res) => {
       if (values.length > 0) target = values[values.length - 1]
     }
     if (!target) target = hlsDefaultTarget
-    // CDN auth: set Referer to the CDN's own playlist URL
+    // CDN auth: set Referer/Origin to CDN's own URLs
     if (target) {
       const cdnKey = target.replace(/^https?:\/\//, '')
-      if (proxyReferers[cdnKey]) req.headers['referer'] = proxyReferers[cdnKey]
+      if (proxyReferers[cdnKey]) {
+        req.headers['referer'] = proxyReferers[cdnKey]
+        req.headers['origin'] = target.replace(/\/+$/, '')
+      }
     }
     return fetchAndProxy(req, res, target, '')
   }
