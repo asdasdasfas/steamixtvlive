@@ -154,10 +154,10 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       console.log(`[TRYURL] HLS.js baslatiliyor...`)
       const hls = new Hls({
         enableWorker: false, lowLatencyMode: false, debug: true,
-        fragLoadingTimeOut: 5000,
-        fragLoadingMaxRetry: 1,
-        fragLoadingRetryDelay: 1000,
-        manifestLoadingTimeOut: 5000,
+        fragLoadingTimeOut: 15000,
+        fragLoadingMaxRetry: 3,
+        fragLoadingRetryDelay: 2000,
+        manifestLoadingTimeOut: 15000,
         fetchSetup: (context, init) => new Request(context.url, {
           ...init,
           credentials: 'include',
@@ -198,11 +198,11 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         )
         if (data.fatal) {
           retryCountRef.current++
-          if (retryCountRef.current <= 3 && urlIndexRef.current === 0) {
-            console.log(`%c[HLS] FATAL -> RETRY ${retryCountRef.current}/3`, 'color:orange')
+          if (retryCountRef.current <= 5 && urlIndexRef.current === 0) {
+            console.log(`%c[HLS] FATAL -> RETRY ${retryCountRef.current}/5`, 'color:orange')
             clearInterval(watchdogRef.current)
             hls.destroy(); hlsRef.current = null
-            setTimeout(() => tryUrl(video), 2000)
+            setTimeout(() => tryUrl(video), 3000)
             return
           }
           console.log(`%c[HLS] FATAL -> sonraki URL`, 'color:red')
