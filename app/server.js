@@ -42,7 +42,7 @@ let hlsDefaultTarget = 'http://dzcvip1.xyz:2095'
 
 function cleanHeaders(reqHeaders, targetHost) {
   const h = { ...reqHeaders, 'Host': targetHost, 'Connection': 'close', 'User-Agent': 'Mozilla/5.0' }
-  const remove = ['origin', 'referer', 'cookie', 'sec-fetch-site', 'sec-fetch-mode', 'sec-fetch-dest', 'sec-fetch-user']
+  const remove = ['origin', 'cookie', 'sec-fetch-site', 'sec-fetch-mode', 'sec-fetch-dest', 'sec-fetch-user']
   for (const k of remove) delete h[k]
   return h
 }
