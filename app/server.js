@@ -39,6 +39,8 @@ const proxyTargets = {}
 // HLS targets keyed by the hash segment from /hls/{hash}/ paths
 const hlsTargets = {}
 let hlsDefaultTarget = 'http://dzcvip1.xyz:2095'
+// CDN origin playlist URLs (used as Referer for TS segment auth)
+const proxyReferers = {}
 
 function cleanHeaders(reqHeaders, targetHost) {
   const h = { ...reqHeaders, 'Host': targetHost, 'Connection': 'close', 'User-Agent': 'Mozilla/5.0' }
@@ -72,6 +74,10 @@ function doRequest(reqHeaders, opts, body, redirectCount, res) {
       const redirectUrl = new URL(loc)
       const key = redirectUrl.hostname + ':' + (redirectUrl.port || 80)
       proxyTargets[key] = 'http://' + key
+      // Store CDN referer for TS auth: playlist URL → referer for subsequent TS segment requests to this host
+      if (loc.includes('.m3u8') || loc.includes('.m3u')) {
+        proxyReferers[key] = loc
+      }
       const hlsMatch = loc.match(/\/hls\/([^\/?#]+)/)
       if (hlsMatch) hlsTargets[hlsMatch[1]] = 'http://' + key
       proxyReq.destroy()
@@ -197,6 +203,11 @@ http.createServer((req, res) => {
       if (values.length > 0) target = values[values.length - 1]
     }
     if (!target) target = hlsDefaultTarget
+    // CDN auth: set Referer to the CDN's own playlist URL
+    if (target) {
+      const cdnKey = target.replace(/^https?:\/\//, '')
+      if (proxyReferers[cdnKey]) req.headers['referer'] = proxyReferers[cdnKey]
+    }
     return fetchAndProxy(req, res, target, '')
   }
 
