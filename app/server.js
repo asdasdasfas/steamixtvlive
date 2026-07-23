@@ -30,9 +30,8 @@ function proxyRequest(req, res, target) {
     headers: { ...req.headers, host: url.host },
   }
   const proxyReq = http.request(opts, proxyRes => {
-    const headers = { ...proxyRes.headers }
+    const headers = { ...proxyRes.headers, 'Access-Control-Allow-Origin': '*' }
     delete headers['transfer-encoding']
-    res.writeHead(proxyRes.statusCode, headers)
     proxyRes.pipe(res)
   })
   req.pipe(proxyReq)
@@ -52,13 +51,13 @@ http.createServer((req, res) => {
     if (err) {
       fs.readFile(path.join(DIST, 'index.html'), (err2, data2) => {
         if (err2) { res.writeHead(404); res.end('Not Found'); return }
-        res.writeHead(200, { 'Content-Type': 'text/html' })
+        res.writeHead(200, { 'Content-Type': 'text/html', 'Access-Control-Allow-Origin': '*' })
         res.end(data2)
       })
       return
     }
     let ext = path.extname(fullPath)
-    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' })
+    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream', 'Access-Control-Allow-Origin': '*' })
     res.end(data)
   })
 }).listen(PORT, () => console.log(`Server running on port ${PORT}`))
