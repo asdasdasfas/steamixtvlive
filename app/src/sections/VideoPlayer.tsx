@@ -30,6 +30,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const allUrlsRef = useRef<string[]>([])
   const watchdogRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
   const lastProgressRef = useRef(0)
+  const retryCountRef = useRef(0)
 
   // Build full URL list
   useEffect(() => {
@@ -122,6 +123,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const urls = allUrlsRef.current
     if (idx >= urls.length) { console.log(`%c[TRYURL] Hic URL kalmadi`, 'color:red'); setLoadError('Hiçbir yayın kaynağı çalışmadı'); return }
     const currentSrc = urls[idx]
+    retryCountRef.current = 0
 
     console.log(`%c[TRYURL] ======== DENEME #${idx}/${urls.length} ========`, 'color:yellow;font-size:14px')
     console.log(`[TRYURL] URL: ${currentSrc}`)
@@ -195,6 +197,14 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
           data.error ? `error=${data.error.message}` : ''
         )
         if (data.fatal) {
+          retryCountRef.current++
+          if (retryCountRef.current <= 3 && urlIndexRef.current === 0) {
+            console.log(`%c[HLS] FATAL -> RETRY ${retryCountRef.current}/3`, 'color:orange')
+            clearInterval(watchdogRef.current)
+            hls.destroy(); hlsRef.current = null
+            setTimeout(() => tryUrl(video), 2000)
+            return
+          }
           console.log(`%c[HLS] FATAL -> sonraki URL`, 'color:red')
           clearInterval(watchdogRef.current)
           hls.destroy(); hlsRef.current = null
