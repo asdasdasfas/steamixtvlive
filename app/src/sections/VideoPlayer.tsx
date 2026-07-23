@@ -68,6 +68,13 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     clearInterval(watchdogRef.current)
     clearTimeout(hideTimer.current)
     if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null }
+    const v = videoRef.current
+    if (v) {
+      v.pause()
+      v.removeAttribute('src')
+      v.load()
+      v.onerror = null
+    }
   }, [])
 
   // Watchdog: every 2s check if video made progress, if stuck for 5s try next URL
