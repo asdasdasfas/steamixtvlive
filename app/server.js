@@ -1,6 +1,7 @@
 import http from 'node:http'
 import fs from 'node:fs'
 import path from 'node:path'
+import dns from 'node:dns'
 import { fileURLToPath } from 'node:url'
 
 const PORT = process.env.PORT || 5173
@@ -31,7 +32,8 @@ function fetchAndProxy(req, res, targetBase, pathPrefix) {
     path: u.pathname + u.search,
     method: req.method,
     headers: { ...req.headers, 'Host': u.host, 'Connection': 'close' },
-    timeout: 30000,
+    timeout: 10000,
+    lookup: (host, opt, cb) => dns.lookup(host, { family: 4, hints: dns.ADDRCONFIG }, cb),
   }
   const chunks = []
   req.on('data', c => chunks.push(c))
