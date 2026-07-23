@@ -101,10 +101,10 @@ http.createServer((req, res) => {
   if (req.url.startsWith('/p2095/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:2095', '/p2095/')
   if (req.url.startsWith('/p8080/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:8080', '/p8080/')
 
-  // HLS segments - try last known redirect target for 2095 first, then fallback
+  // HLS segments - path IS the actual backend path, don't strip prefix
   if (req.url.startsWith('/hls/')) {
     const target = proxyTargets['dzcvip1.xyz:2095'] || 'http://dzcvip1.xyz:2095'
-    return fetchAndProxy(req, res, target, '/hls/')
+    return fetchAndProxy(req, res, target, '')
   }
 
   // Static files
