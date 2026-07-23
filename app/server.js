@@ -43,10 +43,7 @@ let hlsDefaultTarget = 'http://dzcvip1.xyz:2095'
 const proxyReferers = {}
 
 function cleanHeaders(reqHeaders, targetHost) {
-  const h = { ...reqHeaders, 'Host': targetHost, 'Connection': 'close' }
-  // Only strip headers that cause 403 from backend (ctn34.xyz), keep everything for CDN
-  const remove = ['sec-fetch-site', 'sec-fetch-mode', 'sec-fetch-dest', 'sec-fetch-user']
-  for (const k of remove) delete h[k]
+  const h = { ...reqHeaders, 'Host': targetHost }
   return h
 }
 
