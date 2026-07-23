@@ -7,6 +7,30 @@ const PORT = process.env.PORT || 5173
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DIST = path.join(__dirname, 'dist')
 
+// Console log capture
+const consoleLogs = []
+const MAX_LOGS = 500
+
+const LOG_SCRIPT = `<script>
+const __origLog = console.log; const __origErr = console.error; const __origWarn = console.warn
+function __sendLog(level, args) {
+  try {
+    const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a).substring(0,500) : String(a)).join(' ')
+    fetch('/__log', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({level,msg,time:Date.now()}) }).catch(()=>{})
+  } catch(e) {}
+}
+console.log = function() { __origLog.apply(console, arguments); __sendLog('log', arguments) }
+console.error = function() { __origErr.apply(console, arguments); __sendLog('error', arguments) }
+console.warn = function() { __origWarn.apply(console, arguments); __sendLog('warn', arguments) }
+window.onerror = function(msg, url, line, col, err) {
+  __sendLog('uncaught', [msg, url+':'+line].filter(Boolean))
+}
+window.addEventListener('unhandledrejection', function(e) {
+  __sendLog('promise', [e.reason?.message || String(e.reason)])
+})
+console.log('%c[LOG] Console capture active', 'color:lime')
+<\/script>`
+
 const MIME = {
   '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
   '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg',
@@ -129,6 +153,27 @@ http.createServer((req, res) => {
     res.writeHead(502); res.end('Invalid proxy path'); return
   }
 
+  // Console log capture endpoint
+  if (req.url === '/__log' && req.method === 'POST') {
+    let logData = ''
+    req.on('data', c => logData += c)
+    req.on('end', () => {
+      try {
+        const entry = JSON.parse(logData)
+        consoleLogs.push(entry)
+        if (consoleLogs.length > MAX_LOGS) consoleLogs.splice(0, consoleLogs.length - MAX_LOGS)
+      } catch {}
+      res.writeHead(200); res.end('ok')
+    })
+    return
+  }
+  if (req.url === '/__logs') {
+    res.setHeader('Content-Type', 'application/json')
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.end(JSON.stringify(consoleLogs.slice(-100), null, 2))
+    return
+  }
+
   // Static proxy routes
   if (req.url.startsWith('/xtream-api/')) return fetchAndProxy(req, res, 'http://ctn34.xyz:8080', '/xtream-api/')
   if (req.url.startsWith('/xtream/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:2095', '/xtream/')
@@ -156,13 +201,20 @@ http.createServer((req, res) => {
     if (err) {
       fs.readFile(path.join(DIST, 'index.html'), (err2, data2) => {
         if (err2) { res.writeHead(404); res.end('Not Found'); return }
+        const html = data2.toString('utf8').replace('</head>', LOG_SCRIPT + '</head>')
         res.writeHead(200, { 'Content-Type': 'text/html' })
-        res.end(data2)
+        res.end(html)
       })
       return
     }
     let ext = path.extname(fullPath)
-    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' })
-    res.end(data)
+    if (ext === '.html') {
+      const html = data.toString('utf8').replace('</head>', LOG_SCRIPT + '</head>')
+      res.writeHead(200, { 'Content-Type': 'text/html' })
+      res.end(html)
+    } else {
+      res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' })
+      res.end(data)
+    }
   })
 }).listen(PORT, () => console.log(`Server on port ${PORT}`))
