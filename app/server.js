@@ -38,7 +38,7 @@ const MIME = {
 const proxyTargets = {}
 // HLS targets keyed by the hash segment from /hls/{hash}/ paths
 const hlsTargets = {}
-let hlsDefaultTarget = 'http://dzcvip1.xyz:2095'
+let hlsDefaultTarget = 'http://xxfener8717.yyuyy.com:2095'
 // Keys in proxyTargets that were set by HLS (.m3u8) redirects (not polluted by movie/series)
 const hlsProxyKeys = []
 // CDN origin playlist URLs (used as Referer for TS segment auth)
@@ -109,6 +109,68 @@ function fetchAndProxy(req, res, targetBase, pathPrefix) {
   req.on('end', () => {
     const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined
     doRequest(req.headers, opts, body, 0, res)
+  })
+}
+
+// Like fetchAndProxy but intercepts m3u8 responses to extract CDN hosts
+function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
+  let path = req.url
+  if (pathPrefix && req.url.startsWith(pathPrefix)) {
+    path = '/' + req.url.slice(pathPrefix.length)
+  }
+  const isM3u8 = path.endsWith('.m3u8') || path.endsWith('.m3u')
+  if (!isM3u8) {
+    // Non-playlist → proxy normally through backend (maybe it serves TS too)
+    return fetchAndProxy(req, res, targetBase, pathPrefix)
+  }
+  const url = targetBase + path
+  const opts = makeHttpOpts(url, req.method, req.headers)
+  const chunks = []
+  req.on('data', c => chunks.push(c))
+  req.on('end', () => {
+    const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined
+    // Override doRequest to capture m3u8 body
+    let done = false
+    const proxyReq = http.request(opts, proxyRes => {
+      if (done) return; done = true
+      const sc = proxyRes.statusCode || 200
+      if (sc >= 301 && sc <= 308 && proxyRes.headers.location) {
+        // Redirect — let doRequest handle it (includes proxyTargets/proxyReferers update)
+        doRequest(req.headers, opts, body, 0, res)
+        return
+      }
+      // Buffer the body to extract CDN URLs
+      const bodyChunks = []
+      proxyRes.on('data', c => bodyChunks.push(c))
+      proxyRes.on('end', () => {
+        const fullBody = Buffer.concat(bodyChunks)
+        const bodyStr = fullBody.toString('utf8')
+        // Find http:// CDN URLs in the playlist
+        const httpMatches = bodyStr.match(/https?:\/\/[^\s/?#]+:[0-9]+/g) || []
+        for (const cdnUrl of httpMatches) {
+          try {
+            const u = new URL(cdnUrl)
+            const key = u.hostname + ':' + (u.port || 80)
+            if (!hlsProxyKeys.includes(key)) hlsProxyKeys.push(key)
+            proxyTargets[key] = 'http://' + key
+            hlsDefaultTarget = 'http://' + key
+            // Generate referer from the CDN playlist URL
+            const origPath = new URL(url).pathname
+            proxyReferers[key] = cdnUrl + origPath
+            console.log(`[HLS-DISCOVER] CDN=${cdnUrl} key=${key}`)
+          } catch {}
+        }
+        console.log(`[HLS-BODY] ${bodyStr.substring(0,200)}...`)
+        const headers = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
+        delete headers['transfer-encoding']
+        delete headers['content-encoding']
+        try { res.writeHead(sc, headers); res.end(fullBody) } catch {}
+      })
+    })
+    proxyReq.on('error', () => { if (done) return; done = true; try { res.writeHead(502); res.end('Proxy Error') } catch {} })
+    proxyReq.on('timeout', () => { if (done) return; done = true; proxyReq.destroy(); try { res.writeHead(504); res.end('Timeout') } catch {} })
+    if (body) proxyReq.write(body)
+    proxyReq.end()
   })
 }
 
@@ -189,10 +251,10 @@ http.createServer((req, res) => {
     }
     return
   }
-  // Static proxy routes
+  // Static proxy routes — capture m3u8 responses to discover CDN target
   if (req.url.startsWith('/xtream-api/')) return fetchAndProxy(req, res, 'http://ctn34.xyz:8080', '/xtream-api/')
   if (req.url.startsWith('/xtream/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:2095', '/xtream/')
-  if (req.url.startsWith('/p2095/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:2095', '/p2095/')
+  if (req.url.startsWith('/p2095/')) return hlsFetchAndProxy(req, res, 'http://dzcvip1.xyz:2095', '/p2095/')
   if (req.url.startsWith('/p8080/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:8080', '/p8080/')
 
   // HLS segments - proxy through the redirect-discovered CDN target
