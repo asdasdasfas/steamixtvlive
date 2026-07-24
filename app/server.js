@@ -365,26 +365,33 @@ http.createServer((req, res) => {
   // Audio-fix segment transcoding: /audio-fix/s/{base64(absolute_url)}
   if (req.url.startsWith('/audio-fix/s/')) {
     const encoded = req.url.slice('/audio-fix/s/'.length)
+    console.log(`[AFIX-S] segment request: ${req.url.substring(0,80)}`)
     try {
       const target = Buffer.from(encoded.replace(/-/g,'+').replace(/_/g,'/'),'base64').toString()
+      console.log(`[AFIX-S] decoded: ${target.substring(0,100)}`)
       if (target.startsWith('http://')||target.startsWith('https://')) return transcodeStream(req, res, target)
-    } catch {}
+    } catch(e) { console.log(`[AFIX-S] error: ${e.message}`) }
     res.writeHead(502); res.end('Invalid segment'); return
   }
 
   // Audio-fix VOD proxy: /audio-fix/{base64(base_url)}/{path}
   if (req.url.startsWith('/audio-fix/')) {
     const rest = req.url.slice('/audio-fix/'.length); const si = rest.indexOf('/')
+    console.log(`[AFIX] request: ${req.url.substring(0,100)}`)
     if (si > 0) {
       const encoded = rest.slice(0, si); const path = rest.slice(si)
       try {
         const dec = Buffer.from(encoded.replace(/-/g,'+').replace(/_/g,'/'),'base64').toString()
+        console.log(`[AFIX] base=${dec.substring(0,50)} path=${path.substring(0,80)}`)
         if (dec.startsWith('http://')||dec.startsWith('https://')) {
           const base = dec.replace(/\/+$/,''); const url = base + path
-          if ((path.split('?')[0]).endsWith('.m3u8')||(path.split('?')[0]).endsWith('.m3u')) return handleM3u8Vod(req, res, url)
+          const isM3u8 = (path.split('?')[0]).endsWith('.m3u8')||(path.split('?')[0]).endsWith('.m3u')
+          console.log(`[AFIX] fullUrl=${url.substring(0,120)} isM3u8=${isM3u8}`)
+          if (isM3u8) return handleM3u8Vod(req, res, url)
+          console.log(`[AFIX] non-M3U8 -> transcodeStream`)
           return transcodeStream(req, res, url)
         }
-      } catch {}
+      } catch(e) { console.log(`[AFIX] decode error: ${e.message}`) }
     }
     res.writeHead(502); res.end('Invalid audio-fix path'); return
   }

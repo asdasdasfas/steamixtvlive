@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { liveUrl, seriesUrls, fetchVodInfo, fetchSeriesInfo, fetchLiveStreams, vodUrlTesters, vodUrlWithExt, proxyUrl } from '@/lib/supabase'
@@ -24,6 +24,18 @@ export default function Watch() {
   const episode = params.get('episode') || '1'
   const ext = params.get('ext') || ''
   const seriesId = params.get('series_id') || ''
+  const debugRef = useRef<string[]>([])
+  const [debugTxt, setDebugTxt] = useState('')
+
+  // Capture console logs on mobile
+  useEffect(() => {
+    const isM = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    if (!isM) return
+    const origLog = console.log; const origErr = console.error
+    console.log = (...args) => { debugRef.current.push('[LOG] '+args.map(a=>typeof a==='object'?JSON.stringify(a):String(a)).join(' ')); origLog.apply(console,args) }
+    console.error = (...args) => { debugRef.current.push('[ERR] '+args.map(a=>typeof a==='object'?JSON.stringify(a):String(a)).join(' ')); origErr.apply(console,args) }
+    return () => { console.log = origLog; console.error = origErr }
+  }, [])
 
   const resolveStream = useCallback(async () => {
     if (!server) return
@@ -125,6 +137,10 @@ export default function Watch() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         {title && <span className="text-xs text-gray-400 truncate max-w-[160px] md:max-w-[200px] bg-black/40 px-2 py-1 rounded-lg">{title}</span>}
+        {/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && (
+          <button onClick={() => { const isM=!/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)?'no':'yes'; const info={ua:navigator.userAgent,type,streamId,rotationId,season,episode,ext,seriesId,url:url?.substring(0,200),fallbackUrls:fallbackUrls.map(u=>u?.substring(0,150)),loading,error,isMobile:isM,params:{stream_id:params.get('stream_id'),type:params.get('type'),ext:params.get('ext')}}; const full={...info,logs:debugRef.current.slice(-100)}; navigator.clipboard.writeText(JSON.stringify(full,null,2)).then(()=>setDebugTxt('Kopyalandi!')).catch(()=>setDebugTxt('Hata!')); setTimeout(()=>setDebugTxt(''),3000) }}
+            className="w-8 h-8 rounded-full bg-yellow-500/80 flex items-center justify-center text-[10px] font-bold text-black pointer-events-auto">{debugTxt || 'D'}</button>
+        )}
       </div>
       {loading && !url ? (
         <div className="flex-1 flex items-center justify-center">
