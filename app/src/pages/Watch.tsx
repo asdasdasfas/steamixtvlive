@@ -36,9 +36,10 @@ export default function Watch() {
         try {
           const streams = await fetchLiveStreams(base_url, xtream_user, xtream_pass)
           const search = rotationId === 'NATGEO' ? 'national geographic' : 'nat geo wild'
-          // Önce TR: versiyonunu dene, bulamazsa herhangi birini al
+          // Önce TR: HD versiyonunu dene (FHD bazen sorunlu), sonra diğerlerini
           const trName = rotationId === 'NATGEO' ? 'TR: NATIONAL GEOGRAPHIC' : 'TR: NAT GEO WILD'
-          const found = streams.find((s: any) => s.name?.includes(trName))
+          const found = streams.find((s: any) => s.name?.includes(trName) && !s.name?.includes('FHD'))
+            || streams.find((s: any) => s.name?.includes(trName))
             || streams.find((s: any) => s.name?.toLowerCase().includes(search))
           if (found) {
             const primary = liveUrl(base_url, xtream_user, xtream_pass, found.stream_id)
