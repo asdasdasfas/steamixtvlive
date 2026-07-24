@@ -166,17 +166,20 @@ export function liveUrl(base: string, user: string, pass: string, id: number) {
 export type UrlTester = (base: string, user: string, pass: string, id: number) => string
 
 export const vodUrlTesters: UrlTester[] = [
-  (b, u, p, i) => proxyUrl(b, `/movie/${u}/${p}/${i}.mkv`),
+  // M3U8/MP4 first — better mobile codec support (MKV often has AC3/DTS audio unsupported on mobile)
   (b, u, p, i) => proxyUrl(b, `/movie/${u}/${p}/${i}.m3u8`),
   (b, u, p, i) => proxyUrl(b, `/movie/${u}/${p}/${i}.mp4`),
+  (b, u, p, i) => proxyUrl(b, `/movie/${u}/${p}/${i}.mkv`),
   (b, u, p, i) => proxyUrl(b, `/movie/${u}/${p}/${i}`),
   (b, u, p, i) => proxyUrl(b, `/vod/${u}/${p}/${i}.m3u8`),
   (b, u, p, i) => proxyUrl(b, `/vod/${u}/${p}/${i}`),
   // Fallback with hardcoded servers for known backends
-  (_b, u, p, i) => `/p2095/movie/${u}/${p}/${i}.mkv`,
   (_b, u, p, i) => `/p2095/movie/${u}/${p}/${i}.m3u8`,
-  (_b, u, p, i) => `/p8080/movie/${u}/${p}/${i}.mkv`,
+  (_b, u, p, i) => `/p2095/movie/${u}/${p}/${i}.mp4`,
+  (_b, u, p, i) => `/p2095/movie/${u}/${p}/${i}.mkv`,
   (_b, u, p, i) => `/p8080/movie/${u}/${p}/${i}.m3u8`,
+  (_b, u, p, i) => `/p8080/movie/${u}/${p}/${i}.mp4`,
+  (_b, u, p, i) => `/p8080/movie/${u}/${p}/${i}.mkv`,
 ]
 
 export function vodUrlWithExt(base: string, user: string, pass: string, id: number, ext: string) {
