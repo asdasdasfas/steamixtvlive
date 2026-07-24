@@ -264,31 +264,21 @@ function transcodeStream(req, res, sourceUrl, hop) {
         return
       }
       console.log(`[AUDIO-FIX] transcoding: ${sourceUrl.substring(0,120)}`)
-      // Determine output format from URL extension
-      const srcLower = sourceUrl.toLowerCase()
-      const isMp4In = srcLower.includes('.mp4')
-      const isMkvIn = srcLower.includes('.mkv')
-      const isTsIn = srcLower.includes('.ts')
-      const outFmt = isMp4In ? 'mp4' : isMkvIn ? 'mp4' : 'mpegts'
-      const outCt = isMp4In || isMkvIn ? 'video/mp4' : 'video/mp2t'
-      const extraArgs = (isMp4In || isMkvIn) ? ['-movflags', 'frag_keyframe+empty_moov'] : []
       // Pipe through ffmpeg: copy video, transcode audio to AAC
-      const ffmpegArgs = [
+      const ffmpeg = spawn(ffmpegPath, [
         '-i', 'pipe:0',
         '-c:v', 'copy',
         '-c:a', 'aac',
         '-b:a', '128k',
-        ...extraArgs,
-        '-f', outFmt,
+        '-f', 'mpegts',
         '-y', 'pipe:1'
-      ]
-      const ffmpeg = spawn(ffmpegPath, ffmpegArgs)
+      ])
       let headersSent = false
       ffmpeg.stdout.on('data', data => {
         if (!headersSent) {
           headersSent = true
-          console.log(`[AUDIO-FIX] ffmpeg stdout first chunk: ${data.length} bytes fmt=${outFmt}`)
-          try { res.writeHead(200, { 'Content-Type': outCt, 'access-control-allow-origin': '*' }) } catch {}
+          console.log(`[AUDIO-FIX] ffmpeg stdout first chunk: ${data.length} bytes`)
+          try { res.writeHead(200, { 'Content-Type': 'video/mp2t', 'access-control-allow-origin': '*' }) } catch {}
         }
         try { res.write(data) } catch {}
       })
@@ -296,7 +286,7 @@ function transcodeStream(req, res, sourceUrl, hop) {
       ffmpeg.stderr.on('data', d => { stderrBuf += d.toString(); if (stderrBuf.length > 5000) stderrBuf = stderrBuf.slice(-5000) })
       ffmpeg.on('end', () => {
         console.log(`[AUDIO-FIX] ffmpeg ended, stderr: ${stderrBuf.slice(-500).replace(/\n/g,' | ')}`)
-        if (!headersSent) try { res.writeHead(200, { 'Content-Type': outCt }) } catch {}
+        if (!headersSent) try { res.writeHead(200, { 'Content-Type': 'video/mp2t' }) } catch {}
         try { res.end()} catch {}
       })
       ffmpeg.on('error', (e) => {
@@ -449,8 +439,8 @@ http.createServer((req, res) => {
             return
           }
 
-          // Non-M3U8: transcode through ffmpeg (MP4/MKV → MP4 with AAC, TS → mpegts with AAC)
-          return transcodeStream(req, res, url)
+          // Non-M3U8: proxy directly (transcoding only works for TS/HLS segments)
+          return fetchAndProxy(req, res, targetBase, prefix)
         }
       } catch {}
     }
