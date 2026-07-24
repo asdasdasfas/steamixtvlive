@@ -303,16 +303,15 @@ function transcodeDirect(req, res, sourceUrl) {
   req.on('close', () => { clearTimeout(timer); ff.kill() })
 }
 
-// Simple proxy fallback when ffmpeg is unavailable
+// Proxy fallback — mimics /dyn/ behavior using doRequest
 function fetchAndProxySimple(req, res, sourceUrl) {
   const opts = makeHttpOpts(sourceUrl, req.method, req.headers)
-  const pr = httpModule(opts).request(opts, proxyRes => {
-    const sc = proxyRes.statusCode || 200
-    const h = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
-    try { res.writeHead(sc, h); proxyRes.pipe(res) } catch {}
+  const chunks = []
+  req.on('data', c => chunks.push(c))
+  req.on('end', () => {
+    const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined
+    doRequest(req.headers, opts, body, 0, res)
   })
-  pr.on('error', () => { try { res.writeHead(502); res.end('Proxy Error') } catch {} })
-  pr.end()
 }
 
 // Handle M3U8 VOD — fetches playlist, rewrites segment URLs to /audio-fix/s/
