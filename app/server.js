@@ -161,9 +161,9 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
       proxyRes.on('data', c => bodyChunks.push(c))
       proxyRes.on('end', () => {
         let fullBody = Buffer.concat(bodyChunks)
-        // Decompress gzip if needed
-        const contentEncoding = (proxyRes.headers['content-encoding'] || '').toLowerCase()
-        if (contentEncoding === 'gzip') {
+        // Decompress gzip if needed (some CDNs send gzip body without Content-Encoding header)
+        const isGzip = fullBody.length > 2 && fullBody[0] === 0x1F && fullBody[1] === 0x8B
+        if (isGzip) {
           try {
             fullBody = require('zlib').gunzipSync(fullBody)
           } catch (e) {
