@@ -172,11 +172,17 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
               console.log(`[FETCH-SETUP] Akamai URL proxied: ${url.substring(0, 120)}`)
             } catch (e) {}
           }
+          const headers = new Headers(init?.headers || {})
+          if (url.includes('daioncdn.net')) {
+            headers.set('Referer', 'https://ntv.com.tr/')
+            headers.set('Origin', 'https://ntv.com.tr')
+          }
           return new Request(url, {
             ...init,
+            headers,
             credentials: 'include',
             referrerPolicy: 'unsafe-url',
-            referrer: currentSrc,
+            referrer: window.location.href,
           })
         }
       })
