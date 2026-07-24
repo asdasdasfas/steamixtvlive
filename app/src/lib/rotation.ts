@@ -25,7 +25,7 @@ https://dogus.daioncdn.net/startv/startv.m3u8?app=startv_web
 https://demiroren.daioncdn.net/kanald/kanald.m3u8?app=kanald_web&ce=3
 
 #EXTINF:-1 tvg-id="SHOWTV" tvg-name="SHOW TV" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/show-tr.png",SHOW TV
-https://ciner.daioncdn.net/showtv/showtv_1080p.m3u8?ex=1664766175&st=RBzhSuGauna0OGld-DJUVA&tv=1&sid=7ggzjgei1u7i&app=4bc856ef-4c68-4a94-bc87-37dfaaa66558&ce=3
+https://ciner.daioncdn.net/showtv/showtv.m3u8?ce=3&app=4bc856ef-4c68-4a94-bc87-37dfaaa66558
 
 #EXTINF:-1 tvg-id="ATV" tvg-name="ATV" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/atv-tr.png",ATV
 https://rnttwmjcin.turknet.ercdn.net/lcpmvefbyo/atv/atv_480p.m3u8
@@ -520,11 +520,10 @@ https://dogus.daioncdn.net/kralpoptv/kralpoptv.m3u8?app=f38a38b4-ce55-4040-8676-
 #EXTINF:-1 tvg-id="KRALPOP" tvg-name="KRAL POP" group-title="Diğer" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/kral-pop-tr.png",KRAL POP
 http://dzcvip1.xyz:2095/live/yasar7062/yasar.7062/76544.m3u8`
 function proxyUrl(url: string): string {
-  // Only proxy HTTP backends (dzcvip1, ctn34, ccgbndrby11, dpsmartone, tv8.daioncdn.net)
-  // HTTPS direct CDN URLs (TRT1, Kanal D, Star TV, etc.) must stay direct — CDNs block proxy IPs
-  if (url.startsWith('http://')) {
-    const u = new URL(url)
-    const base = u.protocol + '//' + u.hostname + ':' + (u.port || 80)
+  const u = new URL(url)
+  const base = u.protocol + '//' + u.hostname + ':' + (u.port || (u.protocol === 'https:' ? 443 : 80))
+  // Proxy HTTP backends + TRT CDN (Akamai blocks browser requests without proper Referer)
+  if (url.startsWith('http://') || u.hostname.includes('trt.com.tr')) {
     const b64 = btoa(base).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
     return '/p/' + b64 + u.pathname + (u.search || '')
   }

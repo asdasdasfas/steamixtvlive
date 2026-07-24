@@ -45,8 +45,14 @@ const hlsProxyKeys = []
 // CDN origin playlist URLs (used as Referer for TS segment auth)
 const proxyReferers = {}
 
-function cleanHeaders(reqHeaders, targetHost) {
+function cleanHeaders(reqHeaders, targetHost, targetUrl) {
   const h = { ...reqHeaders, 'Host': targetHost }
+  // Some CDNs (Akamai for TRT) require proper Referer
+  if (targetHost.includes('trt.com.tr')) {
+    h['Referer'] = 'https://www.trt.com.tr/'
+    h['Origin'] = 'https://www.trt.com.tr'
+  }
+  // Daion CDNs need app in query, keep as-is
   return h
 }
 
@@ -56,7 +62,7 @@ function makeHttpOpts(urlStr, method, reqHeaders) {
   return {
     hostname: u.hostname, port: u.port || (isHttps ? 443 : 80),
     path: u.pathname + u.search,
-    method, headers: cleanHeaders(reqHeaders, u.host),
+    method, headers: cleanHeaders(reqHeaders, u.host, urlStr),
     timeout: 15000, family: 4,
     protocol: u.protocol, // 'http:' or 'https:'
   }
@@ -82,8 +88,13 @@ function doRequest(reqHeaders, opts, body, redirectCount, res) {
       const key = redirectUrl.hostname + ':' + (redirectUrl.port || 80)
       proxyTargets[key] = 'http://' + key
       // Store CDN referer for TS auth: playlist URL → referer for subsequent TS segment requests to this host
+      const oldKey = opts.hostname + ':' + (opts.port || (opts.protocol === 'https:' ? 443 : 80))
       if (loc.includes('.m3u8') || loc.includes('.m3u')) {
         proxyReferers[key] = loc
+        hlsDefaultTarget = 'http://' + key
+        if (!hlsProxyKeys.includes(key)) hlsProxyKeys.push(key)
+      } else if (key !== oldKey) {
+        // Host changed (redirect to CDN without .m3u8) — still update default target
         hlsDefaultTarget = 'http://' + key
         if (!hlsProxyKeys.includes(key)) hlsProxyKeys.push(key)
       }
