@@ -262,9 +262,10 @@ function transcodeStream(req, res, sourceUrl, hop) {
       const ff = spawn(ffmpegPath, ['-nostats','-hide_banner','-i','pipe:0','-c:v','copy','-c:a','aac','-b:a','128k',...extra,'-f',outFmt,'-y','pipe:1'])
       let hs = false
       ff.stdout.on('data', d => { if (!hs) { hs = true; try { res.writeHead(200,{'Content-Type':outCt,'access-control-allow-origin':'*'}) } catch {} }; try { res.write(d) } catch {} })
-      ff.stderr.on('data', () => {})
-      ff.on('end', () => { if (!hs) try { res.writeHead(200,{'Content-Type':outCt}) } catch {}; try { res.end() } catch {} })
-      ff.on('error', () => { if (!hs) try { res.writeHead(502); res.end('Transcode error') } catch {} })
+      ff.stderr.on('data', d => { console.log(`[FF] ${d.toString().trim()}`) })
+      ff.on('exit', (code, sig) => { console.log(`[FF] exit code=${code} sig=${sig} hs=${hs}`); if (hs) { try { res.end() } catch {} } else { try { res.writeHead(502); res.end(`FF exit ${code}`) } catch {} } })
+      ff.on('error', (e) => { console.log(`[FF] error: ${e.message}`); if (!hs) try { res.writeHead(502); res.end('Transcode error') } catch {} })
+      proxyRes.on('end', () => { console.log('[FF] proxyRes end') })
       proxyRes.pipe(ff.stdin); proxyRes.on('error', () => ff.kill()); req.on('close', () => ff.kill())
     })
     proxyReq.on('error', () => { if (done) return; done = true; try { res.writeHead(502); res.end('Proxy Error') } catch {} })
@@ -560,6 +561,7 @@ http.createServer((req, res) => {
   })
 }).listen(PORT, () => {
   console.log(`Server on port ${PORT}`)
+  console.log(`[FFMPEG] path=${ffmpegPath} exists=${ffmpegPath ? (()=>{try{fs.accessSync(ffmpegPath);return 'yes'}catch{return 'no'}})() : 'null'}`)
   // Periodic state cleanup to prevent memory leaks (every 30 min)
   setInterval(() => {
     const before = { pt: Object.keys(proxyTargets).length, ht: Object.keys(hlsTargets).length, pr: Object.keys(proxyReferers).length, mc: Object.keys(m3u8CdnMap).length, hk: hlsProxyKeys.length }

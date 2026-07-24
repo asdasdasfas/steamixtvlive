@@ -51,23 +51,18 @@ export default function Watch() {
         const { base_url, xtream_user, xtream_pass } = server
         if (type === 'movie') {
           const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-          if (ext) {
-            let primary = vodUrlWithExt(base_url, xtream_user, xtream_pass, sid, ext)
-            let rest = vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))
-            if (isMobile && primary.startsWith('/dyn/')) {
-              const audioFix = '/audio-fix/' + primary.slice('/dyn/'.length)
-              rest = [primary, ...rest]; primary = audioFix
+          const allUrls = ext
+            ? [vodUrlWithExt(base_url, xtream_user, xtream_pass, sid, ext), ...vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))]
+            : vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))
+          let finalUrls = allUrls
+          if (isMobile) {
+            const m3u8Idx = allUrls.findIndex(u => u.endsWith('.m3u8'))
+            if (m3u8Idx >= 0 && allUrls[m3u8Idx].startsWith('/dyn/')) {
+              const audioFix = '/audio-fix/' + allUrls[m3u8Idx].slice('/dyn/'.length)
+              finalUrls = [audioFix, ...allUrls]
             }
-            if (!cancelled) { setUrl(primary); setFallbackUrls(rest) }
-          } else {
-            const urls = vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))
-            let finalUrls = urls
-            if (isMobile && urls[0]?.startsWith('/dyn/')) {
-              const audioFix = '/audio-fix/' + urls[0].slice('/dyn/'.length)
-              finalUrls = [audioFix, ...urls]
-            }
-            if (!cancelled) { setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1)) }
           }
+          if (!cancelled) { setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1)) }
           try {
             const info = await fetchVodInfo(base_url, xtream_user, xtream_pass, sid)
             if (!cancelled) setTitle((info as any)?.info?.name || `Film ${streamId}`)
