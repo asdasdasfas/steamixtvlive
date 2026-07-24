@@ -313,67 +313,6 @@ function transcodeStream(req, res, sourceUrl, hop) {
   })
 }
 
-// Handle M3U8 VOD request — fetches playlist, rewrites segment URLs to /audio-fix/s/
-function handleM3u8Vod(req, res, playlistUrl) {
-  const chunks = []
-  req.on('data', c => chunks.push(c))
-  req.on('end', () => {
-    const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined
-    function fetchM3u8(currentUrl, hop) {
-      if (hop > 5) { try { res.writeHead(502); res.end('Too many redirects') } catch {}; return }
-      const opts = makeHttpOpts(currentUrl, req.method, req.headers)
-      let done = false
-      const proxyReq = httpModule(opts).request(opts, proxyRes => {
-        if (done) return; done = true
-        const sc = proxyRes.statusCode || 200
-        if (sc >= 301 && sc <= 308 && proxyRes.headers.location) {
-          let loc = proxyRes.headers.location
-          if (!loc.startsWith('http://') && !loc.startsWith('https://')) {
-            const u = new URL(currentUrl)
-            loc = u.protocol + '//' + u.host + (u.port ? ':' + u.port : '') + (loc.startsWith('/') ? loc : '/' + loc)
-          }
-          console.log(`[M3U8] redirect ${sc} -> ${loc.substring(0,80)}`)
-          proxyReq.destroy()
-          fetchM3u8(loc, hop + 1)
-          return
-        }
-        if (sc >= 300) {
-          const h = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
-          try { res.writeHead(sc, h); proxyRes.pipe(res) } catch {}
-          return
-        }
-        const bodyChunks = []
-        proxyRes.on('data', c => bodyChunks.push(c))
-        proxyRes.on('end', () => {
-          let content = Buffer.concat(bodyChunks).toString('utf8')
-          try {
-            const m3u8Url = new URL(currentUrl)
-            const baseDir = m3u8Url.protocol + '//' + m3u8Url.host + (m3u8Url.port ? ':' + m3u8Url.port : '') +
-              m3u8Url.pathname.substring(0, m3u8Url.pathname.lastIndexOf('/') + 1)
-            const lines = content.split('\n')
-            for (let i = 0; i < lines.length; i++) {
-              const line = lines[i].trim()
-              if (line && !line.startsWith('#')) {
-                let segUrl = line
-                if (!segUrl.startsWith('http://') && !segUrl.startsWith('https://')) segUrl = baseDir + segUrl
-                const encodedSeg = Buffer.from(segUrl).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-                lines[i] = '/audio-fix/s/' + encodedSeg
-              }
-            }
-            content = lines.join('\n')
-          } catch (e) { console.log(`[M3U8] rewrite err: ${e.message}`) }
-          const h = { 'Content-Type': 'application/vnd.apple.mpegurl', 'access-control-allow-origin': '*' }
-          try { res.writeHead(200, h); res.end(content) } catch {}
-        })
-      })
-      proxyReq.on('error', () => { if (done) return; done = true; try { res.writeHead(502); res.end('Proxy Error') } catch {} })
-      if (body) proxyReq.write(body)
-      proxyReq.end()
-    }
-    fetchM3u8(playlistUrl, 0)
-  })
-}
-
 http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
@@ -401,7 +340,6 @@ http.createServer((req, res) => {
   }
 
   // Dynamic proxy: /dyn/{base64url(base_url)}/{path}
-  // On mobile+VOD, transparently transcodes AC3 audio to AAC via ffmpeg
   if (req.url.startsWith('/dyn/')) {
     const afterDyn = req.url.slice(5) // skip '/dyn/'
     const slashIdx = afterDyn.indexOf('/')
@@ -412,22 +350,6 @@ http.createServer((req, res) => {
         if (decoded.startsWith('http://') || decoded.startsWith('https://')) {
           const targetBase = decoded.replace(/\/+$/, '')
           const prefix = '/dyn/' + encoded
-          const path = afterDyn.slice(slashIdx)
-          const ua = (req.headers['user-agent'] || '') + ' ' + (req.headers['sec-ch-ua-mobile'] || '')
-          const isMobile = /Mobi|Android|iPhone|iPad|iPod|Mobile|Touch|IEMobile|WPDesktop|\?1/i.test(ua)
-          const isVodPath = /\/movie\/|\/vod\/|\/series\//i.test(path)
-          console.log(`[DYN] path=${path.substring(0,60)} ua=${ua.substring(0,60)} isMobile=${isMobile} isVod=${isVodPath}`)
-          if (isMobile && isVodPath) {
-            const url = targetBase + path
-            const pathNoQuery = path.split('?')[0]
-            const isM3u8 = pathNoQuery.endsWith('.m3u8') || pathNoQuery.endsWith('.m3u')
-            if (isM3u8) {
-              console.log(`[DYN-MOBILE] M3U8 VOD -> audio-fix playlist`)
-              return handleM3u8Vod(req, res, url)
-            }
-            console.log(`[DYN-MOBILE] non-M3U8 VOD -> transcodeStream`)
-            return transcodeStream(req, res, url)
-          }
           return fetchAndProxy(req, res, targetBase, prefix)
         }
       } catch {}
@@ -465,7 +387,66 @@ http.createServer((req, res) => {
           const url = targetBase + path
 
           if (isM3u8) {
-            return handleM3u8Vod(req, res, url)
+            // Follow redirects and fetch the final M3U8 content, then rewrite segments
+            const chunks = []
+            req.on('data', c => chunks.push(c))
+            req.on('end', () => {
+              const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined
+              // Recursive fetch with redirect following (max 5 hops)
+              function fetchM3u8(currentUrl, hop) {
+                if (hop > 5) { try { res.writeHead(502); res.end('Too many redirects') } catch {}; return }
+                const opts = makeHttpOpts(currentUrl, req.method, req.headers)
+                let done = false
+                const proxyReq = httpModule(opts).request(opts, proxyRes => {
+                  if (done) return; done = true
+                  const sc = proxyRes.statusCode || 200
+                  if (sc >= 301 && sc <= 308 && proxyRes.headers.location) {
+                    let loc = proxyRes.headers.location
+                    if (!loc.startsWith('http://') && !loc.startsWith('https://')) {
+                      const u = new URL(currentUrl)
+                      loc = u.protocol + '//' + u.host + (u.port ? ':' + u.port : '') + (loc.startsWith('/') ? loc : '/' + loc)
+                    }
+                    console.log(`[AUDIO-FIX] M3U8 redirect ${sc} -> ${loc.substring(0,80)}`)
+                    proxyReq.destroy()
+                    fetchM3u8(loc, hop + 1)
+                    return
+                  }
+                  if (sc >= 300) {
+                    const h = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
+                    try { res.writeHead(sc, h); proxyRes.pipe(res) } catch {}
+                    return
+                  }
+                  const bodyChunks = []
+                  proxyRes.on('data', c => bodyChunks.push(c))
+                  proxyRes.on('end', () => {
+                    let content = Buffer.concat(bodyChunks).toString('utf8')
+                    try {
+                      const m3u8Url = new URL(currentUrl)
+                      const baseDir = m3u8Url.protocol + '//' + m3u8Url.host + (m3u8Url.port ? ':' + m3u8Url.port : '') +
+                        m3u8Url.pathname.substring(0, m3u8Url.pathname.lastIndexOf('/') + 1)
+                      const lines = content.split('\n')
+                      for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i].trim()
+                        if (line && !line.startsWith('#')) {
+                          let segUrl = line
+                          if (!segUrl.startsWith('http://') && !segUrl.startsWith('https://')) segUrl = baseDir + segUrl
+                          const encodedSeg = Buffer.from(segUrl).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+                          lines[i] = '/audio-fix/s/' + encodedSeg
+                        }
+                      }
+                      content = lines.join('\n')
+                    } catch (e) { console.log(`[AUDIO-FIX] M3U8 rewrite err: ${e.message}`) }
+                    const h = { 'Content-Type': 'application/vnd.apple.mpegurl', 'access-control-allow-origin': '*' }
+                    try { res.writeHead(200, h); res.end(content) } catch {}
+                  })
+                })
+                proxyReq.on('error', () => { if (done) return; done = true; try { res.writeHead(502); res.end('Proxy Error') } catch {} })
+                if (body) proxyReq.write(body)
+                proxyReq.end()
+              }
+              fetchM3u8(url, 0)
+            })
+            return
           }
 
           // Non-M3U8: transcode through ffmpeg (MP4/MKV → MP4 with AAC, TS → mpegts with AAC)
