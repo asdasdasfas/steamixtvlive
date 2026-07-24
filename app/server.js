@@ -4,8 +4,6 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { gunzipSync } from 'node:zlib'
-import { spawn } from 'node:child_process'
-import ffmpegPath from 'ffmpeg-static'
 
 const PORT = process.env.PORT || 5173
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -233,53 +231,6 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
   })
 }
 
-// Transcode a stream through ffmpeg — converts AC3/EAC3 audio to AAC (video untouched)
-function transcodeStream(req, res, sourceUrl) {
-  const opts = makeHttpOpts(sourceUrl, req.method, req.headers)
-  const chunks = []
-  req.on('data', c => chunks.push(c))
-  req.on('end', () => {
-    const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined
-    let done = false
-    const proxyReq = httpModule(opts).request(opts, proxyRes => {
-      if (done) return; done = true
-      const sc = proxyRes.statusCode || 200
-      if (sc >= 300) {
-        // Pass through non-200 responses unchanged
-        const h = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
-        try { res.writeHead(sc, h); proxyRes.pipe(res) } catch {}
-        return
-      }
-      // Pipe through ffmpeg: copy video, transcode audio to AAC
-      const ffmpeg = spawn(ffmpegPath, [
-        '-i', 'pipe:0',
-        '-c:v', 'copy',
-        '-c:a', 'aac',
-        '-b:a', '128k',
-        '-f', 'mpegts',
-        '-y', 'pipe:1'
-      ])
-      let headersSent = false
-      ffmpeg.stdout.on('data', data => {
-        if (!headersSent) {
-          headersSent = true
-          try { res.writeHead(200, { 'Content-Type': 'video/mp2t', 'access-control-allow-origin': '*' }) } catch {}
-        }
-        try { res.write(data) } catch {}
-      })
-      ffmpeg.stderr.on('data', () => {}) // discard stderr
-      ffmpeg.on('end', () => { if (!headersSent) try { res.writeHead(200, { 'Content-Type': 'video/mp2t' }) } catch {}; try { res.end() } catch {} })
-      ffmpeg.on('error', () => { if (!headersSent) try { res.writeHead(502); res.end('Transcode error') } catch {} })
-      proxyRes.pipe(ffmpeg.stdin)
-      proxyRes.on('error', () => { ffmpeg.kill() })
-      req.on('close', () => { ffmpeg.kill() })
-    })
-    proxyReq.on('error', () => { if (done) return; done = true; try { res.writeHead(502); res.end('Proxy Error') } catch {} })
-    if (body) proxyReq.write(body)
-    proxyReq.end()
-  })
-}
-
 http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
@@ -322,87 +273,6 @@ http.createServer((req, res) => {
       } catch {}
     }
     res.writeHead(502); res.end('Invalid proxy path'); return
-  }
-
-  // Audio transcoding proxy: /audio-fix/s/{base64(absolute_url)} — transcodes a TS/MP4 segment
-  if (req.url.startsWith('/audio-fix/s/')) {
-    const encoded = req.url.slice('/audio-fix/s/'.length)
-    try {
-      const target = Buffer.from(encoded.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString()
-      if (target.startsWith('http://') || target.startsWith('https://')) return transcodeStream(req, res, target)
-    } catch {}
-    res.writeHead(502); res.end('Invalid audio-fix segment'); return
-  }
-
-  // Audio transcoding proxy: /audio-fix/{base64url(base_url)}/{path}
-  // For M3U8: fetches playlist, rewrites segment URLs to /audio-fix/s/.
-  // For MP4/MKV/TS: pipes through ffmpeg to convert AC3/EAC3 audio to AAC.
-  if (req.url.startsWith('/audio-fix/')) {
-    const rest = req.url.slice('/audio-fix/'.length)
-    const slashIdx = rest.indexOf('/')
-    if (slashIdx > 0) {
-      const encoded = rest.slice(0, slashIdx)
-      const path = rest.slice(slashIdx)
-      try {
-        const decoded = Buffer.from(encoded.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString()
-        if (decoded.startsWith('http://') || decoded.startsWith('https://')) {
-          const targetBase = decoded.replace(/\/+$/, '')
-          const prefix = '/audio-fix/' + encoded
-          const pathNoQuery = path.split('?')[0]
-          const isM3u8 = pathNoQuery.endsWith('.m3u8') || pathNoQuery.endsWith('.m3u')
-          const url = targetBase + path
-
-          if (isM3u8) {
-            // Fetch M3U8, rewrite segments to /audio-fix/s/
-            const opts = makeHttpOpts(url, req.method, req.headers)
-            const chunks = []
-            req.on('data', c => chunks.push(c))
-            req.on('end', () => {
-              const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined
-              let done = false
-              const proxyReq = httpModule(opts).request(opts, proxyRes => {
-                if (done) return; done = true
-                const sc = proxyRes.statusCode || 200
-                if (sc >= 300) {
-                  const h = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
-                  try { res.writeHead(sc, h); proxyRes.pipe(res) } catch {}
-                  return
-                }
-                const bodyChunks = []
-                proxyRes.on('data', c => bodyChunks.push(c))
-                proxyRes.on('end', () => {
-                  let content = Buffer.concat(bodyChunks).toString('utf8')
-                  const m3u8Url = new URL(url)
-                  const baseUrl = m3u8Url.protocol + '//' + m3u8Url.host + (m3u8Url.port ? ':' + m3u8Url.port : '') +
-                    m3u8Url.pathname.substring(0, m3u8Url.pathname.lastIndexOf('/') + 1)
-                  const lines = content.split('\n')
-                  for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i].trim()
-                    if (line && !line.startsWith('#')) {
-                      let segUrl = line
-                      if (!segUrl.startsWith('http://') && !segUrl.startsWith('https://')) segUrl = baseUrl + segUrl
-                      const encodedSeg = Buffer.from(segUrl).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-                      lines[i] = '/audio-fix/s/' + encodedSeg
-                    }
-                  }
-                  const newContent = lines.join('\n')
-                  const h = { 'Content-Type': 'application/vnd.apple.mpegurl', 'access-control-allow-origin': '*' }
-                  try { res.writeHead(200, h); res.end(newContent) } catch {}
-                })
-              })
-              proxyReq.on('error', () => { if (done) return; done = true; try { res.writeHead(502); res.end('Proxy Error') } catch {} })
-              if (body) proxyReq.write(body)
-              proxyReq.end()
-            })
-            return
-          }
-
-          // Non-M3U8: transcode directly
-          return transcodeStream(req, res, url)
-        }
-      } catch {}
-    }
-    res.writeHead(502); res.end('Invalid audio-fix path'); return
   }
 
   // Console log view endpoint
