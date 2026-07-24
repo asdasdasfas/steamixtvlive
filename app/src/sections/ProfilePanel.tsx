@@ -81,9 +81,11 @@ export default function ProfilePanel() {
                 <p className="text-xs text-gray-400 leading-relaxed">
                   Mobil tarayıcı sitemiz yalnızca abonelik bilgilerinizi sorgulamak içindir. 
                   Giriş yaptıktan sonra profil sayfanızdan abonelik sürenizi görüntüleyebilir 
-                  ve Android APK uygulamamızı indirebilirsiniz. Normal tarayıcı tabanlı 
-                  izleme yalnızca PC masaüstü versiyonu ile uyumludur, mobil tarayıcı 
-                  ile açılmaz. Mobil izleme için Android APK uygulamamızı kullanın.
+                  ve Android APK uygulamamızı indirebilirsiniz. Normal tarayıcı tabanlı izleme 
+                  yalnızca <span class="text-yellow-300 font-semibold">PC MASAÜSTÜ versiyonu</span> 
+                  ile uyumludur. Siteden izlemek isterseniz <span class="text-yellow-300 font-semibold">PC masaüstü versiyonuyla</span> 
+                  giriş yapabilirsiniz, mobil tarayıcı ile açılmaz. Mobilde izlemek için 
+                  giriş yaptıktan sonra profil sayfanızdan Android APK uygulamamızı kullanın.
                 </p>
               </div>
             </div>
