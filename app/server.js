@@ -437,4 +437,47 @@ http.createServer((req, res) => {
       res.end(data)
     }
   })
-}).listen(PORT, () => console.log(`Server on port ${PORT}`))
+}).listen(PORT, () => {
+  console.log(`Server on port ${PORT}`)
+  // Periodic state cleanup to prevent memory leaks (every 30 min)
+  setInterval(() => {
+    const before = { pt: Object.keys(proxyTargets).length, ht: Object.keys(hlsTargets).length, pr: Object.keys(proxyReferers).length, mc: Object.keys(m3u8CdnMap).length, hk: hlsProxyKeys.length }
+    // Keep only the most recent 50 proxy targets
+    const ptKeys = Object.keys(proxyTargets)
+    if (ptKeys.length > 50) {
+      const toRemove = ptKeys.slice(0, ptKeys.length - 50)
+      for (const k of toRemove) delete proxyTargets[k]
+    }
+    // Keep only the most recent 50 referers
+    const prKeys = Object.keys(proxyReferers)
+    if (prKeys.length > 50) {
+      const toRemove = prKeys.slice(0, prKeys.length - 50)
+      for (const k of toRemove) delete proxyReferers[k]
+    }
+    // Keep only the most recent 50 HLS targets
+    const htKeys = Object.keys(hlsTargets)
+    if (htKeys.length > 50) {
+      const toRemove = htKeys.slice(0, htKeys.length - 50)
+      for (const k of toRemove) delete hlsTargets[k]
+    }
+    // Keep only the most recent 100 CDN map entries (hashes + host mappings)
+    const mcKeys = Object.keys(m3u8CdnMap)
+    if (mcKeys.length > 100) {
+      const toRemove = mcKeys.slice(0, mcKeys.length - 100)
+      for (const k of toRemove) delete m3u8CdnMap[k]
+    }
+    if (hlsProxyKeys.length > 50) hlsProxyKeys.splice(0, hlsProxyKeys.length - 50)
+    const after = { pt: Object.keys(proxyTargets).length, ht: Object.keys(hlsTargets).length, pr: Object.keys(proxyReferers).length, mc: Object.keys(m3u8CdnMap).length, hk: hlsProxyKeys.length }
+    console.log(`[CLEANUP] before=${JSON.stringify(before)} after=${JSON.stringify(after)}`)
+  }, 30 * 60 * 1000)
+  // Self-keepalive: ping the site every 10 min to prevent Render free tier sleep
+  const host = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`
+  if (host.startsWith('http://localhost')) {
+    console.log('[KEEPALIVE] Skipped (local dev)')
+  } else {
+    console.log(`[KEEPALIVE] Starting for ${host}`)
+    setInterval(() => {
+      http.get(host + '/', () => {}).on('error', () => {})
+    }, 10 * 60 * 1000)
+  }
+})
