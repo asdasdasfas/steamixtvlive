@@ -179,61 +179,40 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
         // Match URLs on their own line (not EXTINF lines)
         const allUrlMatches = bodyStr.match(/https?:\/\/[^\s?#]+/g) || []
         // Also find relative URLs (lines that don't start with # and aren't absolute)
-        // Store as { original: string, absolute: string }
-        const relativeUrlEntries = []
-        const rlines = bodyStr.split('\n')
-        for (let i = 0; i < rlines.length; i++) {
-          const line = rlines[i].trim()
+        const lines = bodyStr.split('\n')
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim()
           if (line && !line.startsWith('#') && !line.startsWith('http://') && !line.startsWith('https://')) {
             const absUrl = m3u8Base + line
-            if (!allUrlMatches.includes(absUrl)) relativeUrlEntries.push({ original: line, absolute: absUrl })
+            if (!allUrlMatches.includes(absUrl)) allUrlMatches.push(absUrl)
           }
         }
-        // First rewrite absolute URLs, then relative URLs
         for (const absUrl of allUrlMatches) {
           try {
             const u = new URL(absUrl)
             const key = u.hostname + ':' + (u.port || (u.protocol === 'https:' ? 443 : 80))
-            const proto = u.protocol
-            if (!proxyTargets[key]) proxyTargets[key] = proto + '//' + key
+            const proto = u.protocol // 'http:' or 'https:'
+            // Store CDN base in proxyTargets (preserving protocol)
+            if (!proxyTargets[key]) {
+              proxyTargets[key] = proto + '//' + key
+            }
+            // Register in m3u8CdnMap with a short hash
             let hash = m3u8CdnMap[key]
             if (!hash) {
               hash = 'cdn' + (++m3u8Counter)
               m3u8CdnMap[key] = hash
               m3u8CdnMap[hash] = { base: proto + '//' + key, host: u.hostname, protocol: proto }
             }
+            // Update default targets
             hlsDefaultTarget = proto + '//' + key
             if (!hlsProxyKeys.includes(key)) hlsProxyKeys.push(key)
+            // Replace absolute URL with /hls/{hash}/path
             const urlPath = u.pathname + (u.search || '')
             const proxyPath = '/hls/' + hash + urlPath
             bodyStr = bodyStr.replace(absUrl, proxyPath)
             console.log(`[HLS-REWRITE] ${absUrl.substring(0,60)} -> ${proxyPath.substring(0,60)}`)
           } catch (e) {
             console.log(`[HLS-REWRITE-ERR] ${e.message} for ${absUrl.substring(0,60)}`)
-          }
-        }
-        // Rewrite relative URLs — replace the ORIGINAL relative string in body
-        for (const { original, absolute } of relativeUrlEntries) {
-          try {
-            const u = new URL(absolute)
-            const key = u.hostname + ':' + (u.port || (u.protocol === 'https:' ? 443 : 80))
-            const proto = u.protocol
-            if (!proxyTargets[key]) proxyTargets[key] = proto + '//' + key
-            let hash = m3u8CdnMap[key]
-            if (!hash) {
-              hash = 'cdn' + (++m3u8Counter)
-              m3u8CdnMap[key] = hash
-              m3u8CdnMap[hash] = { base: proto + '//' + key, host: u.hostname, protocol: proto }
-            }
-            hlsDefaultTarget = proto + '//' + key
-            if (!hlsProxyKeys.includes(key)) hlsProxyKeys.push(key)
-            const urlPath = u.pathname + (u.search || '')
-            const proxyPath = '/hls/' + hash + urlPath
-            // Replace original relative URL (line) in body
-            bodyStr = bodyStr.replace(original, proxyPath)
-            console.log(`[HLS-REWRITE-R] ${original.substring(0,60)} -> ${proxyPath.substring(0,60)}`)
-          } catch (e) {
-            console.log(`[HLS-REWRITE-ERR] ${e.message} for ${original.substring(0,60)}`)
           }
         }
         console.log(`[HLS-BODY] ${bodyStr.substring(0,200)}...`)
