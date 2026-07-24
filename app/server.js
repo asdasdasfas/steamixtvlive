@@ -383,8 +383,10 @@ http.createServer((req, res) => {
         req.headers['origin'] = target.replace(/\/+$/, '')
       }
     }
-    // Strip /hls/{hash} prefix to get the actual segment path
-    const pathPrefix = '/hls/' + hash
+    // For our custom hashes (cdn1, cdn2, etc), the path after /hls/{hash} is relative to target
+    // For upstream hashes (MD5 from backend M3U8), keep the full /hls/{hash}/... path
+    const isCustomHash = hash && m3u8CdnMap[hash] != null
+    const pathPrefix = isCustomHash ? '/hls/' + hash : ''
     return fetchAndProxy(req, res, target, pathPrefix)
   }
 
