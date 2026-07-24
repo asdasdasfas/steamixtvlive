@@ -286,41 +286,26 @@ function transcodeStream(req, res, sourceUrl, hop) {
   })
 }
 
-// Direct file transcode (MKV/MP4) — proxy fetch → pipe to ffmpeg stdin → output fragmented MP4
+// Direct file transcode (MKV/MP4) — ffmpeg reads source URL directly, fallback to proxy if fails
 function transcodeDirect(req, res, sourceUrl) {
+  // Capture req body upfront (for fallback proxy which needs req.on('end'))
   const bodyChunks = []
   req.on('data', c => bodyChunks.push(c))
   req.on('end', () => {
     const reqBody = bodyChunks.length > 0 ? Buffer.concat(bodyChunks) : undefined
-    if (!ffmpegPath) { console.log(`[FFDIR] ffmpegPath null, fallback`); const opts = makeHttpOpts(sourceUrl, req.method, req.headers); return doRequest(req.headers, opts, reqBody, 0, res) }
-    try { fs.accessSync(ffmpegPath) } catch(e) { console.log(`[FFDIR] ffmpeg not found: ${e.message}, fallback`); const opts = makeHttpOpts(sourceUrl, req.method, req.headers); return doRequest(req.headers, opts, reqBody, 0, res) }
-    // Send headers immediately so browser doesn't timeout while ffmpeg starts
-    res.writeHead(200, { 'Content-Type': 'video/mp4', 'Transfer-Encoding': 'chunked', 'access-control-allow-origin': '*' })
-    // Fetch source through proxy (browser-like headers, xtream can't block)
     const opts = makeHttpOpts(sourceUrl, req.method, req.headers)
-    const proxyReq = httpModule(opts).request(opts, proxyRes => {
-      const sc = proxyRes.statusCode || 200
-      if (sc >= 301 && sc <= 308 && proxyRes.headers.location) {
-        let loc = proxyRes.headers.location
-        if (!loc.startsWith('http://') && !loc.startsWith('https://')) {
-          const u = new URL(sourceUrl); loc = u.protocol + '//' + u.host + (u.port ? ':' + u.port : '') + (loc.startsWith('/') ? loc : '/' + loc)
-        }
-        proxyReq.destroy(); transcodeDirect(req, res, loc); return
-      }
-      if (sc >= 300) { proxyRes.pipe(res); return }
-      // Spawn ffmpeg: pipe:0 input → video copy → audio AC3→AAC → fragmented MP4
-      const ff = spawn(ffmpegPath, ['-nostats','-hide_banner','-f','matroska','-probesize','100k','-analyzeduration','500k','-i','pipe:0','-c:v','copy','-c:a','aac','-b:a','128k','-movflags','frag_keyframe+empty_moov','-f','mp4','-y','pipe:1'])
-      ff.stdout.on('data', d => { try { res.write(d) } catch {} })
-      ff.stderr.on('data', d => { console.log(`[FFDIR] ${d.toString().trim().substring(0,200)}`) })
-      ff.on('exit', code => { console.log(`[FFDIR] exit ${code}`); try { res.end() } catch {} })
-      ff.on('error', e => { console.log(`[FFDIR] spawn error: ${e.message}`); try { res.end() } catch {} })
-      proxyRes.pipe(ff.stdin)
-      proxyRes.on('error', () => { try { ff.kill(); res.end() } catch {} })
-      req.on('close', () => { try { ff.kill() } catch {} })
-    })
-    proxyReq.on('error', () => { try { res.end() } catch {} })
-    if (reqBody) proxyReq.write(reqBody)
-    proxyReq.end()
+    if (!ffmpegPath) { console.log(`[FFDIR] ffmpegPath null, proxy`); return doRequest(req.headers, opts, reqBody, 0, res) }
+    try { fs.accessSync(ffmpegPath) } catch(e) { console.log(`[FFDIR] ffmpeg not found: ${e.message}, proxy`); return doRequest(req.headers, opts, reqBody, 0, res) }
+    const outFmt = 'mp4'; const outCt = 'video/mp4'
+    const extra = ['-movflags', 'frag_keyframe+empty_moov']
+    const ff = spawn(ffmpegPath, ['-nostats','-hide_banner','-probesize','32k','-analyzeduration','100k','-i',sourceUrl,'-c:v','copy','-c:a','aac','-b:a','128k',...extra,'-f',outFmt,'-y','pipe:1'])
+    let hs = false
+    let timer = setTimeout(() => { if (!hs) { console.log(`[FFDIR] timeout 12s`); ff.kill(); doRequest(req.headers, opts, reqBody, 0, res) } }, 12000)
+    ff.stdout.on('data', d => { if (!hs) { hs = true; clearTimeout(timer); try { res.writeHead(200,{'Content-Type':outCt,'access-control-allow-origin':'*'}) } catch {} }; try { res.write(d) } catch {} })
+    ff.stderr.on('data', d => { console.log(`[FFDIR] ${d.toString().trim().substring(0,200)}`) })
+    ff.on('exit', (code, sig) => { clearTimeout(timer); console.log(`[FFDIR] exit code=${code} hs=${hs}`); if (hs) { try { res.end() } catch {} } else { doRequest(req.headers, opts, reqBody, 0, res) } })
+    ff.on('error', (e) => { clearTimeout(timer); console.log(`[FFDIR] spawn error: ${e.message}`); if (!hs) { doRequest(req.headers, opts, reqBody, 0, res) } })
+    req.on('close', () => { clearTimeout(timer); if (!hs) ff.kill() })
   })
 }
 
