@@ -38,13 +38,23 @@ export default function Watch() {
         const sid = parseInt(streamId)
         const { base_url, xtream_user, xtream_pass } = server
         if (type === 'movie') {
+          const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
           if (ext) {
-            const primary = vodUrlWithExt(base_url, xtream_user, xtream_pass, sid, ext)
-            const rest = vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))
+            let primary = vodUrlWithExt(base_url, xtream_user, xtream_pass, sid, ext)
+            let rest = vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))
+            if (isMobile && primary.startsWith('/dyn/')) {
+              const audioFix = '/audio-fix/' + primary.slice('/dyn/'.length)
+              rest = [primary, ...rest]; primary = audioFix
+            }
             if (!cancelled) { setUrl(primary); setFallbackUrls(rest) }
           } else {
             const urls = vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))
-            if (!cancelled) { setUrl(urls[0]); setFallbackUrls(urls.slice(1)) }
+            let finalUrls = urls
+            if (isMobile && urls[0]?.startsWith('/dyn/')) {
+              const audioFix = '/audio-fix/' + urls[0].slice('/dyn/'.length)
+              finalUrls = [audioFix, ...urls]
+            }
+            if (!cancelled) { setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1)) }
           }
           try {
             const info = await fetchVodInfo(base_url, xtream_user, xtream_pass, sid)

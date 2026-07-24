@@ -4,6 +4,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { gunzipSync } from 'node:zlib'
+import { spawn } from 'node:child_process'
+import ffmpegPath from 'ffmpeg-static'
 
 const PORT = process.env.PORT || 5173
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -231,6 +233,91 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
   })
 }
 
+// Audio transcoding: pipes source through ffmpeg (video copy, AC3/EAC3 -> AAC)
+function transcodeStream(req, res, sourceUrl, hop) {
+  if (hop === undefined) hop = 0
+  if (hop > 5) { try { res.writeHead(502); res.end('Too many redirects') } catch {}; return }
+  const opts = makeHttpOpts(sourceUrl, req.method, req.headers)
+  const chunks = []
+  req.on('data', c => chunks.push(c))
+  req.on('end', () => {
+    const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined
+    let done = false
+    const proxyReq = httpModule(opts).request(opts, proxyRes => {
+      if (done) return; done = true
+      const sc = proxyRes.statusCode || 200
+      if (sc >= 301 && sc <= 308 && proxyRes.headers.location) {
+        let loc = proxyRes.headers.location
+        if (!loc.startsWith('http://') && !loc.startsWith('https://')) {
+          const u = new URL(sourceUrl); loc = u.protocol + '//' + u.host + (u.port ? ':' + u.port : '') + (loc.startsWith('/') ? loc : '/' + loc)
+        }
+        proxyReq.destroy(); transcodeStream(req, res, loc, hop + 1); return
+      }
+      if (sc >= 300) { const h = { ...proxyRes.headers, 'access-control-allow-origin': '*' }; try { res.writeHead(sc, h); proxyRes.pipe(res) } catch {}; return }
+      const srcLower = sourceUrl.toLowerCase()
+      const isMp4 = srcLower.includes('.mp4') || srcLower.includes('.mkv')
+      const outFmt = isMp4 ? 'mp4' : 'mpegts'
+      const outCt = isMp4 ? 'video/mp4' : 'video/mp2t'
+      const extra = isMp4 ? ['-movflags', 'frag_keyframe+empty_moov'] : []
+      const ff = spawn(ffmpegPath, ['-nostats','-hide_banner','-i','pipe:0','-c:v','copy','-c:a','aac','-b:a','128k',...extra,'-f',outFmt,'-y','pipe:1'])
+      let hs = false
+      ff.stdout.on('data', d => { if (!hs) { hs = true; try { res.writeHead(200,{'Content-Type':outCt,'access-control-allow-origin':'*'}) } catch {} }; try { res.write(d) } catch {} })
+      ff.stderr.on('data', () => {})
+      ff.on('end', () => { if (!hs) try { res.writeHead(200,{'Content-Type':outCt}) } catch {}; try { res.end() } catch {} })
+      ff.on('error', () => { if (!hs) try { res.writeHead(502); res.end('Transcode error') } catch {} })
+      proxyRes.pipe(ff.stdin); proxyRes.on('error', () => ff.kill()); req.on('close', () => ff.kill())
+    })
+    proxyReq.on('error', () => { if (done) return; done = true; try { res.writeHead(502); res.end('Proxy Error') } catch {} })
+    if (body) proxyReq.write(body); proxyReq.end()
+  })
+}
+
+// Handle M3U8 VOD — fetches playlist, rewrites segment URLs to /audio-fix/s/
+function handleM3u8Vod(req, res, playlistUrl) {
+  const chunks = []
+  req.on('data', c => chunks.push(c))
+  req.on('end', () => {
+    const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined
+    function fetchM3u8(url, hop) {
+      if (hop > 5) { try { res.writeHead(502); res.end('Too many redirects') } catch {}; return }
+      const opts = makeHttpOpts(url, req.method, req.headers)
+      let done = false
+      const pr = httpModule(opts).request(opts, proxyRes => {
+        if (done) return; done = true
+        const sc = proxyRes.statusCode || 200
+        if (sc >= 301 && sc <= 308 && proxyRes.headers.location) {
+          let loc = proxyRes.headers.location
+          if (!loc.startsWith('http://') && !loc.startsWith('https://')) { const u = new URL(url); loc = u.protocol+'//'+u.host+(u.port?':'+u.port:'')+(loc.startsWith('/')?loc:'/'+loc) }
+          pr.destroy(); fetchM3u8(loc, hop+1); return
+        }
+        if (sc >= 300) { const h = { ...proxyRes.headers, 'access-control-allow-origin': '*' }; try { res.writeHead(sc, h); proxyRes.pipe(res) } catch {}; return }
+        const bc = []; proxyRes.on('data', c => bc.push(c))
+        proxyRes.on('end', () => {
+          let c = Buffer.concat(bc).toString('utf8')
+          try {
+            const m3u8Url = new URL(url)
+            const base = m3u8Url.protocol+'//'+m3u8Url.host+(m3u8Url.port?':'+m3u8Url.port:'')+m3u8Url.pathname.substring(0,m3u8Url.pathname.lastIndexOf('/')+1)
+            const lines = c.split('\n')
+            for (let i = 0; i < lines.length; i++) {
+              const line = lines[i].trim()
+              if (line && !line.startsWith('#')) {
+                let su = line; if (!su.startsWith('http://')&&!su.startsWith('https://')) su = base + su
+                const enc = Buffer.from(su).toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
+                lines[i] = '/audio-fix/s/' + enc
+              }
+            }
+            c = lines.join('\n')
+          } catch(e) { console.log(`[M3U8] rewrite err: ${e.message}`) }
+          try { res.writeHead(200,{'Content-Type':'application/vnd.apple.mpegurl','access-control-allow-origin':'*'}); res.end(c) } catch {}
+        })
+      })
+      pr.on('error', () => { if (done) return; done = true; try { res.writeHead(502); res.end('Proxy Error') } catch {} })
+      if (body) pr.write(body); pr.end()
+    }
+    fetchM3u8(playlistUrl, 0)
+  })
+}
+
 http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
@@ -273,6 +360,33 @@ http.createServer((req, res) => {
       } catch {}
     }
     res.writeHead(502); res.end('Invalid proxy path'); return
+  }
+
+  // Audio-fix segment transcoding: /audio-fix/s/{base64(absolute_url)}
+  if (req.url.startsWith('/audio-fix/s/')) {
+    const encoded = req.url.slice('/audio-fix/s/'.length)
+    try {
+      const target = Buffer.from(encoded.replace(/-/g,'+').replace(/_/g,'/'),'base64').toString()
+      if (target.startsWith('http://')||target.startsWith('https://')) return transcodeStream(req, res, target)
+    } catch {}
+    res.writeHead(502); res.end('Invalid segment'); return
+  }
+
+  // Audio-fix VOD proxy: /audio-fix/{base64(base_url)}/{path}
+  if (req.url.startsWith('/audio-fix/')) {
+    const rest = req.url.slice('/audio-fix/'.length); const si = rest.indexOf('/')
+    if (si > 0) {
+      const encoded = rest.slice(0, si); const path = rest.slice(si)
+      try {
+        const dec = Buffer.from(encoded.replace(/-/g,'+').replace(/_/g,'/'),'base64').toString()
+        if (dec.startsWith('http://')||dec.startsWith('https://')) {
+          const base = dec.replace(/\/+$/,''); const url = base + path
+          if ((path.split('?')[0]).endsWith('.m3u8')||(path.split('?')[0]).endsWith('.m3u')) return handleM3u8Vod(req, res, url)
+          return transcodeStream(req, res, url)
+        }
+      } catch {}
+    }
+    res.writeHead(502); res.end('Invalid audio-fix path'); return
   }
 
   // Console log view endpoint
