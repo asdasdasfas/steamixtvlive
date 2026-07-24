@@ -167,10 +167,10 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       console.log(`[TRYURL] HLS.js baslatiliyor... virtual=${isVirtualHls}`)
       const hls = new Hls({
         enableWorker: false, lowLatencyMode: isVirtualHls, debug: true,
-        fragLoadingTimeOut: isVirtualHls ? 0 : 5000,
-        fragLoadingMaxRetry: 2,
-        fragLoadingRetryDelay: 1000,
-        manifestLoadingTimeOut: 5000,
+        fragLoadingTimeOut: isVirtualHls ? 0 : 3000,
+        fragLoadingMaxRetry: 0,
+        fragLoadingRetryDelay: 0,
+        manifestLoadingTimeOut: 3000,
         fetchSetup: (context, init) => {
           let url = context.url
           // Proxy Akamai URLs through our server for CORS
@@ -227,7 +227,6 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       hls.on(Hls.Events.FRAG_BUFFERED, (_e, data) => {
         console.log(`[HLS] FRAG_BUFFERED: ${data.frag?.relurl||data.frag?.url}`)
       })
-      let swapAttempted = false
       hls.on(Hls.Events.ERROR, (_e, data) => {
         console.log(`%c[HLS] ERROR type=${data.type} details=${data.details} fatal=${data.fatal}`, 'color:orange',
           data.response ? `status=${data.response.code}` : '',
@@ -235,20 +234,10 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
           data.error ? `error=${data.error.message}` : ''
         )
         if (data.fatal) {
-          // Try audio codec swap on mobile for MEDIA_ERROR (unsupported audio codec)
-          if (data.type === Hls.ErrorTypes.MEDIA_ERROR && !swapAttempted) {
-            swapAttempted = true
-            console.log(`%c[HLS] MEDIA_ERROR -> swapAudioCodec + recoverMediaError`, 'color:orange')
+          if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+            console.log(`%c[HLS] MEDIA_ERROR -> swapAudioCodec`, 'color:orange')
             hls.swapAudioCodec()
             hls.recoverMediaError()
-            return
-          }
-          retryCountRef.current++
-          if (retryCountRef.current <= 3 && urlIndexRef.current === 0) {
-            console.log(`%c[HLS] FATAL -> RETRY ${retryCountRef.current}/3`, 'color:orange')
-            clearInterval(watchdogRef.current)
-            hls.destroy(); hlsRef.current = null
-            setTimeout(() => tryUrl(video), 2000)
             return
           }
           console.log(`%c[HLS] FATAL -> sonraki URL`, 'color:red')
@@ -258,7 +247,6 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
           tryUrl(video)
         }
       })
-      startWatchdog(video)
     } else if (isHls && video.canPlayType('application/vnd.apple.mpegurl')) {
       console.log(`[TRYURL] Safari native HLS`)
       video.src = currentSrc

@@ -264,13 +264,27 @@ function transcodeStream(req, res, sourceUrl, hop) {
       ff.stdout.on('data', d => { if (!hs) { hs = true; try { res.writeHead(200,{'Content-Type':outCt,'access-control-allow-origin':'*'}) } catch {} }; try { res.write(d) } catch {} })
       ff.stderr.on('data', d => { console.log(`[FF] ${d.toString().trim()}`) })
       ff.on('exit', (code, sig) => { console.log(`[FF] exit code=${code} sig=${sig} hs=${hs}`); if (hs) { try { res.end() } catch {} } else { try { res.writeHead(502); res.end(`FF exit ${code}`) } catch {} } })
-      ff.on('error', (e) => { console.log(`[FF] error: ${e.message}`); if (!hs) try { res.writeHead(502); res.end('Transcode error') } catch {} })
-      proxyRes.on('end', () => { console.log('[FF] proxyRes end') })
+      ff.on('error', (e) => { console.log(`[FF] spawn error: ${e.message}`); if (!hs) try { res.writeHead(502); res.end('Transcode error') } catch {} })
+      proxyRes.pipe(ff.stdin); proxyRes.on('error', () => ff.kill()); req.on('close', () => ff.kill())
       proxyRes.pipe(ff.stdin); proxyRes.on('error', () => ff.kill()); req.on('close', () => ff.kill())
     })
     proxyReq.on('error', () => { if (done) return; done = true; try { res.writeHead(502); res.end('Proxy Error') } catch {} })
     if (body) proxyReq.write(body); proxyReq.end()
   })
+}
+
+// Direct file transcode (MKV/MP4) — ffmpeg reads source URL directly (supports seeking)
+function transcodeDirect(req, res, sourceUrl) {
+  const srcLower = sourceUrl.toLowerCase()
+  const outFmt = 'mp4'; const outCt = 'video/mp4'
+  const extra = ['-movflags', 'frag_keyframe+empty_moov']
+  const ff = spawn(ffmpegPath, ['-nostats','-hide_banner','-i',sourceUrl,'-c:v','copy','-c:a','aac','-b:a','128k',...extra,'-f',outFmt,'-y','pipe:1'])
+  let hs = false
+  ff.stdout.on('data', d => { if (!hs) { hs = true; try { res.writeHead(200,{'Content-Type':outCt,'access-control-allow-origin':'*'}) } catch {} }; try { res.write(d) } catch {} })
+  ff.stderr.on('data', d => { console.log(`[FFDIR] ${d.toString().trim().substring(0,200)}`) })
+  ff.on('exit', (code, sig) => { console.log(`[FFDIR] exit code=${code} sig=${sig} hs=${hs}`); if (hs) { try { res.end() } catch {} } else { try { res.writeHead(502); res.end(`FF exit ${code}`) } catch {} } })
+  ff.on('error', (e) => { console.log(`[FFDIR] spawn error: ${e.message}`); if (!hs) try { res.writeHead(502); res.end('Transcode error') } catch {} })
+  req.on('close', () => ff.kill())
 }
 
 // Handle M3U8 VOD — fetches playlist, rewrites segment URLs to /audio-fix/s/
@@ -386,10 +400,13 @@ http.createServer((req, res) => {
         console.log(`[AFIX] base=${dec.substring(0,50)} path=${path.substring(0,80)}`)
         if (dec.startsWith('http://')||dec.startsWith('https://')) {
           const base = dec.replace(/\/+$/,''); const url = base + path
-          const isM3u8 = (path.split('?')[0]).endsWith('.m3u8')||(path.split('?')[0]).endsWith('.m3u')
-          console.log(`[AFIX] fullUrl=${url.substring(0,120)} isM3u8=${isM3u8}`)
+          const pathLower = (path.split('?')[0]).toLowerCase()
+          const isM3u8 = pathLower.endsWith('.m3u8')||pathLower.endsWith('.m3u')
+          const isDirect = pathLower.endsWith('.mkv')||pathLower.endsWith('.mp4')
+          console.log(`[AFIX] fullUrl=${url.substring(0,120)} isM3u8=${isM3u8} isDirect=${isDirect}`)
           if (isM3u8) return handleM3u8Vod(req, res, url)
-          console.log(`[AFIX] non-M3U8 -> transcodeStream`)
+          if (isDirect) { console.log(`[AFIX] direct file -> ffmpegDirect`); return transcodeDirect(req, res, url) }
+          console.log(`[AFIX] other -> transcodeStream`)
           return transcodeStream(req, res, url)
         }
       } catch(e) { console.log(`[AFIX] decode error: ${e.message}`) }
