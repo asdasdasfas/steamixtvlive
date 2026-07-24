@@ -194,7 +194,8 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
           }
         }
         console.log(`[HLS-BODY] ${bodyStr.substring(0,200)}...`)
-        const headers = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
+        console.log(`[HLS-REWRITE-COUNT] ${allUrlMatches.length} URLs found in M3U8`)
+        const headers = { ...proxyRes.headers, 'access-control-allow-origin': '*', 'x-hls-rewrite': String(allUrlMatches.length) }
         delete headers['transfer-encoding']
         delete headers['content-encoding']
         try { res.writeHead(sc, headers); res.end(bodyStr) } catch {}
