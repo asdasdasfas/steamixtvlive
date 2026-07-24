@@ -238,7 +238,7 @@ https://trt.daioncdn.net/trtspor-yildiz/master_1080p.m3u8?app=web&platform=trtsp
 https://rnttwmjcin.turknet.ercdn.net/lcpmvefbyo/aspor/aspor.m3u8
 
 #EXTINF:-1 tvg-id="HTSpor" tvg-name="HT Spor" group-title="TR Spor" tvg-logo="https://graph.facebook.com/HTSpor/picture?type=large",HT Spor
-https://ciner-live.ercdn.net/htspor/htspor_720p.m3u8
+http://ciner-live.ercdn.net/htspor/htspor_720p.m3u8
 
 #EXTINF:-1 tvg-id="EkolSports" tvg-name="Ekol Sports" group-title="TR Spor" tvg-logo="https://graph.facebook.com/EkolSpor/picture?type=large",Ekol Sports
 https://ekoltv-live.ercdn.net/ekolsport/ekolsport.m3u8
