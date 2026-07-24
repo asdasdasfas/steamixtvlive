@@ -30,25 +30,28 @@ export default function Watch() {
     let cancelled = false
     setLoading(true); setError(null)
     try {
-      if (rotationId === 'NATGEO' && server) {
-        // NatGeo: kullanıcının kendi Xtream sunucusundan bul
+      if ((rotationId === 'NATGEO' || rotationId === 'NG') && server) {
+        // NatGeo / Nat Geo Wild: kullanıcının kendi Xtream sunucusundan TR versiyonunu bul
         const { base_url, xtream_user, xtream_pass } = server
         try {
           const streams = await fetchLiveStreams(base_url, xtream_user, xtream_pass)
-          const natgeo = streams.find((s: any) => s.name?.toLowerCase().includes('national geographic'))
-          if (natgeo) {
-            const primary = liveUrl(base_url, xtream_user, xtream_pass, natgeo.stream_id)
-            const fb = proxyUrl(base_url, `/live/${xtream_user}/${xtream_pass}/${natgeo.stream_id}.m3u8`)
-            if (!cancelled) { setUrl(primary); setFallbackUrls([fb]); setTitle(natgeo.name || 'National Geographic') }
+          const search = rotationId === 'NATGEO' ? 'national geographic' : 'nat geo wild'
+          // Önce TR: versiyonunu dene, bulamazsa herhangi birini al
+          const trName = rotationId === 'NATGEO' ? 'TR: NATIONAL GEOGRAPHIC' : 'TR: NAT GEO WILD'
+          const found = streams.find((s: any) => s.name?.includes(trName))
+            || streams.find((s: any) => s.name?.toLowerCase().includes(search))
+          if (found) {
+            const primary = liveUrl(base_url, xtream_user, xtream_pass, found.stream_id)
+            const fb = proxyUrl(base_url, `/live/${xtream_user}/${xtream_pass}/${found.stream_id}.m3u8`)
+            if (!cancelled) { setUrl(primary); setFallbackUrls([fb]); setTitle(found.name || (rotationId === 'NATGEO' ? 'National Geographic' : 'Nat Geo Wild')) }
           } else {
-            // Xtream'de bulunamazsa fallback olarak rotation.ts'deki URL'leri dene
             const ch = getChannelById(rotationId)
-            if (!ch || ch.urls.length === 0) throw new Error('National Geographic bulunamadı')
+            if (!ch || ch.urls.length === 0) throw new Error('Kanal bulunamadı')
             if (!cancelled) { setUrl(ch.urls[0]); setFallbackUrls(ch.urls.slice(1)); setTitle(ch.name) }
           }
         } catch {
           const ch = getChannelById(rotationId)
-          if (!ch || ch.urls.length === 0) throw new Error('National Geographic bulunamadı')
+          if (!ch || ch.urls.length === 0) throw new Error('Kanal bulunamadı')
           if (!cancelled) { setUrl(ch.urls[0]); setFallbackUrls(ch.urls.slice(1)); setTitle(ch.name) }
         }
       } else if (rotationId) {
