@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/hooks/use-auth'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { LangProvider } from '@/lib/language'
 import Login from '@/pages/Login'
 import AvatarSelect from '@/pages/AvatarSelect'
@@ -18,15 +19,26 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function AvatarGuard({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
+  const isMobile = useIsMobile()
+  if (isMobile) return <>{children}</>
   if (user && !user.avatar) return <Navigate to="/avatar" replace />
+  return <>{children}</>
+}
+
+// Mobile users: only /login and /profile are accessible
+function MobileGuard({ children }: { children: React.ReactNode }) {
+  const isMobile = useIsMobile()
+  if (isMobile) return <Navigate to="/profile" replace />
   return <>{children}</>
 }
 
 function RootRedirect() {
   const { user, loading } = useAuth()
+  const isMobile = useIsMobile()
   if (loading) return null
   if (!user) return <Navigate to="/login" replace />
-  if (!user.avatar) return <Navigate to="/avatar" replace />
+  if (!user.avatar && !isMobile) return <Navigate to="/avatar" replace />
+  if (isMobile) return <Navigate to="/profile" replace />
   return <Navigate to="/dashboard" replace />
 }
 
@@ -38,11 +50,11 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/avatar" element={<ProtectedRoute><AvatarSelect /></ProtectedRoute>} />
-            <Route path="/dashboard" element={<ProtectedRoute><AvatarGuard><Dashboard /></AvatarGuard></ProtectedRoute>} />
-            <Route path="/watch" element={<ProtectedRoute><AvatarGuard><Watch /></AvatarGuard></ProtectedRoute>} />
-            <Route path="/detail" element={<ProtectedRoute><AvatarGuard><Detail /></AvatarGuard></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><AvatarGuard><MobileGuard><Dashboard /></MobileGuard></AvatarGuard></ProtectedRoute>} />
+            <Route path="/watch" element={<ProtectedRoute><AvatarGuard><MobileGuard><Watch /></MobileGuard></AvatarGuard></ProtectedRoute>} />
+            <Route path="/detail" element={<ProtectedRoute><AvatarGuard><MobileGuard><Detail /></MobileGuard></AvatarGuard></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><AvatarGuard><Profile /></AvatarGuard></ProtectedRoute>} />
-            <Route path="/subscription" element={<ProtectedRoute><AvatarGuard><Subscription /></AvatarGuard></ProtectedRoute>} />
+            <Route path="/subscription" element={<ProtectedRoute><AvatarGuard><MobileGuard><Subscription /></MobileGuard></AvatarGuard></ProtectedRoute>} />
             <Route path="/" element={<RootRedirect />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
