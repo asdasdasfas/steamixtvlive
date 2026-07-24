@@ -146,7 +146,8 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     video.muted = false
     setMuted(false)
 
-    const isHls = currentSrc.endsWith('.m3u8')
+    const srcNoQuery = currentSrc.split('?')[0]
+    const isHls = srcNoQuery.endsWith('.m3u8')
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
     console.log(`[TRYURL] isHLS:${isHls} HLS.destek:${Hls.isSupported()} Safari:${isSafari}`)
 

@@ -528,7 +528,8 @@ function proxyUrl(url: string): string {
     const b64 = btoa(base).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
     // URLs ending with .m3u8 → HLS proxy (redirect + CDN discovery)
     // Other URLs (MPEG-TS streams) → virtual HLS wrapper for hls.js playback
-    if (url.endsWith('.m3u8')) return '/p/' + b64 + u.pathname + (u.search || '')
+    const urlNoQuery = url.split('?')[0]
+    if (urlNoQuery.endsWith('.m3u8') || urlNoQuery.endsWith('.m3u')) return '/p/' + b64 + u.pathname + (u.search || '')
     return '/v/' + b64 + u.pathname + (u.search || '') + '.m3u8'
   }
   return url
