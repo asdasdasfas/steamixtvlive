@@ -145,7 +145,8 @@ export default function Login() {
                   <p className="text-xs text-gray-400 leading-relaxed">
                     Mobil tarayıcı sitemiz yalnızca abonelik bilgilerinizi sorgulamak içindir. 
                     Giriş yaptıktan sonra profil sayfanızdan abonelik sürenizi görüntüleyebilir 
-                    ve uygulamamızı indirebilirsiniz. İzleme için uygulamamızı kullanın.
+                    ve Android APK uygulamamızı indirebilirsiniz. Mobil izleme için 
+                    Android APK uygulamamızı kullanın.
                   </p>
                 </div>
               </div>
