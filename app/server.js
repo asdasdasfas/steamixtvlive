@@ -274,6 +274,9 @@ function transcodeStream(req, res, sourceUrl, hop) {
       const extraArgs = (isMp4In || isMkvIn) ? ['-movflags', 'frag_keyframe+empty_moov'] : []
       // Pipe through ffmpeg: copy video, transcode audio to AAC
       const ffmpegArgs = [
+        '-nostats', '-hide_banner',
+        '-analyzeduration', '10M',
+        '-probesize', '10M',
         '-i', 'pipe:0',
         '-c:v', 'copy',
         '-c:a', 'aac',
@@ -400,6 +403,16 @@ http.createServer((req, res) => {
     res.writeHead(502); res.end('Proxy target not found'); return
   }
 
+  // Debug: /__ua — returns User-Agent and mobile detection result
+  if (req.url === '/__ua') {
+    const ua = req.headers['user-agent'] || '(none)'
+    const secCh = req.headers['sec-ch-ua-mobile'] || '(none)'
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod|Mobile|Touch|IEMobile|WPDesktop|\?1/i.test(ua + ' ' + secCh)
+    res.setHeader('Content-Type', 'application/json')
+    res.end(JSON.stringify({ ua, 'sec-ch-ua-mobile': secCh, isMobile }, null, 2))
+    return
+  }
+
   // Dynamic proxy: /dyn/{base64url(base_url)}/{path}
   // On mobile+VOD, transparently transcodes AC3 audio to AAC via ffmpeg
   if (req.url.startsWith('/dyn/')) {
@@ -413,11 +426,9 @@ http.createServer((req, res) => {
           const targetBase = decoded.replace(/\/+$/, '')
           const prefix = '/dyn/' + encoded
           const path = afterDyn.slice(slashIdx)
-          const ua = (req.headers['user-agent'] || '') + ' ' + (req.headers['sec-ch-ua-mobile'] || '')
-          const isMobile = /Mobi|Android|iPhone|iPad|iPod|Mobile|Touch|IEMobile|WPDesktop|\?1/i.test(ua)
           const isVodPath = /\/movie\/|\/vod\/|\/series\//i.test(path)
-          console.log(`[DYN] path=${path.substring(0,60)} ua=${ua.substring(0,60)} isMobile=${isMobile} isVod=${isVodPath}`)
-          if (isMobile && isVodPath) {
+          console.log(`[DYN] path=${path.substring(0,60)} isVod=${isVodPath}`)
+          if (isVodPath) {
             const url = targetBase + path
             const pathNoQuery = path.split('?')[0]
             const isM3u8 = pathNoQuery.endsWith('.m3u8') || pathNoQuery.endsWith('.m3u')
