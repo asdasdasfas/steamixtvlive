@@ -151,6 +151,17 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
     console.log(`[TRYURL] isHLS:${isHls} HLS.destek:${Hls.isSupported()} Safari:${isSafari}`)
 
+    // Mobile + VOD (movie/series): skip hls.js entirely, use direct video.src with MP4.
+    // Mobile MediaSource often rejects VOD audio codecs (AC3/DTS), direct play handles them.
+    const isMobile = /Android|iPhone|iPad|iPod|Mobi|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    const isVodUrl = currentSrc.includes('/movie/') || currentSrc.includes('/series/') || currentSrc.includes('/vod/')
+    if (isMobile && isVodUrl && isHls) {
+      console.log(`%c[MOBILE-VOD] Skipping hls.js for VOD on mobile, trying next URL`, 'color:orange')
+      // Move to next URL immediately (hls on mobile VOD often loses audio due to codec)
+      urlIndexRef.current++
+      tryUrl(video)
+      return
+    }
     if (isHls && Hls.isSupported() && !isSafari) {
       const isVirtualHls = currentSrc.startsWith('/v/')
       console.log(`[TRYURL] HLS.js baslatiliyor... virtual=${isVirtualHls}`)
