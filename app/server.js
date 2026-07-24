@@ -331,10 +331,17 @@ http.createServer((req, res) => {
     const match = req.url.match(/^\/s\/([A-Za-z0-9\-_]+)(\/.*)\.ts$/)
     if (match) {
       const encoded = match[1]
-      const path = match[2]
+      const path = match[2] // Without .ts extension
       const target = Buffer.from(encoded.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString()
-      const prefix = '/s/' + encoded
-      return fetchAndProxy(req, res, target, prefix)
+      const url = target + path
+      const opts = makeHttpOpts(url, req.method, req.headers)
+      const chunks = []
+      req.on('data', c => chunks.push(c))
+      req.on('end', () => {
+        const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined
+        doRequest(req.headers, opts, body, 0, res)
+      })
+      return
     }
   }
   // Generic /p/{base64}/{path} — any base URL (dzcvip1, ctn34, ccgbndrby11, dpsmartone, etc.)
