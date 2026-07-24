@@ -143,8 +143,9 @@ export default function Login() {
                 <div className="flex items-start gap-2">
                   <Monitor className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
                   <p className="text-xs text-gray-400 leading-relaxed">
-                    Steamix TV web sürümü yalnızca <span className="text-yellow-300 font-semibold">masaüstü bilgisayar</span> 
-                    tarayıcıları ile uyumludur. Mobil cihazınızda izlemek için uygulamamızı indirin.
+                    Mobil tarayıcı sitemiz yalnızca <span className="text-yellow-300 font-semibold">abonelik bilgilerinizi sorgulamak</span> 
+                    içindir. Giriş yaptıktan sonra profil sayfanızdan abonelik sürenizi görüntüleyebilir 
+                    ve uygulamamızı indirebilirsiniz. İzleme için uygulamamızı kullanın.
                   </p>
                 </div>
               </div>
