@@ -286,31 +286,26 @@ function transcodeStream(req, res, sourceUrl, hop) {
   })
 }
 
-// Direct file transcode (MKV/MP4) — ffmpeg reads source URL directly (supports seeking)
+// Direct file transcode (MKV/MP4) — ffmpeg reads source URL directly, fallback to proxy if fails
 function transcodeDirect(req, res, sourceUrl) {
-  if (!ffmpegPath) { console.log(`[FFDIR] ffmpegPath null, fallback to direct proxy`); return fetchAndProxySimple(req, res, sourceUrl) }
-  try { fs.accessSync(ffmpegPath) } catch(e) { console.log(`[FFDIR] ffmpeg not found: ${e.message}, fallback`); return fetchAndProxySimple(req, res, sourceUrl) }
-  const srcLower = sourceUrl.toLowerCase()
-  const outFmt = 'mp4'; const outCt = 'video/mp4'
-  const extra = ['-movflags', 'frag_keyframe+empty_moov']
-  const ff = spawn(ffmpegPath, ['-nostats','-hide_banner','-i',sourceUrl,'-c:v','copy','-c:a','aac','-b:a','128k',...extra,'-f',outFmt,'-y','pipe:1'])
-  let hs = false
-  let timer = setTimeout(() => { if (!hs) { console.log(`[FFDIR] timeout 12s, killing ffmpeg`); ff.kill(); if (!hs) { try { res.writeHead(504); res.end('FFmpeg timeout') } catch {} } } }, 12000)
-  ff.stdout.on('data', d => { if (!hs) { hs = true; clearTimeout(timer); try { res.writeHead(200,{'Content-Type':outCt,'access-control-allow-origin':'*'}) } catch {} }; try { res.write(d) } catch {} })
-  ff.stderr.on('data', d => { console.log(`[FFDIR] ${d.toString().trim().substring(0,200)}`) })
-  ff.on('exit', (code, sig) => { clearTimeout(timer); console.log(`[FFDIR] exit code=${code} sig=${sig} hs=${hs}`); if (hs) { try { res.end() } catch {} } else { console.log(`[FFDIR] ffmpeg failed, fallback to direct proxy`); fetchAndProxySimple(req, res, sourceUrl) } })
-  ff.on('error', (e) => { clearTimeout(timer); console.log(`[FFDIR] spawn error: ${e.message}`); if (!hs) { fetchAndProxySimple(req, res, sourceUrl) } })
-  req.on('close', () => { clearTimeout(timer); ff.kill() })
-}
-
-// Proxy fallback — mimics /dyn/ behavior using doRequest
-function fetchAndProxySimple(req, res, sourceUrl) {
-  const opts = makeHttpOpts(sourceUrl, req.method, req.headers)
-  const chunks = []
-  req.on('data', c => chunks.push(c))
+  // Capture req body upfront (for fallback proxy which needs req.on('end'))
+  const bodyChunks = []
+  req.on('data', c => bodyChunks.push(c))
   req.on('end', () => {
-    const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined
-    doRequest(req.headers, opts, body, 0, res)
+    const reqBody = bodyChunks.length > 0 ? Buffer.concat(bodyChunks) : undefined
+    const opts = makeHttpOpts(sourceUrl, req.method, req.headers)
+    if (!ffmpegPath) { console.log(`[FFDIR] ffmpegPath null, proxy`); return doRequest(req.headers, opts, reqBody, 0, res) }
+    try { fs.accessSync(ffmpegPath) } catch(e) { console.log(`[FFDIR] ffmpeg not found: ${e.message}, proxy`); return doRequest(req.headers, opts, reqBody, 0, res) }
+    const outFmt = 'mp4'; const outCt = 'video/mp4'
+    const extra = ['-movflags', 'frag_keyframe+empty_moov']
+    const ff = spawn(ffmpegPath, ['-nostats','-hide_banner','-probesize','32k','-analyzeduration','100k','-i',sourceUrl,'-c:v','copy','-c:a','aac','-b:a','128k',...extra,'-f',outFmt,'-y','pipe:1'])
+    let hs = false
+    let timer = setTimeout(() => { if (!hs) { console.log(`[FFDIR] timeout 12s`); ff.kill(); doRequest(req.headers, opts, reqBody, 0, res) } }, 12000)
+    ff.stdout.on('data', d => { if (!hs) { hs = true; clearTimeout(timer); try { res.writeHead(200,{'Content-Type':outCt,'access-control-allow-origin':'*'}) } catch {} }; try { res.write(d) } catch {} })
+    ff.stderr.on('data', d => { console.log(`[FFDIR] ${d.toString().trim().substring(0,200)}`) })
+    ff.on('exit', (code, sig) => { clearTimeout(timer); console.log(`[FFDIR] exit code=${code} hs=${hs}`); if (hs) { try { res.end() } catch {} } else { doRequest(req.headers, opts, reqBody, 0, res) } })
+    ff.on('error', (e) => { clearTimeout(timer); console.log(`[FFDIR] spawn error: ${e.message}`); if (!hs) { doRequest(req.headers, opts, reqBody, 0, res) } })
+    req.on('close', () => { clearTimeout(timer); if (!hs) ff.kill() })
   })
 }
 
