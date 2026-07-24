@@ -4,8 +4,21 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { gunzipSync } from 'node:zlib'
-import { spawn } from 'node:child_process'
-import ffmpegPath from 'ffmpeg-static'
+import { spawn, execSync } from 'node:child_process'
+import ffmpegPathStatic from 'ffmpeg-static'
+
+// Try to find ffmpeg: first check static, then system PATH, then common locations
+let ffmpegPath = null
+try {
+  // Check if static path exists
+  if (ffmpegPathStatic) { try { fs.accessSync(ffmpegPathStatic); ffmpegPath = ffmpegPathStatic } catch {} }
+  // Check system PATH
+  if (!ffmpegPath) { try { ffmpegPath = execSync('which ffmpeg', {encoding:'utf8'}).trim() || null } catch {} }
+  // Check common locations
+  const commonPaths = ['/usr/bin/ffmpeg', '/usr/local/bin/ffmpeg', '/opt/bin/ffmpeg']
+  for (const p of commonPaths) { if (!ffmpegPath) { try { fs.accessSync(p); ffmpegPath = p } catch {} } }
+} catch(e) { console.log(`[FFMPEG] init error: ${e.message}`) }
+console.log(`[FFMPEG] path=${ffmpegPath}`)
 
 const PORT = process.env.PORT || 5173
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -275,16 +288,31 @@ function transcodeStream(req, res, sourceUrl, hop) {
 
 // Direct file transcode (MKV/MP4) — ffmpeg reads source URL directly (supports seeking)
 function transcodeDirect(req, res, sourceUrl) {
+  if (!ffmpegPath) { console.log(`[FFDIR] ffmpegPath null, fallback to direct proxy`); return fetchAndProxySimple(req, res, sourceUrl) }
+  try { fs.accessSync(ffmpegPath) } catch(e) { console.log(`[FFDIR] ffmpeg not found: ${e.message}, fallback`); return fetchAndProxySimple(req, res, sourceUrl) }
   const srcLower = sourceUrl.toLowerCase()
   const outFmt = 'mp4'; const outCt = 'video/mp4'
   const extra = ['-movflags', 'frag_keyframe+empty_moov']
   const ff = spawn(ffmpegPath, ['-nostats','-hide_banner','-i',sourceUrl,'-c:v','copy','-c:a','aac','-b:a','128k',...extra,'-f',outFmt,'-y','pipe:1'])
   let hs = false
-  ff.stdout.on('data', d => { if (!hs) { hs = true; try { res.writeHead(200,{'Content-Type':outCt,'access-control-allow-origin':'*'}) } catch {} }; try { res.write(d) } catch {} })
+  let timer = setTimeout(() => { if (!hs) { console.log(`[FFDIR] timeout 15s, killing ffmpeg`); ff.kill(); if (!hs) { try { res.writeHead(504); res.end('FFmpeg timeout') } catch {} } } }, 15000)
+  ff.stdout.on('data', d => { if (!hs) { hs = true; clearTimeout(timer); try { res.writeHead(200,{'Content-Type':outCt,'access-control-allow-origin':'*'}) } catch {} }; try { res.write(d) } catch {} })
   ff.stderr.on('data', d => { console.log(`[FFDIR] ${d.toString().trim().substring(0,200)}`) })
-  ff.on('exit', (code, sig) => { console.log(`[FFDIR] exit code=${code} sig=${sig} hs=${hs}`); if (hs) { try { res.end() } catch {} } else { try { res.writeHead(502); res.end(`FF exit ${code}`) } catch {} } })
-  ff.on('error', (e) => { console.log(`[FFDIR] spawn error: ${e.message}`); if (!hs) try { res.writeHead(502); res.end('Transcode error') } catch {} })
-  req.on('close', () => ff.kill())
+  ff.on('exit', (code, sig) => { clearTimeout(timer); console.log(`[FFDIR] exit code=${code} sig=${sig} hs=${hs}`); if (hs) { try { res.end() } catch {} } else { console.log(`[FFDIR] ffmpeg failed, fallback to direct proxy`); fetchAndProxySimple(req, res, sourceUrl) } })
+  ff.on('error', (e) => { clearTimeout(timer); console.log(`[FFDIR] spawn error: ${e.message}`); if (!hs) { fetchAndProxySimple(req, res, sourceUrl) } })
+  req.on('close', () => { clearTimeout(timer); ff.kill() })
+}
+
+// Simple proxy fallback when ffmpeg is unavailable
+function fetchAndProxySimple(req, res, sourceUrl) {
+  const opts = makeHttpOpts(sourceUrl, req.method, req.headers)
+  const pr = httpModule(opts).request(opts, proxyRes => {
+    const sc = proxyRes.statusCode || 200
+    const h = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
+    try { res.writeHead(sc, h); proxyRes.pipe(res) } catch {}
+  })
+  pr.on('error', () => { try { res.writeHead(502); res.end('Proxy Error') } catch {} })
+  pr.end()
 }
 
 // Handle M3U8 VOD — fetches playlist, rewrites segment URLs to /audio-fix/s/
@@ -412,6 +440,15 @@ http.createServer((req, res) => {
       } catch(e) { console.log(`[AFIX] decode error: ${e.message}`) }
     }
     res.writeHead(502); res.end('Invalid audio-fix path'); return
+  }
+
+  // FFmpeg diagnostic endpoint
+  if (req.url === '/__ffmpeg') {
+    const info = { path: ffmpegPath, exists: false, type: typeof ffmpegPath }
+    if (ffmpegPath) { try { fs.accessSync(ffmpegPath); info.exists = true } catch {} }
+    res.setHeader('Content-Type', 'application/json')
+    res.end(JSON.stringify(info, null, 2))
+    return
   }
 
   // Console log view endpoint
@@ -578,7 +615,8 @@ http.createServer((req, res) => {
   })
 }).listen(PORT, () => {
   console.log(`Server on port ${PORT}`)
-  console.log(`[FFMPEG] path=${ffmpegPath} exists=${ffmpegPath ? (()=>{try{fs.accessSync(ffmpegPath);return 'yes'}catch{return 'no'}})() : 'null'}`)
+    const ffExists = ffmpegPath ? (()=>{try{fs.accessSync(ffmpegPath);return 'yes'}catch{return 'no'}})() : 'null'
+    console.log(`[FFMPEG] path=${ffmpegPath} exists=${ffExists}`)
   // Periodic state cleanup to prevent memory leaks (every 30 min)
   setInterval(() => {
     const before = { pt: Object.keys(proxyTargets).length, ht: Object.keys(hlsTargets).length, pr: Object.keys(proxyReferers).length, mc: Object.keys(m3u8CdnMap).length, hk: hlsProxyKeys.length }
