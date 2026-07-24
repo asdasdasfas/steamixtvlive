@@ -3,6 +3,7 @@ import https from 'node:https'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { gunzipSync } from 'node:zlib'
 
 const PORT = process.env.PORT || 5173
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -165,7 +166,7 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
         const isGzip = fullBody.length > 2 && fullBody[0] === 0x1F && fullBody[1] === 0x8B
         if (isGzip) {
           try {
-            fullBody = require('zlib').gunzipSync(fullBody)
+            fullBody = gunzipSync(fullBody)
           } catch (e) {
             console.log(`[HLS-GUNZIP-ERR] ${e.message}`)
           }
