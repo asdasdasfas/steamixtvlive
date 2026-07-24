@@ -132,7 +132,8 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
   if (pathPrefix && req.url.startsWith(pathPrefix)) {
     path = '/' + req.url.slice(pathPrefix.length)
   }
-  const isM3u8 = path.endsWith('.m3u8') || path.endsWith('.m3u')
+  const pathNoQuery = path.split('?')[0]
+  const isM3u8 = pathNoQuery.endsWith('.m3u8') || pathNoQuery.endsWith('.m3u')
   if (!isM3u8) {
     // Non-playlist → proxy normally through backend (maybe it serves TS too)
     return fetchAndProxy(req, res, targetBase, pathPrefix)
@@ -372,6 +373,8 @@ http.createServer((req, res) => {
       hlsProxyKeys,
       proxyTargets: Object.keys(proxyTargets),
       proxyReferers: Object.keys(proxyReferers),
+      m3u8CdnMap: Object.keys(m3u8CdnMap).filter(k => !k.startsWith('cdn') && k !== ''),
+      m3u8Counter,
     }, null, 2))
     return
   }
