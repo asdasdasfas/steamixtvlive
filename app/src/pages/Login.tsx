@@ -124,16 +124,6 @@ export default function Login() {
                 4K Ultra HD kalitesinde binlerce film, dizi ve VOD içeriği. 
                 Dilediğin zaman, dilediğin yerde izle.
               </p>
-              {!isMobile && (
-                <div className="mt-4 p-3 rounded-xl bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/20">
-                  <p className="text-xs text-gray-300 leading-relaxed">
-                    <span className="text-yellow-300 font-semibold">PC Masaüstü Tarayıcı:</span> 
-                    Sitemize masaüstü tarayıcınızdan eksiksiz erişebilir, 
-                    tüm dizi ve filmlerinizi <span className="text-yellow-300 font-semibold">özgürce izleyebilirsiniz</span>. 
-                    Herhangi bir kısıtlama bulunmamaktadır.
-                  </p>
-                </div>
-              )}
             </div>
             <div className="hidden md:flex items-center gap-4 mt-6">
               <div className="relative w-16 h-[2px] bg-white/5 overflow-hidden rounded-full">
