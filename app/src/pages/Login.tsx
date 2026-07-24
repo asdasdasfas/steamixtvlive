@@ -143,8 +143,8 @@ export default function Login() {
                 <div className="flex items-start gap-2">
                   <Monitor className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
                   <p className="text-xs text-gray-400 leading-relaxed">
-                    Mobil tarayıcı sitemiz yalnızca <span className="text-yellow-300 font-semibold">abonelik bilgilerinizi sorgulamak</span> 
-                    içindir. Giriş yaptıktan sonra profil sayfanızdan abonelik sürenizi görüntüleyebilir 
+                    Mobil tarayıcı sitemiz yalnızca abonelik bilgilerinizi sorgulamak içindir. 
+                    Giriş yaptıktan sonra profil sayfanızdan abonelik sürenizi görüntüleyebilir 
                     ve uygulamamızı indirebilirsiniz. İzleme için uygulamamızı kullanın.
                   </p>
                 </div>

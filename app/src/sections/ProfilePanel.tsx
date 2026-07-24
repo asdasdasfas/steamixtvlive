@@ -78,12 +78,10 @@ export default function ProfilePanel() {
                 <Monitor className="w-5 h-5 text-yellow-400" />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-bold text-yellow-300 mb-1">Mobil Tarayıcı — Abonelik Sorgulama</h3>
                 <p className="text-xs text-gray-400 leading-relaxed">
                   Mobil tarayıcı sitemiz yalnızca abonelik bilgilerinizi sorgulamak içindir. 
-                  Bu sayfada abonelik sürenizi görüntüleyebilir ve aşağıdaki uygulamamızı 
-                  indirebilirsiniz. İzleme yapmak için <span className="text-yellow-300 font-semibold">uygulamayı indirin</span> 
-                  ve abonelik bilgilerinizle giriş yaparak tüm içeriklere erişin.
+                  Giriş yaptıktan sonra profil sayfanızdan abonelik sürenizi görüntüleyebilir 
+                  ve uygulamamızı indirebilirsiniz. İzleme için uygulamamızı kullanın.
                 </p>
               </div>
             </div>
