@@ -42,12 +42,12 @@ export default function Watch() {
             || streams.find((s: any) => s.name?.includes(trName))
             || streams.find((s: any) => s.name?.toLowerCase().includes(search))
           if (found) {
-            const primary = liveUrl(base_url, xtream_user, xtream_pass, found.stream_id)
-            const fb = proxyUrl(base_url, `/live/${xtream_user}/${xtream_pass}/${found.stream_id}.m3u8`)
-            // Fallback olarak rotation.ts'deki URL'leri de ekle (xtream formatı çalışmazsa)
+            const xtUrl = liveUrl(base_url, xtream_user, xtream_pass, found.stream_id)
             const ch = getChannelById(rotationId)
-            const fallbacks = ch ? [fb, ...ch.urls] : [fb]
-            if (!cancelled) { setUrl(primary); setFallbackUrls(fallbacks); setTitle(found.name || (rotationId === 'NATGEO' ? 'National Geographic' : 'Nat Geo Wild')) }
+            // rotation.ts'deki URL'leri primary yap (çalıştığı biliniyor), xtream URL'ini fallback ekle
+            const urls = ch && ch.urls.length > 0 ? ch.urls : [xtUrl]
+            const fallbacks = ch ? [xtUrl] : []
+            if (!cancelled) { setUrl(urls[0]); setFallbackUrls([...urls.slice(1), ...fallbacks]); setTitle(found.name || (rotationId === 'NATGEO' ? 'National Geographic' : 'Nat Geo Wild')) }
           } else {
             const ch = getChannelById(rotationId)
             if (!ch || ch.urls.length === 0) throw new Error('Kanal bulunamadı')
