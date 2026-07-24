@@ -115,12 +115,10 @@ https://playlist.fasttvcdn.com/pl/rfrk9821hdy9dayo8wfyha/belgesel-tv/playlist/0.
 http://trn03.tulix.tv/gt-yabantv/tracks-v1a1/mono.m3u8?token=0631e8753bcdf25bb2a5015db22ec082
 
 #EXTINF:-1 tvg-id="NATGEO" tvg-name="National Geographic" group-title="Belgesel" tvg-logo="https://graph.facebook.com/natgeomedia/picture?type=large",National Geographic
-http://dpsmartone.xyz:2095/bnym5594tv/bny2710cc00bb/101220
 http://ccgbndrby11.xyz:2095/bnym5594tv/bny2710cc00bb/101220
 http://ctn34.xyz:2095/bnym5594tv/bny2710cc00bb/101220
 
 #EXTINF:-1 tvg-id="NG" tvg-name="Nat Geo Wild" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/d/d6/Nat_Geo_Wild_logo.png",Nat Geo Wild
-http://dpsmartone.xyz:2095/bnym5594tv/bny2710cc00bb/27208
 http://ccgbndrby11.xyz:2095/bnym5594tv/bny2710cc00bb/27208
 http://ctn34.xyz:2095/bnym5594tv/bny2710cc00bb/27208
 
