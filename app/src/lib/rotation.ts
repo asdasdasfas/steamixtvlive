@@ -518,14 +518,15 @@ https://dogus.daioncdn.net/kralpoptv/kralpoptv.m3u8?app=f38a38b4-ce55-4040-8676-
 #EXTINF:-1 tvg-id="KRALPOP" tvg-name="KRAL POP" group-title="Diğer" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/kral-pop-tr.png",KRAL POP
 http://dzcvip1.xyz:2095/live/yasar7062/yasar.7062/76544.m3u8`
 function proxyUrl(url: string): string {
-  // Only proxy HTTP backends (dzcvip1, ctn34, ccgbndrby11, dpsmartone, tv8.daioncdn.net)
-  // HTTPS direct CDN URLs must stay direct — CDNs block proxy IPs
-  if (url.startsWith('http://')) {
+  // Proxy HTTP backends (dzcvip1, ctn34, ccgbndrby11, dpsmartone, tv8.daioncdn.net)
+  // Also proxy HTTPS daioncdn URLs — daioncdn doesn't send CORS headers,
+  // so browser blocks direct HTTPS requests. Proxy through our server (same-origin).
+  const needsProxy = url.startsWith('http://') || url.includes('.daioncdn.net')
+  if (needsProxy) {
     const u = new URL(url)
-    const base = u.protocol + '//' + u.hostname + ':' + (u.port || 80)
+    const port = u.port || (u.protocol === 'https:' ? 443 : 80)
+    const base = u.protocol + '//' + u.hostname + ':' + port
     const b64 = btoa(base).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-    // URLs ending with .m3u8 → HLS proxy (redirect + CDN discovery)
-    // Other URLs (MPEG-TS streams) → virtual HLS wrapper for hls.js playback
     const urlNoQuery = url.split('?')[0]
     if (urlNoQuery.endsWith('.m3u8') || urlNoQuery.endsWith('.m3u')) return '/p/' + b64 + u.pathname + (u.search || '')
     return '/v/' + b64 + u.pathname + (u.search || '') + '.m3u8'
