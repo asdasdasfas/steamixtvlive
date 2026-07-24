@@ -56,11 +56,8 @@ export default function Watch() {
             : vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))
           let finalUrls = allUrls
           if (isMobile) {
-            const m3u8Idx = allUrls.findIndex(u => u.endsWith('.m3u8'))
-            if (m3u8Idx >= 0 && allUrls[m3u8Idx].startsWith('/dyn/')) {
-              const audioFix = '/audio-fix/' + allUrls[m3u8Idx].slice('/dyn/'.length)
-              finalUrls = [audioFix, ...allUrls]
-            }
+            const audioFixUrls = allUrls.filter(u => u.startsWith('/dyn/')).map(u => '/audio-fix/' + u.slice('/dyn/'.length))
+            finalUrls = [...audioFixUrls, ...allUrls]
           }
           if (!cancelled) { setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1)) }
           try {
