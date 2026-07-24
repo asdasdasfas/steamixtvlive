@@ -75,15 +75,16 @@ export default function ProfilePanel() {
           <div className="mb-6 p-4 rounded-xl bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/20">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center shrink-0">
-                <Smartphone className="w-5 h-5 text-yellow-400" />
+                <Monitor className="w-5 h-5 text-yellow-400" />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-bold text-yellow-300 mb-1">Mobil Tarayıcı Desteği Sınırlıdır</h3>
+                <h3 className="text-sm font-bold text-yellow-300 mb-1">Yalnızca PC Tarayıcısı ile Uyumludur</h3>
                 <p className="text-xs text-gray-400 leading-relaxed">
-                  Mobil tarayıcınız akış desteği sağlamamaktadır. Bu sayfada yalnızca abonelik 
-                  sürenizi sorgulayabilirsiniz. Steamix TV'yi mobil cihazınızda izlemek için 
+                  Steamix TV web sürümü yalnızca masaüstü bilgisayar tarayıcıları ile 
+                  uyumlu şekilde çalışmaktadır. Bu sayfada abonelik sürenizi sorgulayabilir 
+                  ve mobil uygulamamızı indirebilirsiniz. Mobil cihazınızda izlemek için 
                   aşağıdaki <span className="text-yellow-300 font-semibold">uygulamayı indirin</span> 
-                  ve abonelik bilgilerinizle giriş yapın.
+                  ve abonelik bilgilerinizle giriş yaparak tüm içeriklere erişebilirsiniz.
                 </p>
               </div>
             </div>
