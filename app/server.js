@@ -44,6 +44,9 @@ let hlsDefaultTarget = 'http://dzcvip1.xyz:2095'
 const hlsProxyKeys = []
 // CDN origin playlist URLs (used as Referer for TS segment auth)
 const proxyReferers = {}
+// M3U8 segment URL rewriting: maps a hash to { base (full CDN base URL), host, protocol }
+const m3u8CdnMap = {}
+let m3u8Counter = 0
 
 function cleanHeaders(reqHeaders, targetHost, targetUrl) {
   return { ...reqHeaders, 'Host': targetHost }
@@ -157,27 +160,43 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
       proxyRes.on('data', c => bodyChunks.push(c))
       proxyRes.on('end', () => {
         const fullBody = Buffer.concat(bodyChunks)
-        const bodyStr = fullBody.toString('utf8')
-        // Find http:// CDN URLs in the playlist
-        const httpMatches = bodyStr.match(/https?:\/\/[^\s/?#]+:[0-9]+/g) || []
-        for (const cdnUrl of httpMatches) {
+        let bodyStr = fullBody.toString('utf8')
+        // Find all absolute segment URLs in the M3U8 and rewrite them to proxy paths
+        // Match any URL on a line by itself (TS segment or sub-playlist)
+        const allUrlMatches = bodyStr.match(/https?:\/\/[^\s?#]+/g) || []
+        for (const absUrl of allUrlMatches) {
           try {
-            const u = new URL(cdnUrl)
-            const key = u.hostname + ':' + (u.port || 80)
+            const u = new URL(absUrl)
+            const key = u.hostname + ':' + (u.port || (u.protocol === 'https:' ? 443 : 80))
+            const proto = u.protocol // 'http:' or 'https:'
+            // Store CDN base in proxyTargets (preserving protocol)
+            if (!proxyTargets[key]) {
+              proxyTargets[key] = proto + '//' + key
+            }
+            // Register in m3u8CdnMap with a short hash
+            let hash = m3u8CdnMap[key]
+            if (!hash) {
+              hash = 'cdn' + (++m3u8Counter)
+              m3u8CdnMap[key] = hash
+              m3u8CdnMap[hash] = { base: proto + '//' + key, host: u.hostname, protocol: proto }
+            }
+            // Update default targets
+            hlsDefaultTarget = proto + '//' + key
             if (!hlsProxyKeys.includes(key)) hlsProxyKeys.push(key)
-            proxyTargets[key] = 'http://' + key
-            hlsDefaultTarget = 'http://' + key
-            // Generate referer from the CDN playlist URL
-            const origPath = new URL(url).pathname
-            proxyReferers[key] = cdnUrl + origPath
-            console.log(`[HLS-DISCOVER] CDN=${cdnUrl} key=${key}`)
-          } catch {}
+            // Replace absolute URL with /hls/{hash}/path
+            const urlPath = u.pathname + (u.search || '')
+            const proxyPath = '/hls/' + hash + urlPath
+            bodyStr = bodyStr.replace(absUrl, proxyPath)
+            console.log(`[HLS-REWRITE] ${absUrl.substring(0,60)} -> ${proxyPath.substring(0,60)}`)
+          } catch (e) {
+            console.log(`[HLS-REWRITE-ERR] ${e.message} for ${absUrl.substring(0,60)}`)
+          }
         }
         console.log(`[HLS-BODY] ${bodyStr.substring(0,200)}...`)
         const headers = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
         delete headers['transfer-encoding']
         delete headers['content-encoding']
-        try { res.writeHead(sc, headers); res.end(fullBody) } catch {}
+        try { res.writeHead(sc, headers); res.end(bodyStr) } catch {}
       })
     })
     proxyReq.on('error', () => { if (done) return; done = true; try { res.writeHead(502); res.end('Proxy Error') } catch {} })
@@ -317,7 +336,14 @@ http.createServer((req, res) => {
   if (req.url.startsWith('/hls/')) {
     const hashMatch = req.url.match(/\/hls\/([^\/?#]+)/)
     const hash = hashMatch ? hashMatch[1] : null
-    let target = (hash && hlsTargets[hash]) || null
+    // First check m3u8CdnMap (set by M3U8 URL rewriting)
+    let target = null
+    if (hash && m3u8CdnMap[hash]) {
+      target = m3u8CdnMap[hash].base
+    }
+    if (!target && hash && hlsTargets[hash]) {
+      target = hlsTargets[hash]
+    }
     if (!target && hlsProxyKeys.length > 0) {
       target = proxyTargets[hlsProxyKeys[hlsProxyKeys.length - 1]] || hlsDefaultTarget
     }
@@ -333,7 +359,9 @@ http.createServer((req, res) => {
         req.headers['origin'] = target.replace(/\/+$/, '')
       }
     }
-    return fetchAndProxy(req, res, target, '')
+    // Strip /hls/{hash} prefix to get the actual segment path
+    const pathPrefix = '/hls/' + hash
+    return fetchAndProxy(req, res, target, pathPrefix)
   }
 
   // Debug state endpoint
