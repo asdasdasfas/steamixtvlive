@@ -141,13 +141,15 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     console.log(`[TRYURL] Protokol: ${currentSrc?.startsWith('https') ? 'HTTPS' : currentSrc?.startsWith('http') ? 'HTTP' : currentSrc?.startsWith('/api') ? 'API_PROXY' : 'OTHER'}`)
     console.log(`[TRYURL] Sayfa: ${window.location.protocol}//${window.location.host}`)
 
-    // Quick content-type check (abort body immediately)
-    const ctrl = new AbortController()
-    fetch(currentSrc, { signal: ctrl.signal }).then(r => {
-      const ct = r.headers.get('content-type') || ''
-      console.log(`[TRYURL] FETCH test: status=${r.status} ct=${ct}`)
-      ctrl.abort() // don't download body
-    }).catch(() => {})
+    // Skip fetch test for audio-fix URLs (ffmpeg is slow, abort kills the process)
+    if (!currentSrc.startsWith('/audio-fix/')) {
+      const ctrl = new AbortController()
+      fetch(currentSrc, { signal: ctrl.signal }).then(r => {
+        const ct = r.headers.get('content-type') || ''
+        console.log(`[TRYURL] FETCH test: status=${r.status} ct=${ct}`)
+        ctrl.abort()
+      }).catch(() => {})
+    }
 
     // Destroy previous HLS and reset video element fully
     if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null }

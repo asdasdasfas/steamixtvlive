@@ -56,8 +56,9 @@ export default function Watch() {
             : vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))
           let finalUrls = allUrls
           if (isMobile) {
-            const audioFixUrls = allUrls.filter(u => u.startsWith('/dyn/')).map(u => '/audio-fix/' + u.slice('/dyn/'.length))
-            finalUrls = [...audioFixUrls, ...allUrls]
+            // Try audio-fix on MKV first (other formats like M3U8/MP4 often don't exist)
+            const mkvAt = allUrls.findIndex(u => u.startsWith('/dyn/') && (u.endsWith('.mkv') || u.endsWith('.mp4')))
+            if (mkvAt >= 0) { finalUrls = ['/audio-fix/' + allUrls[mkvAt].slice('/dyn/'.length), ...allUrls] }
           }
           if (!cancelled) { setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1)) }
           try {

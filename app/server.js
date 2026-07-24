@@ -295,7 +295,7 @@ function transcodeDirect(req, res, sourceUrl) {
   const extra = ['-movflags', 'frag_keyframe+empty_moov']
   const ff = spawn(ffmpegPath, ['-nostats','-hide_banner','-i',sourceUrl,'-c:v','copy','-c:a','aac','-b:a','128k',...extra,'-f',outFmt,'-y','pipe:1'])
   let hs = false
-  let timer = setTimeout(() => { if (!hs) { console.log(`[FFDIR] timeout 15s, killing ffmpeg`); ff.kill(); if (!hs) { try { res.writeHead(504); res.end('FFmpeg timeout') } catch {} } } }, 15000)
+  let timer = setTimeout(() => { if (!hs) { console.log(`[FFDIR] timeout 12s, killing ffmpeg`); ff.kill(); if (!hs) { try { res.writeHead(504); res.end('FFmpeg timeout') } catch {} } } }, 12000)
   ff.stdout.on('data', d => { if (!hs) { hs = true; clearTimeout(timer); try { res.writeHead(200,{'Content-Type':outCt,'access-control-allow-origin':'*'}) } catch {} }; try { res.write(d) } catch {} })
   ff.stderr.on('data', d => { console.log(`[FFDIR] ${d.toString().trim().substring(0,200)}`) })
   ff.on('exit', (code, sig) => { clearTimeout(timer); console.log(`[FFDIR] exit code=${code} sig=${sig} hs=${hs}`); if (hs) { try { res.end() } catch {} } else { console.log(`[FFDIR] ffmpeg failed, fallback to direct proxy`); fetchAndProxySimple(req, res, sourceUrl) } })
