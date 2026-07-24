@@ -34,6 +34,7 @@ export default function Dashboard() {
 
   const selectedCat = params.get('cat') || ''
   const selectedSeriesCat = params.get('scat') || ''
+  const selectedLiveCat = params.get('lcat') || ''
 
   // Hero slider
   const [heroItems, setHeroItems] = useState<any[]>([])
@@ -518,7 +519,7 @@ export default function Dashboard() {
         )}
 
         {/* LIVE TV TAB */}
-        {tab === 'live' && <LiveTvScreen categories={rotCategories} />}
+        {tab === 'live' && <LiveTvScreen categories={rotCategories} selectedCat={selectedLiveCat} onSelectCategory={(id) => { const sp = new URLSearchParams(params); sp.set('lcat', id); setParams(sp, { replace: true }) }} />}
 
         {/* MOVIES TAB */}
         {tab === 'movies' && (

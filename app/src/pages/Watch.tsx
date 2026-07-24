@@ -135,7 +135,7 @@ export default function Watch() {
         <div className="flex-1 flex items-center justify-center bg-black">
           <div className="w-full max-w-full md:max-w-5xl">
             {rotationId ? (
-              <LivePlayer key={url} channelId={rotationId} title={title} src={url} onEnded={() => navigate(-1)} onChannelChange={handleChannelChange} />
+              <LivePlayer channelId={rotationId} title={title} src={url} onEnded={() => navigate(-1)} onChannelChange={handleChannelChange} />
             ) : (
               <VideoPlayer key={url} src={url} fallbackSrcs={fallbackUrls} title={title} onEnded={() => navigate(-1)} />
             )}
