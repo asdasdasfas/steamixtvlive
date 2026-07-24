@@ -46,14 +46,7 @@ const hlsProxyKeys = []
 const proxyReferers = {}
 
 function cleanHeaders(reqHeaders, targetHost, targetUrl) {
-  const h = { ...reqHeaders, 'Host': targetHost }
-  // Some CDNs (Akamai for TRT) require proper Referer
-  if (targetHost.includes('trt.com.tr')) {
-    h['Referer'] = 'https://www.trt.com.tr/'
-    h['Origin'] = 'https://www.trt.com.tr'
-  }
-  // Daion CDNs need app in query, keep as-is
-  return h
+  return { ...reqHeaders, 'Host': targetHost }
 }
 
 function makeHttpOpts(urlStr, method, reqHeaders) {
