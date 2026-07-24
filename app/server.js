@@ -206,8 +206,6 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
             // Update default targets
             hlsDefaultTarget = proto + '//' + key
             if (!hlsProxyKeys.includes(key)) hlsProxyKeys.push(key)
-            // Store playlist URL as referer for TS segment auth
-            if (!proxyReferers[key]) proxyReferers[key] = m3u8Url.href
             // Replace absolute URL with /hls/{hash}/path
             const urlPath = u.pathname + (u.search || '')
             const proxyPath = '/hls/' + hash + urlPath
