@@ -526,7 +526,10 @@ function proxyUrl(url: string): string {
     const u = new URL(url)
     const base = u.protocol + '//' + u.hostname + ':' + (u.port || 80)
     const b64 = btoa(base).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-    return '/p/' + b64 + u.pathname + (u.search || '')
+    // URLs ending with .m3u8 → HLS proxy (redirect + CDN discovery)
+    // Other URLs (MPEG-TS streams) → virtual HLS wrapper for hls.js playback
+    if (url.endsWith('.m3u8')) return '/p/' + b64 + u.pathname + (u.search || '')
+    return '/v/' + b64 + u.pathname + (u.search || '') + '.m3u8'
   }
   return url
 }

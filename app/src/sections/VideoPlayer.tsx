@@ -151,10 +151,11 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     console.log(`[TRYURL] isHLS:${isHls} HLS.destek:${Hls.isSupported()} Safari:${isSafari}`)
 
     if (isHls && Hls.isSupported() && !isSafari) {
-      console.log(`[TRYURL] HLS.js baslatiliyor...`)
+      const isVirtualHls = currentSrc.startsWith('/v/')
+      console.log(`[TRYURL] HLS.js baslatiliyor... virtual=${isVirtualHls}`)
       const hls = new Hls({
-        enableWorker: false, lowLatencyMode: false, debug: true,
-        fragLoadingTimeOut: 5000,
+        enableWorker: false, lowLatencyMode: isVirtualHls, debug: true,
+        fragLoadingTimeOut: isVirtualHls ? 0 : 5000,
         fragLoadingMaxRetry: 2,
         fragLoadingRetryDelay: 1000,
         manifestLoadingTimeOut: 5000,

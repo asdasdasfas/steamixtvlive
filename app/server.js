@@ -267,6 +267,34 @@ http.createServer((req, res) => {
   // Static proxy routes — capture m3u8 responses to discover CDN target
   if (req.url.startsWith('/xtream-api/')) return fetchAndProxy(req, res, 'http://ctn34.xyz:8080', '/xtream-api/')
   if (req.url.startsWith('/xtream/')) return fetchAndProxy(req, res, 'http://dzcvip1.xyz:2095', '/xtream/')
+  // Virtual M3U8 handler for non-HLS streams (MPEG-TS from backends like ctn34)
+  // /v/{base64}/{path}.m3u8 — returns a virtual M3U8 that wraps the continuous stream as HLS
+  if (req.url.startsWith('/v/')) {
+    const match = req.url.match(/^\/v\/([A-Za-z0-9\-_]+)(\/.*)\.m3u8$/)
+    if (match) {
+      const encoded = match[1]
+      const pathNoExt = match[2]
+      const target = Buffer.from(encoded.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString()
+      const prefix = '/v/' + encoded
+      const segUrl = '/s/' + encoded + pathNoExt + '.ts'
+      const playlist = `#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:86400\n#EXT-X-MEDIA-SEQUENCE:0\n#EXTINF:86400,\n${segUrl}\n`
+      res.setHeader('Content-Type', 'application/vnd.apple.mpegurl')
+      res.setHeader('Access-Control-Allow-Origin', '*')
+      res.end(playlist)
+      return
+    }
+  }
+  // Segment stream handler for virtual HLS — streams MPEG-TS from backend
+  if (req.url.startsWith('/s/')) {
+    const match = req.url.match(/^\/s\/([A-Za-z0-9\-_]+)(\/.*)\.ts$/)
+    if (match) {
+      const encoded = match[1]
+      const path = match[2]
+      const target = Buffer.from(encoded.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString()
+      const prefix = '/s/' + encoded
+      return fetchAndProxy(req, res, target, prefix)
+    }
+  }
   // Generic /p/{base64}/{path} — any base URL (dzcvip1, ctn34, ccgbndrby11, dpsmartone, etc.)
   // base64 = protocol + "//" + host + ":" + port (e.g. "http://dzcvip1.xyz:2095" or "https://tv-trt1.medya.trt.com.tr:443")
   if (req.url.startsWith('/p/')) {
