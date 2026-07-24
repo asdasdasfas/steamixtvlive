@@ -160,7 +160,16 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
       const bodyChunks = []
       proxyRes.on('data', c => bodyChunks.push(c))
       proxyRes.on('end', () => {
-        const fullBody = Buffer.concat(bodyChunks)
+        let fullBody = Buffer.concat(bodyChunks)
+        // Decompress gzip if needed
+        const contentEncoding = (proxyRes.headers['content-encoding'] || '').toLowerCase()
+        if (contentEncoding === 'gzip') {
+          try {
+            fullBody = require('zlib').gunzipSync(fullBody)
+          } catch (e) {
+            console.log(`[HLS-GUNZIP-ERR] ${e.message}`)
+          }
+        }
         let bodyStr = fullBody.toString('utf8')
         // Find all absolute segment URLs in the M3U8 and rewrite them to proxy paths
         // Match any URL on a line by itself (TS segment or sub-playlist)
