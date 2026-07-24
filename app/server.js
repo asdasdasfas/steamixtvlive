@@ -439,8 +439,8 @@ http.createServer((req, res) => {
             return
           }
 
-          // Non-M3U8: proxy directly (transcoding only works for TS/HLS segments)
-          return fetchAndProxy(req, res, targetBase, prefix)
+          // Non-M3U8: transcode directly
+          return transcodeStream(req, res, url)
         }
       } catch {}
     }
