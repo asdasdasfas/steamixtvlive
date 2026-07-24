@@ -194,8 +194,7 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
           }
         }
         console.log(`[HLS-BODY] ${bodyStr.substring(0,200)}...`)
-        console.log(`[HLS-REWRITE-COUNT] ${allUrlMatches.length} URLs found in M3U8`)
-        const headers = { ...proxyRes.headers, 'access-control-allow-origin': '*', 'x-hls-rewrite': String(allUrlMatches.length) }
+        const headers = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
         delete headers['transfer-encoding']
         delete headers['content-encoding']
         try { res.writeHead(sc, headers); res.end(bodyStr) } catch {}
@@ -325,7 +324,8 @@ http.createServer((req, res) => {
       const path = match[2]
       const target = Buffer.from(encoded.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString()
       const prefix = '/p/' + encoded
-      if (path.endsWith('.m3u8')) {
+      const pathNoQuery = path.split('?')[0]
+      if (pathNoQuery.endsWith('.m3u8')) {
         return hlsFetchAndProxy(req, res, target, prefix)
       }
       return fetchAndProxy(req, res, target, prefix)
