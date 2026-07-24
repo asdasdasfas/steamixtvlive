@@ -30,32 +30,7 @@ export default function Watch() {
     let cancelled = false
     setLoading(true); setError(null)
     try {
-      if ((rotationId === 'NATGEO' || rotationId === 'NG') && server) {
-        // Nat Geo: kullanıcının sunucusundan TR HD versiyonunu bul
-        const { base_url, xtream_user, xtream_pass } = server
-        let foundName = rotationId === 'NATGEO' ? 'National Geographic' : 'Nat Geo Wild'
-        try {
-          const streams = await fetchLiveStreams(base_url, xtream_user, xtream_pass)
-          const search = rotationId === 'NATGEO' ? 'national geographic' : 'nat geo wild'
-          const found = streams.find((s: any) => s.name?.includes('TR:') && s.name?.toLowerCase().includes(search) && !s.name?.includes('FHD'))
-            || streams.find((s: any) => s.name?.includes('TR:') && s.name?.toLowerCase().includes(search))
-          if (found) {
-            foundName = found.name
-            const xtUrl = proxyUrl(base_url, `/live/${xtream_user}/${xtream_pass}/${found.stream_id}.m3u8`)
-            const ch = getChannelById(rotationId)
-            const urls = ch && ch.urls.length > 0 ? ch.urls : [xtUrl]
-            if (!cancelled) { setUrl(urls[0]); setFallbackUrls([xtUrl, ...urls.slice(1)]); setTitle(foundName) }
-          } else {
-            const ch = getChannelById(rotationId)
-            if (!ch || ch.urls.length === 0) throw new Error('Kanal bulunamadı')
-            if (!cancelled) { setUrl(ch.urls[0]); setFallbackUrls(ch.urls.slice(1)); setTitle(ch.name) }
-          }
-        } catch {
-          const ch = getChannelById(rotationId)
-          if (!ch || ch.urls.length === 0) throw new Error('Kanal bulunamadı')
-          if (!cancelled) { setUrl(ch.urls[0]); setFallbackUrls(ch.urls.slice(1)); setTitle(ch.name) }
-        }
-      } else if (rotationId) {
+      if (rotationId) {
         const ch = getChannelById(rotationId)
         if (!ch || ch.urls.length === 0) throw new Error('Kanal bulunamadı')
         if (!cancelled) { setUrl(ch.urls[0]); setFallbackUrls(ch.urls.slice(1)); setTitle(ch.name) }
