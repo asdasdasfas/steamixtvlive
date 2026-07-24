@@ -151,17 +151,6 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
     console.log(`[TRYURL] isHLS:${isHls} HLS.destek:${Hls.isSupported()} Safari:${isSafari}`)
 
-    // Mobile + VOD (movie/series): skip hls.js entirely, use direct video.src with MP4.
-    // Mobile MediaSource often rejects VOD audio codecs (AC3/DTS), direct play handles them.
-    const isMobile = /Android|iPhone|iPad|iPod|Mobi|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    const isVodUrl = currentSrc.includes('/movie/') || currentSrc.includes('/series/') || currentSrc.includes('/vod/')
-    if (isMobile && isVodUrl && isHls) {
-      console.log(`%c[MOBILE-VOD] Skipping hls.js for VOD on mobile, trying next URL`, 'color:orange')
-      // Move to next URL immediately (hls on mobile VOD often loses audio due to codec)
-      urlIndexRef.current++
-      tryUrl(video)
-      return
-    }
     if (isHls && Hls.isSupported() && !isSafari) {
       const isVirtualHls = currentSrc.startsWith('/v/')
       console.log(`[TRYURL] HLS.js baslatiliyor... virtual=${isVirtualHls}`)
@@ -207,6 +196,16 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         console.log(`[HLS] LEVEL_LOADED: level=${data.level} totalduration=${d?.totalduration?.toFixed(1)}s frags=${d?.fragments?.length}`)
         if (d?.fragments) { d.fragments.slice(0,2).forEach(f => console.log(`[HLS] Fragment: ${f.relurl||f.url}`)) }
       })
+      hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_e, data) => {
+        console.log(`[HLS] AUDIO_TRACKS_UPDATED:`, data.audioTracks?.map((t:any) => `id=${t.id} lang=${t.lang} name=${t.name} codec=${t.codec}`))
+        if (data.audioTracks?.length > 0) {
+          const track = data.audioTracks[0]
+          console.log(`[HLS] Selecting audio track: id=${track.id} codec=${track.codec}`)
+          hls.audioTrack = track.id
+        } else {
+          console.log(`[HLS] WARNING: No audio tracks found! VOD likely has unsupported audio codec.`)
+        }
+      })
       hls.on(Hls.Events.FRAG_LOADING, (_e, data) => {
         console.log(`[HLS] FRAG_LOADING: ${data.frag?.relurl||data.frag?.url}`)
       })
@@ -216,6 +215,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       hls.on(Hls.Events.FRAG_BUFFERED, (_e, data) => {
         console.log(`[HLS] FRAG_BUFFERED: ${data.frag?.relurl||data.frag?.url}`)
       })
+      let swapAttempted = false
       hls.on(Hls.Events.ERROR, (_e, data) => {
         console.log(`%c[HLS] ERROR type=${data.type} details=${data.details} fatal=${data.fatal}`, 'color:orange',
           data.response ? `status=${data.response.code}` : '',
@@ -223,6 +223,14 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
           data.error ? `error=${data.error.message}` : ''
         )
         if (data.fatal) {
+          // Try audio codec swap on mobile for MEDIA_ERROR (unsupported audio codec)
+          if (data.type === Hls.ErrorTypes.MEDIA_ERROR && !swapAttempted) {
+            swapAttempted = true
+            console.log(`%c[HLS] MEDIA_ERROR -> swapAudioCodec + recoverMediaError`, 'color:orange')
+            hls.swapAudioCodec()
+            hls.recoverMediaError()
+            return
+          }
           retryCountRef.current++
           if (retryCountRef.current <= 3 && urlIndexRef.current === 0) {
             console.log(`%c[HLS] FATAL -> RETRY ${retryCountRef.current}/3`, 'color:orange')
@@ -356,7 +364,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
 
   return (
     <div ref={containerRef} className="relative bg-black group cursor-pointer" onClick={togglePlay} onMouseMove={startHideTimer}>
-      <video ref={videoRef} className="w-full aspect-video object-contain" poster={poster} playsInline />
+      <video ref={videoRef} className="w-full aspect-video object-contain" poster={poster} playsInline crossOrigin="anonymous" />
       {title && <div className="absolute top-4 left-4 text-white text-sm font-medium drop-shadow-lg bg-black/40 px-3 py-1.5 rounded-lg">{title}</div>}
       {loadError && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
