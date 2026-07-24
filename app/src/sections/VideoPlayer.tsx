@@ -122,7 +122,14 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const idx = urlIndexRef.current
     const urls = allUrlsRef.current
     if (idx >= urls.length) { console.log(`%c[TRYURL] Hic URL kalmadi`, 'color:red'); setLoadError('Hiçbir yayın kaynağı çalışmadı'); return }
-    const currentSrc = urls[idx]
+    // Mobile'da VOD AC3 ses sorununu çözmek için /dyn/ URL'lerini /audio-fix/'e çevir
+    let currentSrc = urls[idx]
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    if (isMobile && currentSrc.startsWith('/dyn/')) {
+      const fixedUrl = '/audio-fix/' + currentSrc.slice(5)
+      console.log(`%c[AUDIO-FIX] Mobile detected /dyn/ -> /audio-fix/: ${fixedUrl.substring(0,120)}`, 'color:cyan')
+      currentSrc = fixedUrl
+    }
     retryCountRef.current = 0
 
     console.log(`%c[TRYURL] ======== DENEME #${idx}/${urls.length} ========`, 'color:yellow;font-size:14px')
