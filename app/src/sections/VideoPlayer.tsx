@@ -197,10 +197,11 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         if (d?.fragments) { d.fragments.slice(0,2).forEach(f => console.log(`[HLS] Fragment: ${f.relurl||f.url}`)) }
       })
       hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_e, data) => {
-        console.log(`[HLS] AUDIO_TRACKS_UPDATED:`, data.audioTracks?.map((t:any) => `id=${t.id} lang=${t.lang} name=${t.name} codec=${t.codec}`))
-        if (data.audioTracks?.length > 0) {
-          const track = data.audioTracks[0]
-          console.log(`[HLS] Selecting audio track: id=${track.id} codec=${track.codec}`)
+        const tracks: any[] = data.audioTracks || []
+        console.log(`[HLS] AUDIO_TRACKS_UPDATED:`, tracks.map(t => `id=${t.id} lang=${t.lang} name=${t.name} groupId=${t.groupId} type=${t.type}`))
+        if (tracks.length > 0) {
+          const track = tracks[0]
+          console.log(`[HLS] Selecting audio track: id=${track.id} name=${track.name}`)
           hls.audioTrack = track.id
         } else {
           console.log(`[HLS] WARNING: No audio tracks found! VOD likely has unsupported audio codec.`)
