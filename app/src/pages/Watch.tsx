@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
-import { liveUrl, seriesUrls, fetchVodInfo, fetchSeriesInfo, vodUrlTesters, vodUrlWithExt, proxyUrl } from '@/lib/supabase'
+import { liveUrl, seriesUrls, fetchVodInfo, fetchSeriesInfo, fetchLiveStreams, vodUrlTesters, vodUrlWithExt, proxyUrl } from '@/lib/supabase'
 import { getChannelById } from '@/lib/rotation'
 import VideoPlayer from '@/sections/VideoPlayer'
 import LivePlayer from '@/sections/LivePlayer'
@@ -30,7 +30,28 @@ export default function Watch() {
     let cancelled = false
     setLoading(true); setError(null)
     try {
-      if (rotationId) {
+      if (rotationId === 'NATGEO' && server) {
+        // NatGeo: kullanıcının kendi Xtream sunucusundan bul
+        const { base_url, xtream_user, xtream_pass } = server
+        try {
+          const streams = await fetchLiveStreams(base_url, xtream_user, xtream_pass)
+          const natgeo = streams.find((s: any) => s.name?.toLowerCase().includes('national geographic'))
+          if (natgeo) {
+            const primary = liveUrl(base_url, xtream_user, xtream_pass, natgeo.stream_id)
+            const fb = proxyUrl(base_url, `/live/${xtream_user}/${xtream_pass}/${natgeo.stream_id}.m3u8`)
+            if (!cancelled) { setUrl(primary); setFallbackUrls([fb]); setTitle(natgeo.name || 'National Geographic') }
+          } else {
+            // Xtream'de bulunamazsa fallback olarak rotation.ts'deki URL'leri dene
+            const ch = getChannelById(rotationId)
+            if (!ch || ch.urls.length === 0) throw new Error('National Geographic bulunamadı')
+            if (!cancelled) { setUrl(ch.urls[0]); setFallbackUrls(ch.urls.slice(1)); setTitle(ch.name) }
+          }
+        } catch {
+          const ch = getChannelById(rotationId)
+          if (!ch || ch.urls.length === 0) throw new Error('National Geographic bulunamadı')
+          if (!cancelled) { setUrl(ch.urls[0]); setFallbackUrls(ch.urls.slice(1)); setTitle(ch.name) }
+        }
+      } else if (rotationId) {
         const ch = getChannelById(rotationId)
         if (!ch || ch.urls.length === 0) throw new Error('Kanal bulunamadı')
         if (!cancelled) { setUrl(ch.urls[0]); setFallbackUrls(ch.urls.slice(1)); setTitle(ch.name) }

@@ -556,8 +556,10 @@ export function parseRotationData(): { channels: RotationChannel[], categories: 
     }
   }
 
+  const hiddenChannels = new Set(['YabanTV'])
   const groupMap = new Map<string, RotationChannel[]>()
   for (const ch of channels) {
+    if (hiddenChannels.has(ch.id)) continue
     const group = ch.groupTitle || 'Diğer'
     if (!groupMap.has(group)) groupMap.set(group, [])
     groupMap.get(group)!.push(ch)
