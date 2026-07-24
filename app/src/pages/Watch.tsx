@@ -44,7 +44,10 @@ export default function Watch() {
           if (found) {
             const primary = liveUrl(base_url, xtream_user, xtream_pass, found.stream_id)
             const fb = proxyUrl(base_url, `/live/${xtream_user}/${xtream_pass}/${found.stream_id}.m3u8`)
-            if (!cancelled) { setUrl(primary); setFallbackUrls([fb]); setTitle(found.name || (rotationId === 'NATGEO' ? 'National Geographic' : 'Nat Geo Wild')) }
+            // Fallback olarak rotation.ts'deki URL'leri de ekle (xtream formatı çalışmazsa)
+            const ch = getChannelById(rotationId)
+            const fallbacks = ch ? [fb, ...ch.urls] : [fb]
+            if (!cancelled) { setUrl(primary); setFallbackUrls(fallbacks); setTitle(found.name || (rotationId === 'NATGEO' ? 'National Geographic' : 'Nat Geo Wild')) }
           } else {
             const ch = getChannelById(rotationId)
             if (!ch || ch.urls.length === 0) throw new Error('Kanal bulunamadı')
