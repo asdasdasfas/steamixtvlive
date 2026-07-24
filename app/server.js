@@ -172,9 +172,22 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
           }
         }
         let bodyStr = fullBody.toString('utf8')
-        // Find all absolute segment URLs in the M3U8 and rewrite them to proxy paths
-        // Match any URL on a line by itself (TS segment or sub-playlist)
+        // Get the M3U8's base directory for resolving relative URLs
+        const m3u8Url = new URL(url)
+        const m3u8Base = m3u8Url.protocol + '//' + m3u8Url.host + (m3u8Url.port ? ':' + m3u8Url.port : '') + m3u8Url.pathname.substring(0, m3u8Url.pathname.lastIndexOf('/') + 1)
+        // Find all segment/sub-playlist URLs in the M3U8 (both absolute and relative)
+        // Match URLs on their own line (not EXTINF lines)
         const allUrlMatches = bodyStr.match(/https?:\/\/[^\s?#]+/g) || []
+        // Also find relative URLs (lines that don't start with # and aren't absolute)
+        const lines = bodyStr.split('\n')
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim()
+          if (line && !line.startsWith('#') && !line.startsWith('http://') && !line.startsWith('https://')) {
+            // Relative URL — prepend CDN base to make absolute
+            const absUrl = m3u8Base + line
+            if (!allUrlMatches.includes(absUrl)) allUrlMatches.push(absUrl)
+          }
+        }
         for (const absUrl of allUrlMatches) {
           try {
             const u = new URL(absUrl)

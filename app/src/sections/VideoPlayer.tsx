@@ -160,12 +160,25 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         fragLoadingMaxRetry: 2,
         fragLoadingRetryDelay: 1000,
         manifestLoadingTimeOut: 5000,
-        fetchSetup: (context, init) => new Request(context.url, {
-          ...init,
-          credentials: 'include',
-          referrerPolicy: 'unsafe-url',
-          referrer: currentSrc,
-        })
+        fetchSetup: (context, init) => {
+          let url = context.url
+          // Proxy Akamai URLs through our server for CORS
+          if (url.includes('akamaized.net')) {
+            try {
+              const u = new URL(url)
+              const base = u.protocol + '//' + u.hostname + ':' + (u.port || (u.protocol === 'https:' ? 443 : 80))
+              const b64 = btoa(base).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+              url = '/p/' + b64 + u.pathname + (u.search || '')
+              console.log(`[FETCH-SETUP] Akamai URL proxied: ${url.substring(0, 120)}`)
+            } catch (e) {}
+          }
+          return new Request(url, {
+            ...init,
+            credentials: 'include',
+            referrerPolicy: 'unsafe-url',
+            referrer: currentSrc,
+          })
+        }
       })
       hlsRef.current = hls
       hls.loadSource(currentSrc)

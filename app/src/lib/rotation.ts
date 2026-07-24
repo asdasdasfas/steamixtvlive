@@ -112,19 +112,17 @@ https://dogus.daioncdn.net/dmax/dmax.m3u8?app=dmax_web
 https://playlist.fasttvcdn.com/pl/rfrk9821hdy9dayo8wfyha/belgesel-tv/playlist/0.m3u8
 
 #EXTINF:-1 tvg-id="YabanTV" tvg-name="Yaban TV" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/yaban-tr.png",Yaban TV
-https://trn03.tulix.tv/gt-yabantv/tracks-v1a1/mono.m3u8?token=0631e8753bcdf25bb2a5015db22ec082
+http://trn03.tulix.tv/gt-yabantv/tracks-v1a1/mono.m3u8?token=0631e8753bcdf25bb2a5015db22ec082
 
 #EXTINF:-1 tvg-id="NATGEO" tvg-name="National Geographic" group-title="Belgesel" tvg-logo="https://graph.facebook.com/natgeomedia/picture?type=large",National Geographic
-http://dzcvip1.xyz:2095/live/yasar7062/yasar.7062/101220.m3u8
-http://ctn34.xyz:2095/bnym5594tv/bny2710cc00bb/101220
-http://ccgbndrby11.xyz:2095/bnym5594tv/bny2710cc00bb/101220
 http://dpsmartone.xyz:2095/bnym5594tv/bny2710cc00bb/101220
+http://ccgbndrby11.xyz:2095/bnym5594tv/bny2710cc00bb/101220
+http://ctn34.xyz:2095/bnym5594tv/bny2710cc00bb/101220
 
 #EXTINF:-1 tvg-id="NG" tvg-name="Nat Geo Wild" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/d/d6/Nat_Geo_Wild_logo.png",Nat Geo Wild
-http://dzcvip1.xyz:2095/live/yasar7062/yasar.7062/27208.m3u8
-http://ctn34.xyz:2095/bnym5594tv/bny2710cc00bb/27208
-http://ccgbndrby11.xyz:2095/bnym5594tv/bny2710cc00bb/27208
 http://dpsmartone.xyz:2095/bnym5594tv/bny2710cc00bb/27208
+http://ccgbndrby11.xyz:2095/bnym5594tv/bny2710cc00bb/27208
+http://ctn34.xyz:2095/bnym5594tv/bny2710cc00bb/27208
 
 #EXTINF:-1 tvg-id="TarihTV" tvg-name="Tarih TV HD" group-title="Belgesel" tvg-logo="https://graph.facebook.com/TarihTV/picture?type=large",Tarih TV HD
 http://dzcvip1.xyz:2095/live/yasar7062/yasar.7062/116410.m3u8
@@ -413,7 +411,7 @@ https://turkhls.persiana.live/hls/stream.m3u8
 https://live.kwikmotion.com/syriatvlive/syriatv.smil/playlist_dvr.m3u8
 
 #EXTINF:-1 tvg-id="BloombergUS" tvg-name="Bloomberg TV US" group-title="Dünya" tvg-logo="https://companieslogo.com/img/orig/bloomberg-505a6be6.png?t=1720244494",Bloomberg TV US
-https://bloomberg.com/media-manifest/streams/us.m3u8
+https://www.bloomberg.com/media-manifest/streams/us.m3u8
 
 #EXTINF:-1 tvg-id="NBCNewsNOW" tvg-name="NBC News NOW" group-title="Dünya" tvg-logo="https://latestlogo.com/wp-content/uploads/2024/12/nbc-news-now.png",NBC News NOW
 https://d1bl6tskrpq9ze.cloudfront.net/hls/master.m3u8?ads.xumo_channelId=99984003
