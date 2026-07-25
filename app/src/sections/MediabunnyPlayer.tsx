@@ -287,20 +287,25 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     setPlaying(true)
     isPlayingRef.current = true
 
-    // Video karelerini arka planda getir (asyncId degismez, audio iterator bozulmaz)
+    // Video karelerini arka planda getir (await YOK, bloklama yok)
     if (p.videoSink) {
+      const oldIt = p.videoIterator
+      const it = p.videoSink.canvases(pos)
+      p.videoIterator = it
+      oldIt?.return()
       dbg(`Video seek start pos=${pos.toFixed(2)}`)
-      p.videoIterator?.return()
-      p.videoIterator = p.videoSink.canvases(pos)
-      const first = (await p.videoIterator.next()).value as WrappedCanvas | undefined
-      const second = (await p.videoIterator.next()).value as WrappedCanvas | undefined
-      p.nextFrame = second ?? null
-      const ctx = canvasRef.current?.getContext('2d')
-      if (first && ctx) {
-        ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
-        ctx.drawImage(first.canvas, 0, 0)
-      }
-      dbg(`Video seek done pos=${pos.toFixed(2)}`)
+      ;(async () => {
+        const first = await it.next()
+        if (first.done || !first.value) return
+        const second = await it.next()
+        p.nextFrame = (second.done ? null : second.value) as WrappedCanvas | null
+        const ctx = canvasRef.current?.getContext('2d')
+        if (ctx) {
+          ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
+          ctx.drawImage(first.value.canvas, 0, 0)
+        }
+        dbg(`Video seek done pos=${pos.toFixed(2)}`)
+      })()
     }
 
     if (!firstPlayDoneRef.current) {
