@@ -17,25 +17,10 @@ const decodeProxyUrl = (url: string): string | null => {
 const openExternalPlayer = (url: string) => {
   const directUrl = decodeProxyUrl(url)
   if (!directUrl) return
-  const isAndroid = /android/i.test(navigator.userAgent)
-  if (isAndroid) {
-    const encUrl = encodeURIComponent(directUrl)
-    // Chrome intent:// scheme: HOST/PATH + #Intent params
-    const hostPath = directUrl.replace(/^https?:\/\//, '')
-    const intentUrl = `intent://${hostPath}#Intent;action=android.intent.action.VIEW;type=video%2F*;S.browser_fallback_url=${encUrl};end`
-    const a = document.createElement('a')
-    a.href = intentUrl
-    a.style.display = 'none'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    setTimeout(() => {
-      try { if (document.hidden === false) window.location.href = directUrl }
-      catch { window.location.href = directUrl }
-    }, 1000)
-  } else {
-    window.location.href = directUrl
-  }
+  // Android 10+ sistem decoder AC3 destekler; Chrome'un <video>'su da sistem
+  // decoder'ini kullanir. intent:// Chrome 85+'da verified link olmayan uygulamalar
+  // icin bloklanir, o yuzden direkt backend URL'sine gidip Chrome'da aciyoruz.
+  window.location.href = directUrl
 }
 
 const toAudioFix = (url: string) => {
