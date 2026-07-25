@@ -208,7 +208,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         const raced = bufCount === 0
           ? await Promise.race([
               it.next().then(r => ({ tag: 'next' as const, done: r.done, value: r.value })),
-              audioStallTimeout(5000),
+              audioStallTimeout(2000),
             ])
           : { tag: 'next' as const, ...(await it.next()) }
         if (playerRef.current?.asyncId !== asyncId) { dbg(`Audio exit: asyncId changed`); break }
@@ -220,7 +220,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
             const pp = playerRef.current
             const curPos = getPlaybackTime()
             audioRetryCount.current++
-            const offsets = [2, -2, 5, -5, 10, -10]
+            const offsets = [2, -2, 5, -5, 10, -10, 30, -30, 60, -60]
             const offset = offsets[audioRetryCount.current - 1]
             const retryPos = Math.max(0, curPos + offset)
             dbg(`Audio retry #${audioRetryCount.current} offset=${offset >= 0 ? '+' : ''}${offset}s at ${retryPos.toFixed(2)}s`)
