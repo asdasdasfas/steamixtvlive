@@ -4,7 +4,12 @@ import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForwar
 import MediabunnyPlayer from './MediabunnyPlayer'
 
 
-const mkvToAudioFix = (url: string) => url.startsWith('/dyn/') && url.endsWith('.mkv') ? url.replace('/dyn/', '/audio-fix/') : url
+const toAudioFix = (url: string) => {
+  if (url.startsWith('/dyn/') && !url.includes('.m3u8')) return url.replace('/dyn/', '/audio-fix/')
+  if (url.startsWith('/p2095/') && !url.includes('.m3u8')) return url.replace('/p2095/', '/audio-fix/')
+  if (url.startsWith('/p8080/') && !url.includes('.m3u8')) return url.replace('/p8080/', '/audio-fix/')
+  return url
+}
 
 const debugBuffer: string[] = []
 const MAX_DEBUG = 500
@@ -65,7 +70,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
 
   // Build full URL list — mobile MKV'leri /audio-fix/ ile degistir
   useEffect(() => {
-    const rewrite = (u: string) => IS_MOBILE && u.endsWith('.mkv') ? mkvToAudioFix(u) : u
+    const rewrite = (u: string) => IS_MOBILE ? toAudioFix(u) : u
     const urls = [rewrite(src), ...(fallbackSrcs || []).map(rewrite)]
     const filtered = urls.filter(Boolean)
     allUrlsRef.current = filtered
@@ -180,7 +185,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const isHls = srcNoQuery.endsWith('.m3u8')
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
     console.log(`[TRYURL] isHLS:${isHls} HLS.destek:${Hls.isSupported()} Safari:${isSafari}`)
-    if (currentSrc.endsWith('.mkv')) dbg(`MKV native -> AC3 ses OLMAZ!`)
+    if (currentSrc.startsWith('/audio-fix/')) dbg(`/audio-fix/ -> AC3->AAC transcode bekleniyor`)
 
     if (isHls && Hls.isSupported() && !isSafari) {
       const isVirtualHls = currentSrc.startsWith('/v/')
