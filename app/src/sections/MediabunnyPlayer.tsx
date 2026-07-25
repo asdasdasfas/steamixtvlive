@@ -213,7 +213,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
             const newId = pp.asyncId
             // Retry'de video seek YOK (video+ses ayni Input'u paylasir, cakisma)
             // skipLiveWait yok -> decoder keyframe'e otomatik gitsin
-            pp.audioIterator = pp.audioSink?.buffers(retryPos) ?? null
+            pp.audioIterator = pp.audioSink?.buffers(retryPos, undefined, { skipLiveWait: true }) ?? null
             if (pp.audioIterator) runAudioIterator(newId)
           } else if (count === 0) {
             dbg(`Audio cannot start — all retries failed`)
@@ -271,7 +271,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     const audioSink = p.audioSink
     if (audioSink && p.loaded) {
       dbg(`Audio iterator from ${pos.toFixed(3)}s (id=${seekId})`)
-      p.audioIterator = audioSink.buffers(pos)
+      p.audioIterator = audioSink.buffers(pos, undefined, { skipLiveWait: true })
       runAudioIterator(seekId)
     } else if (p.audioSink) {
       dbg(`Audio pending (loaded=${p.loaded})`)
@@ -331,7 +331,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
             }
             pp.audioIterator?.return()
             const newAudioId = pp.asyncId
-            pp.audioIterator = pp.audioSink?.buffers(jumpTo) ?? null
+            pp.audioIterator = pp.audioSink?.buffers(jumpTo, undefined, { skipLiveWait: true }) ?? null
             if (pp.audioIterator) runAudioIterator(newAudioId)
           }
         }, 800)
