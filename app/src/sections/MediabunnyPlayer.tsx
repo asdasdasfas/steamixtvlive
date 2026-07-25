@@ -100,25 +100,25 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const scheduleAudioBuffer = useCallback((buffer: AudioBuffer, timestamp: number) => {
     const p = playerRef.current
     if (!p || !p.audioContext || !p.gainNode) return
-    const now = p.audioContext.currentTime
-    const playbackTime = getPlaybackTime()
-    const delay = timestamp - playbackTime
     const node = p.audioContext.createBufferSource()
     node.buffer = buffer
     node.connect(p.gainNode)
-    if (delay >= 0) {
-      node.start(now + delay)
+    const startTime = (p.audioContextStartTime ?? 0) + timestamp - p.playbackTimeAtStart
+    const rounded = Math.round(p.audioContext.sampleRate * startTime) / p.audioContext.sampleRate
+    if (rounded >= p.audioContext.currentTime) {
+      node.start(rounded)
     } else {
-      node.start(now, -delay)
+      node.start(p.audioContext.currentTime, p.audioContext.currentTime - rounded)
     }
     p.queuedNodes.add(node)
     node.onended = () => { p.queuedNodes.delete(node) }
-  }, [getPlaybackTime])
+  }, [])
 
   const audioBufCountRef = useRef(0)
   const audioStallTimeout = (ms: number) => new Promise<'timeout'>(resolve => setTimeout(() => resolve('timeout'), ms))
   const pendingPlayRef = useRef(false)
   const firstPlayDoneRef = useRef(false)
+  const seekTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const runAudioIterator = useCallback(async (asyncId: number) => {
     dbg(`Audio iterator started (id=${asyncId})`)
@@ -209,17 +209,6 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       dbg(`New audio iterator from ${pos.toFixed(3)}s (id=${id})`)
       p.audioIterator = p.audioSink.buffers(pos)
       runAudioIterator(id)
-      // Auto-refresh: after 1s, seek forward to reset AC3 decoder
-      if (!firstPlayDoneRef.current) {
-        firstPlayDoneRef.current = true
-        setTimeout(() => {
-          const pp = playerRef.current
-          if (!pp || !isPlayingRef.current) return
-          const jumpTo = getPlaybackTime() + 0.1
-          dbg(`Auto-refresh: seeking to ${jumpTo.toFixed(3)}s to reset AC3 decoder`)
-          if (jumpTo < pp.endTimestamp) seekTo(jumpTo)
-        }, 800)
-      }
     } else if (p.audioSink) {
       pendingPlayRef.current = true
     }
@@ -243,29 +232,44 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
 
   const togglePlay = useCallback(() => {
     if (playing) pause()
-    else play()
-  }, [playing, play, pause])
-
-  const seekTo = useCallback(async (seconds: number) => {
-    const p = playerRef.current
-    if (!p) return
-    dbg(`Seek to ${seconds.toFixed(2)} (wasPlaying=${playing})`)
-    const wasPlaying = playing
-    if (wasPlaying) pause()
-    p.playbackTimeAtStart = seconds
-    if (p.videoSink) {
-      p.asyncId++
-      p.videoIterator = p.videoSink.canvases(seconds)
-      const first = (await p.videoIterator.next()).value as WrappedCanvas | undefined
-      const second = (await p.videoIterator.next()).value as WrappedCanvas | undefined
-      p.nextFrame = second ?? null
-      const ctx = canvasRef.current?.getContext('2d')
-      if (first && ctx) {
-        ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
-        ctx.drawImage(first.canvas, 0, 0)
+    else {
+      play()
+      if (!firstPlayDoneRef.current) {
+        firstPlayDoneRef.current = true
+        setTimeout(() => {
+          const p = playerRef.current
+          if (!p || !isPlayingRef.current) return
+          const jumpTo = getPlaybackTime() + 0.1
+          if (jumpTo < p.endTimestamp) seekTo(jumpTo)
+        }, 800)
       }
     }
-    if (wasPlaying && seconds < p.endTimestamp) play()
+  }, [playing, play, pause, seekTo])
+
+  const seekTo = useCallback(async (seconds: number) => {
+    if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current)
+    seekTimeoutRef.current = setTimeout(async () => {
+      seekTimeoutRef.current = null
+      const p = playerRef.current
+      if (!p) return
+      dbg(`Seek to ${seconds.toFixed(2)} (wasPlaying=${playing})`)
+      const wasPlaying = playing
+      if (wasPlaying) pause()
+      p.playbackTimeAtStart = seconds
+      if (p.videoSink) {
+        p.asyncId++
+        p.videoIterator = p.videoSink.canvases(seconds)
+        const first = (await p.videoIterator.next()).value as WrappedCanvas | undefined
+        const second = (await p.videoIterator.next()).value as WrappedCanvas | undefined
+        p.nextFrame = second ?? null
+        const ctx = canvasRef.current?.getContext('2d')
+        if (first && ctx) {
+          ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
+          ctx.drawImage(first.canvas, 0, 0)
+        }
+      }
+      if (wasPlaying && seconds < p.endTimestamp) play()
+    }, 50)
   }, [playing, pause, play])
 
   useEffect(() => {
