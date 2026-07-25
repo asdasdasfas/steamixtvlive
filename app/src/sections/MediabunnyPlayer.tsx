@@ -100,32 +100,56 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     }
   }, [getPlaybackTime])
 
-  const ensureStereo = useCallback((buffer: AudioBuffer, ctx: AudioContext): AudioBuffer => {
-    if (buffer.numberOfChannels <= 2) return buffer
-    const ch = buffer.numberOfChannels
-    const stereo = ctx.createBuffer(2, buffer.length, buffer.sampleRate)
-    const L = stereo.getChannelData(0), R = stereo.getChannelData(1)
-    const FL = buffer.getChannelData(0), FR = buffer.getChannelData(Math.min(1, ch - 1))
-    const FC = ch >= 3 ? buffer.getChannelData(2) : null
-    const LFE = ch >= 4 ? buffer.getChannelData(3) : null
-    const BL = ch >= 5 ? buffer.getChannelData(4) : null
-    const BR = ch >= 6 ? buffer.getChannelData(5) : null
-    for (let i = 0; i < buffer.length; i++) {
-      L[i] = FL[i] + (FC ? FC[i] * 0.707 : 0) + (BL ? BL[i] * 0.707 : 0) + (LFE ? LFE[i] * 0.5 : 0)
-      R[i] = FR[i] + (FC ? FC[i] * 0.707 : 0) + (BR ? BR[i] * 0.707 : 0) + (LFE ? LFE[i] * 0.5 : 0)
+  const normalizeBuffer = useCallback((buf: AudioBuffer, ctx: AudioContext): AudioBuffer => {
+    const srMatch = buf.sampleRate === ctx.sampleRate
+    const chMatch = buf.numberOfChannels <= 2
+    if (srMatch && chMatch) return buf
+    const outCh = Math.min(buf.numberOfChannels, 2)
+    const ratio = buf.sampleRate / ctx.sampleRate
+    const outLen = srMatch ? buf.length : Math.round(buf.length / ratio)
+    const out = ctx.createBuffer(outCh, outLen, ctx.sampleRate)
+    const ch = buf.numberOfChannels
+    for (let oc = 0; oc < outCh; oc++) {
+      const srcData: Float32Array[] = []
+      if (ch <= 2) {
+        srcData.push(buf.getChannelData(oc))
+      } else {
+        // Downmix 5.1 -> stereo
+        const FL = buf.getChannelData(0), FR = buf.getChannelData(1)
+        const FC = ch >= 3 ? buf.getChannelData(2) : null
+        const LFE = ch >= 4 ? buf.getChannelData(3) : null
+        const BL = ch >= 5 ? buf.getChannelData(4) : null
+        const BR = ch >= 6 ? buf.getChannelData(5) : null
+        const l = new Float32Array(buf.length)
+        const r = new Float32Array(buf.length)
+        for (let i = 0; i < buf.length; i++) {
+          l[i] = FL[i] + (FC ? FC[i] * 0.707 : 0) + (BL ? BL[i] * 0.707 : 0) + (LFE ? LFE[i] * 0.5 : 0)
+          r[i] = FR[i] + (FC ? FC[i] * 0.707 : 0) + (BR ? BR[i] * 0.707 : 0) + (LFE ? LFE[i] * 0.5 : 0)
+        }
+        srcData.push(oc === 0 ? l : r)
+      }
+      const dst = out.getChannelData(oc)
+      const src = srcData[0]
+      if (srMatch) {
+        dst.set(src)
+      } else {
+        for (let i = 0; i < outLen; i++) {
+          const srcIdx = i * ratio
+          const i1 = Math.floor(srcIdx)
+          const i2 = Math.min(i1 + 1, src.length - 1)
+          const f = srcIdx - i1
+          dst[i] = src[i1] + (src[i2] - src[i1]) * f
+        }
+      }
     }
-    return stereo
+    return out
   }, [])
 
   const scheduleAudioBuffer = useCallback((buffer: AudioBuffer, timestamp: number) => {
     const p = playerRef.current
     if (!p || !p.audioContext || !p.gainNode) return
     const node = p.audioContext.createBufferSource()
-    try {
-      node.buffer = buffer
-    } catch {
-      node.buffer = ensureStereo(buffer, p.audioContext)
-    }
+    node.buffer = normalizeBuffer(buffer, p.audioContext)
     node.connect(p.gainNode)
     const startTime = (p.audioContextStartTime ?? 0) + timestamp - p.playbackTimeAtStart
     const rounded = Math.round(p.audioContext.sampleRate * startTime) / p.audioContext.sampleRate
@@ -136,7 +160,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     }
     p.queuedNodes.add(node)
     node.onended = () => { p.queuedNodes.delete(node) }
-  }, [ensureStereo])
+  }, [normalizeBuffer])
 
   const audioBufCountRef = useRef(0)
   const audioStallTimeout = (ms: number) => new Promise<'timeout'>(resolve => setTimeout(() => resolve('timeout'), ms))
