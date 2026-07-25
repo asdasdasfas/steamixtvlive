@@ -3,7 +3,6 @@ import {
   Input,
   ALL_FORMATS,
   UrlSource,
-  BlobSource,
   CanvasSink,
   AudioBufferSink,
   type WrappedCanvas,
@@ -51,7 +50,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     loaded: boolean
   } | null>(null)
 
-  const hideTimer = useRef<ReturnType<typeof setTimeout>>()
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const startHideTimer = useCallback(() => {
     clearTimeout(hideTimer.current)
@@ -79,7 +78,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       const result = await p.videoIterator.next()
       if (result.done || !result.value) break
       if (currentAsyncId !== p.asyncId) break
-      const frame = result.value
+      const frame = result.value as WrappedCanvas
       const playbackTime = getPlaybackTime()
       const ctx = canvasRef.current?.getContext('2d')
       if (frame.timestamp <= playbackTime) {
@@ -135,9 +134,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       if (p.videoSink) {
         p.asyncId++
         p.videoIterator = p.videoSink.canvases(p.playbackTimeAtStart)
-        const first = (await p.videoIterator.next()).value
-        const second = (await p.videoIterator.next()).value
-        p.nextFrame = second
+        const first = (await p.videoIterator.next()).value as WrappedCanvas | undefined
+        const second = (await p.videoIterator.next()).value as WrappedCanvas | undefined
+        p.nextFrame = second ?? null
         const ctx = canvasRef.current?.getContext('2d')
         if (first && ctx) {
           ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
@@ -159,7 +158,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     if (!p) return
     p.playbackTimeAtStart = getPlaybackTime()
     setPlaying(false)
-    p.audioIterator?.return(undefined, undefined as any)
+    p.audioIterator?.return()
     p.audioIterator = null
     for (const node of p.queuedNodes) node.stop()
     p.queuedNodes.clear()
@@ -179,9 +178,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     if (p.videoSink) {
       p.asyncId++
       p.videoIterator = p.videoSink.canvases(seconds)
-      const first = (await p.videoIterator.next()).value
-      const second = (await p.videoIterator.next()).value
-      p.nextFrame = second
+      const first = (await p.videoIterator.next()).value as WrappedCanvas | undefined
+      const second = (await p.videoIterator.next()).value as WrappedCanvas | undefined
+      p.nextFrame = second ?? null
       const ctx = canvasRef.current?.getContext('2d')
       if (first && ctx) {
         ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
@@ -191,7 +190,6 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     if (wasPlaying && seconds < p.endTimestamp) play()
   }, [playing, pause, play])
 
-  // Initialize player
   useEffect(() => {
     let cancelled = false
     const init = async () => {
@@ -214,12 +212,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         let videoTrack = await input.getPrimaryVideoTrack()
         let audioTrack = await input.getPrimaryAudioTrack()
 
-        let firstTs = 0
-        let endTs = 0
-
         const tracks = [videoTrack, audioTrack].filter(t => t !== null) as NonNullable<typeof videoTrack>[]
-        firstTs = Math.max(await input.getFirstTimestamp(tracks), 0)
-        endTs = await input.getDurationFromMetadata(tracks, { skipLiveWait: true })
+        const firstTs = Math.max(await input.getFirstTimestamp(tracks), 0)
+        const endTs = await input.getDurationFromMetadata(tracks, { skipLiveWait: true })
           ?? await input.computeDuration(tracks, { skipLiveWait: true }) ?? 0
 
         setDuration(endTs)
@@ -246,7 +241,6 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
             const newCtx = new AudioContextClass({ sampleRate: sr })
             const newGain = newCtx.createGain()
             newGain.connect(newCtx.destination)
-            gain.disconnect()
             playerRef.current!.audioContext = newCtx
             playerRef.current!.gainNode = newGain
           }
@@ -284,9 +278,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         }
 
         if (videoSink && playerRef.current.videoIterator) {
-          const first = (await playerRef.current.videoIterator.next()).value
-          const second = (await playerRef.current.videoIterator.next()).value
-          playerRef.current.nextFrame = second
+          const first = (await playerRef.current.videoIterator.next()).value as WrappedCanvas | undefined
+          const second = (await playerRef.current.videoIterator.next()).value as WrappedCanvas | undefined
+          playerRef.current.nextFrame = second ?? null
           if (first) {
             ctx.clearRect(0, 0, canvas.width, canvas.height)
             ctx.drawImage(first.canvas, 0, 0)
@@ -305,15 +299,13 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       if (p) {
         cancelAnimationFrame(p.rafId)
         clearInterval(p.intervalId)
-        p.audioIterator?.return(undefined, undefined as any)
+        p.audioIterator?.return()
         for (const node of p.queuedNodes) node.stop()
         p.audioContext?.close()
-        p.videoSink?.close()
       }
     }
   }, [src])
 
-  // Render loop
   useEffect(() => {
     const p = playerRef.current
     if (!p) return
@@ -355,7 +347,6 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     }
   }, [playing, getPlaybackTime, pause, onEnded, updateNextFrame])
 
-  // Fullscreen change listener
   useEffect(() => {
     const onFs = () => setFullscreen(!!document.fullscreenElement)
     document.addEventListener('fullscreenchange', onFs)
