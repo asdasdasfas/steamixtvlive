@@ -21,6 +21,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [playing, setPlaying] = useState(false)
+  const isPlayingRef = useRef(false)
   const [ended, setEnded] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -93,36 +94,52 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     }
   }, [getPlaybackTime])
 
-  const runAudioIterator = useCallback(async () => {
+  const scheduleAudioBuffer = useCallback((buffer: AudioBuffer, timestamp: number) => {
     const p = playerRef.current
-    if (!p || !p.audioSink || !p.audioIterator) return
-    for await (const { buffer, timestamp } of p.audioIterator) {
-      if (p.asyncId !== playerRef.current?.asyncId) break
-      if (!p.audioContext || !p.gainNode) break
-      const node = p.audioContext.createBufferSource()
-      node.buffer = buffer
-      node.connect(p.gainNode)
-      let startTime = (p.audioContextStartTime ?? 0) + timestamp - p.playbackTimeAtStart
-      startTime = Math.round(p.audioContext.sampleRate * startTime) / p.audioContext.sampleRate
-      if (startTime >= p.audioContext.currentTime) {
-        node.start(startTime)
-      } else {
-        node.start(p.audioContext.currentTime, p.audioContext.currentTime - startTime)
-      }
-      p.queuedNodes.add(node)
-      node.onended = () => { p.queuedNodes.delete(node) }
-      if (timestamp - getPlaybackTime() >= 1) {
-        await new Promise<void>(resolve => {
-          const id = setInterval(() => {
-            if (timestamp - getPlaybackTime() < 1 || playerRef.current?.asyncId !== p.asyncId) {
-              clearInterval(id)
-              resolve()
-            }
-          }, 100)
-        })
-      }
+    if (!p || !p.audioContext || !p.gainNode) return
+    const node = p.audioContext.createBufferSource()
+    node.buffer = buffer
+    node.connect(p.gainNode)
+    let startTime = (p.audioContextStartTime ?? 0) + timestamp - p.playbackTimeAtStart
+    startTime = Math.round(p.audioContext.sampleRate * startTime) / p.audioContext.sampleRate
+    if (startTime >= p.audioContext.currentTime) {
+      node.start(startTime)
+    } else {
+      node.start(p.audioContext.currentTime, p.audioContext.currentTime - startTime)
     }
-  }, [getPlaybackTime])
+    p.queuedNodes.add(node)
+    node.onended = () => { p.queuedNodes.delete(node) }
+  }, [])
+
+  const runAudioIterator = useCallback(async () => {
+    while (true) {
+      const p = playerRef.current
+      if (!p || !p.audioSink || !p.audioIterator || p.asyncId !== playerRef.current?.asyncId) break
+      if (!p.audioContext || !p.gainNode) break
+      try {
+        for await (const { buffer, timestamp } of p.audioIterator) {
+          if (playerRef.current?.asyncId !== p.asyncId) break
+          if (!playerRef.current?.audioContext || !playerRef.current?.gainNode) break
+          scheduleAudioBuffer(buffer, timestamp)
+          if (timestamp - getPlaybackTime() >= 1) {
+            await new Promise<void>(resolve => {
+              const id = setInterval(() => {
+                if (timestamp - getPlaybackTime() < 1 || playerRef.current?.asyncId !== p.asyncId) {
+                  clearInterval(id)
+                  resolve()
+                }
+              }, 100)
+            })
+          }
+        }
+      } catch (err) {
+        console.warn('[Mediabunny] Audio iterator error, restarting:', err)
+      }
+      const pp = playerRef.current
+      if (!pp || !pp.audioSink || !pp.loaded || !isPlayingRef.current) break
+      pp.audioIterator = pp.audioSink.buffers(getPlaybackTime())
+    }
+  }, [getPlaybackTime, scheduleAudioBuffer])
 
   const play = useCallback(async () => {
     const p = playerRef.current
@@ -147,6 +164,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     }
     p.audioContextStartTime = p.audioContext.currentTime
     setPlaying(true)
+    isPlayingRef.current = true
     if (p.audioSink) {
       p.audioIterator = p.audioSink.buffers(getPlaybackTime())
       runAudioIterator()
@@ -158,6 +176,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     if (!p) return
     p.playbackTimeAtStart = getPlaybackTime()
     setPlaying(false)
+    isPlayingRef.current = false
     p.audioIterator?.return()
     p.audioIterator = null
     for (const node of p.queuedNodes) node.stop()
