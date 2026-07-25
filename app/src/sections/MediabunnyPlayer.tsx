@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Maximize, Minimize } from 'lucide-react'
 import {
   Input,
   ALL_FORMATS,
@@ -310,10 +311,10 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     }
   }, [runAudioIterator])
 
-  const stop = useCallback(() => {
+  const stop = useCallback((caller = '?') => {
     const p = playerRef.current
     if (!p) return
-    dbg(`Stop at ${getPlaybackTime().toFixed(2)}s`)
+    dbg(`Stop at ${getPlaybackTime().toFixed(2)}s [${caller}]`)
     if (autoRefreshTimeoutRef.current) { clearTimeout(autoRefreshTimeoutRef.current); autoRefreshTimeoutRef.current = null }
     if (seekTimeoutRef.current) { clearTimeout(seekTimeoutRef.current); seekTimeoutRef.current = null }
     p.playbackTimeAtStart = getPlaybackTime()
@@ -328,7 +329,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   }, [getPlaybackTime])
 
   const handlePlayStop = useCallback(() => {
-    if (playing) stop()
+    if (playing) stop('hps')
     else {
       if (IS_MOBILE) {
         const p = playerRef.current
@@ -352,7 +353,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       if (!p) return
       dbg(`Seek to ${seconds.toFixed(2)} (wasPlaying=${playing})`)
       const wasPlaying = playing
-      if (wasPlaying) stop()
+      if (wasPlaying) stop('seek')
       p.playbackTimeAtStart = seconds
       if (p.videoSink) {
         p.asyncId++
@@ -514,7 +515,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       const playbackTime = getPlaybackTime()
       if (playbackTime >= pp.endTimestamp) {
         if (playing) {
-          stop()
+          stop('tick')
           setEnded(true)
           onEnded?.()
         }
@@ -595,28 +596,17 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         className="absolute top-2 right-2 z-30 w-7 h-7 rounded-full bg-yellow-500/80 flex items-center justify-center text-[10px] font-bold text-black">{debugTxt || 'L'}</button>
       <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-16 pb-3 px-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div className="w-full h-1.5 bg-white/20 rounded-full cursor-pointer mb-3 group/progress hover:h-2.5 transition-all" onClick={e => { e.stopPropagation(); const rect = e.currentTarget.getBoundingClientRect(); const pct = (e.clientX - rect.left) / rect.width; seekTo(pct * duration) }}>
-          <div className="h-full bg-[#0099ff]/40 rounded-full" style={{ width: `${progress}%` }}>
+          <div className="h-full bg-white/30 rounded-full" style={{ width: `${progress}%` }}>
             <div className="h-full bg-[#0099ff] rounded-full" style={{ width: '100%' }} />
           </div>
         </div>
         <div className="flex items-center justify-between text-white">
           <div className="flex items-center gap-1 sm:gap-3">
-            <button onClick={e => { e.stopPropagation(); handlePlayStop() }} className="p-2 sm:p-0 hover:text-[#0099ff]">
-              {playing
-                ? <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
-                : <svg className="w-6 h-6 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-              }
-            </button>
-            <button onClick={e => { e.stopPropagation(); seekTo(Math.min(currentTime + 10, duration)) }} className="p-2 sm:p-0 hover:text-[#0099ff]">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 17l5-5-5-5"/><path d="M6 17l5-5-5-5"/></svg>
-            </button>
+            <button onClick={e => { e.stopPropagation(); seekTo(Math.max(currentTime - 10, 0)) }} className="p-2 sm:p-0 hover:text-[#0099ff]"><SkipBack className="w-5 h-5 sm:w-5 sm:h-5" /></button>
+            <button onClick={e => { e.stopPropagation(); handlePlayStop() }} className="p-2 sm:p-0 hover:text-[#0099ff]">{playing ? <Pause className="w-7 h-7 sm:w-6 sm:h-6" /> : <Play className="w-7 h-7 sm:w-6 sm:h-6" />}</button>
+            <button onClick={e => { e.stopPropagation(); seekTo(Math.min(currentTime + 10, duration)) }} className="p-2 sm:p-0 hover:text-[#0099ff]"><SkipForward className="w-5 h-5 sm:w-5 sm:h-5" /></button>
             <div className="flex items-center gap-1 sm:gap-2">
-              <button onClick={e => { e.stopPropagation(); setMuted(!muted) }} className="p-2 sm:p-0 hover:text-[#0099ff]">
-                {muted || volume === 0
-                  ? <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 5L6 9H2v6h4l5 4z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-                  : <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-                }
-              </button>
+              <button onClick={e => { e.stopPropagation(); setMuted(!muted) }} className="p-2 sm:p-0 hover:text-[#0099ff]">{muted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}</button>
               <input type="range" min="0" max="1" step="0.05" value={muted ? 0 : volume}
                 onChange={e => { const v = parseFloat(e.target.value); setVolume(v); setMuted(v === 0); playerRef.current?.gainNode?.gain.setValueAtTime(v ** 2, playerRef.current?.audioContext?.currentTime ?? 0) }}
                 onClick={e => e.stopPropagation()}
@@ -639,10 +629,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
                 try { (screen as any).orientation?.unlock?.() } catch {}
               }
             }} className="p-2 sm:p-0 hover:text-[#0099ff]">
-              {fullscreen
-                ? <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>
-                : <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-              }
+              {fullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
             </button>
           </div>
         </div>
