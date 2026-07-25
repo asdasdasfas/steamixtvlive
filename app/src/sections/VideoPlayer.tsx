@@ -406,10 +406,11 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     let asyncId = 0
     let audioIterator: AsyncGenerator<any, void, unknown> | null = null
     let audioSink: AudioBufferSink | null = null
-    let input: Input | null = null
     const queuedNodes = new Set<AudioBufferSourceNode>()
-    let lastBufferTime = 0
     let lastScheduledEnd = 0
+    let lastAudioPos = -10
+    let lastRestartTime = 0
+    let audioRunning = false
     const fixBuf = (buf: AudioBuffer, ctx: AudioContext): AudioBuffer => {
       const sameSr = buf.sampleRate === ctx.sampleRate
       const sameCh = buf.numberOfChannels <= 2
@@ -435,7 +436,6 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       if (startTime >= audioCtx.currentTime) { node.start(startTime) } else { node.start(audioCtx.currentTime, audioCtx.currentTime - startTime) }
       queuedNodes.add(node)
       node.onended = () => { queuedNodes.delete(node) }
-      lastBufferTime = Date.now()
       const bufEnd = startTime + node.buffer.duration
       if (bufEnd > lastScheduledEnd) lastScheduledEnd = bufEnd
     }
@@ -460,19 +460,25 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         }
       } catch (e) { dbg(`[AUDIOSYNC] Error: ${e}`) }
       try { it.return() } catch {}
+      audioRunning = false
     }
     const stopAudio = () => {
       asyncId++
       for (const n of queuedNodes) { try { n.stop() } catch {} }
       queuedNodes.clear()
+      audioRunning = false
     }
     const startAudio = (pos: number) => {
       if (!audioSink || !audioCtx) return
+      const now = Date.now()
+      if (now - lastRestartTime < 3000 && Math.abs(pos - lastAudioPos) < 5) { dbg(`[AUDIOSYNC] Skip restart (too soon) pos=${pos.toFixed(1)}`); return }
+      lastRestartTime = now
+      lastAudioPos = pos
       stopAudio()
       const ctxStart = audioCtx.currentTime
       const id = ++asyncId
       try { audioIterator = audioSink.buffers(pos) } catch (e) { dbg(`[AUDIOSYNC] buffers() error: ${e}`); return }
-      if (audioIterator) runAudioIt(id, audioIterator, pos, ctxStart, pos)
+      if (audioIterator) { audioRunning = true; runAudioIt(id, audioIterator, pos, ctxStart, pos) }
     }
     const initAudio = async () => {
       try {
@@ -480,7 +486,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         audioCtx = new AudioCtxClass()
         gainNode = audioCtx.createGain()
         gainNode.connect(audioCtx.destination)
-        input = new Input({ source: new UrlSource(currentSrc, { requestInit: { credentials: 'include' } }), formats: ALL_FORMATS })
+        const input = new Input({ source: new UrlSource(currentSrc, { requestInit: { credentials: 'include' } }), formats: ALL_FORMATS })
         const audioTrack = await input.getPrimaryAudioTrack()
         if (!audioTrack) { dbg(`[AUDIOSYNC] No audio track`); return }
         const codec = await audioTrack.getCodec()
@@ -493,10 +499,10 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     initAudio()
     const onPlay = () => {
       if (audioCtx?.state === 'suspended') audioCtx.resume()
-      startAudio(video.currentTime)
+      if (!audioRunning) startAudio(video.currentTime)
     }
     const onPause = () => stopAudio()
-    const onSeek = () => { if (!video.paused) startAudio(video.currentTime) }
+    const onSeek = () => { if (!video.paused && !audioRunning) startAudio(video.currentTime) }
     video.addEventListener('play', onPlay)
     video.addEventListener('pause', onPause)
     video.addEventListener('seeked', onSeek)
