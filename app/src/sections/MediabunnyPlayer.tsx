@@ -435,17 +435,19 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
 
         if (audioTrack) {
           const sr = await audioTrack.getSampleRate()
-          if (sr) {
+          const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+          if (sr && !isMobile) {
             try {
               activeAudioCtx.close()
               activeAudioCtx = new AudioContextClass({ sampleRate: sr })
             } catch {
-              dbg(`Sample rate ${sr} not supported on this device, using default`)
+              dbg(`Sample rate ${sr} not supported, using default`)
               activeAudioCtx = new AudioContextClass()
             }
-            activeGain = activeAudioCtx.createGain()
-            activeGain.connect(activeAudioCtx.destination)
           }
+          // On mobile, always use default sample rate (custom rates can silently fail)
+          activeGain = activeAudioCtx.createGain()
+          activeGain.connect(activeAudioCtx.destination)
         }
 
         playerRef.current = {
