@@ -161,8 +161,10 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     const rounded = Math.round(p.audioContext.sampleRate * startTime) / p.audioContext.sampleRate
     if (rounded >= p.audioContext.currentTime) {
       node.start(rounded)
+      if (audioBufCountRef.current <= 1) dbg(`Sched ts=${timestamp.toFixed(2)} cur=${p.audioContext.currentTime.toFixed(2)} start=${rounded.toFixed(2)} OK`)
     } else {
       node.start(p.audioContext.currentTime, p.audioContext.currentTime - rounded)
+      if (audioBufCountRef.current <= 1) dbg(`Sched ts=${timestamp.toFixed(2)} cur=${p.audioContext.currentTime.toFixed(2)} start=${p.audioContext.currentTime.toFixed(2)} offset=${(p.audioContext.currentTime - rounded).toFixed(3)} LATE`)
     }
     p.queuedNodes.add(node)
     node.onended = () => { p.queuedNodes.delete(node) }
@@ -207,10 +209,13 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         }
         if (playerRef.current?.asyncId !== asyncId) break
         const { buffer, timestamp } = raced.value as { buffer: AudioBuffer; timestamp: number }
+        const beforeSched = performance.now()
         scheduleAudioBuffer(buffer, timestamp)
+        if (audioBufCountRef.current === 0) dbg(`First buf arrived ts=${timestamp.toFixed(2)} sched_dur=${(performance.now()-beforeSched).toFixed(1)}ms`)
         audioBufCountRef.current++
         if (audioBufCountRef.current === 1 || audioBufCountRef.current % 30 === 0) {
-          dbg(`Audio buf#${audioBufCountRef.current} ts=${timestamp.toFixed(2)} ctx=${p.audioContext.currentTime.toFixed(2)}`)
+          const pt = getPlaybackTime()
+          dbg(`Audio buf#${audioBufCountRef.current} ts=${timestamp.toFixed(2)} ctx=${p.audioContext.currentTime.toFixed(2)} playTime=${pt.toFixed(2)}`)
         }
         if (timestamp - getPlaybackTime() >= 1) {
           await new Promise<void>(resolve => {
@@ -260,6 +265,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       p.audioIterator = audioSink.buffers(pos, undefined, { skipLiveWait: true })
       runAudioIterator(id)
     } else if (p.audioSink) {
+      dbg(`Audio pending (loaded=${p.loaded})`)
       pendingPlayRef.current = true
     }
 
@@ -269,6 +275,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
 
     // Video karelerini arka planda getir (asyncId degismez, audio iterator bozulmaz)
     if (p.videoSink) {
+      dbg(`Video seek start pos=${pos.toFixed(2)}`)
       p.videoIterator?.return()
       p.videoIterator = p.videoSink.canvases(pos)
       const first = (await p.videoIterator.next()).value as WrappedCanvas | undefined
@@ -279,6 +286,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
         ctx.drawImage(first.canvas, 0, 0)
       }
+      dbg(`Video seek done pos=${pos.toFixed(2)}`)
     }
 
     if (!firstPlayDoneRef.current) {
@@ -364,8 +372,8 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       dbg(`Seek to ${seconds.toFixed(2)} (wasPlaying=${wasPlaying})`)
       if (wasPlaying) stop('seek')
       p.playbackTimeAtStart = seconds
+      dbg(`Seek startPlayback seconds=${seconds.toFixed(2)} endTs=${p.endTimestamp.toFixed(2)}`)
       if (wasPlaying && seconds < p.endTimestamp) startPlayback(seconds)
-      // Video+audio seek'u startPlayback halleder
     }, 0)
   }, [stop, startPlayback])
 
