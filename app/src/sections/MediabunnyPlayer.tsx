@@ -197,11 +197,11 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           const count = bufCount
           if (raced === 'timeout') dbg(`Audio TIMEOUT after ${count} buffers (id=${asyncId})`)
           it.return?.()
-          if (count === 0 && playerRef.current?.asyncId === asyncId && audioRetryCount.current < 6) {
+            if (count === 0 && playerRef.current?.asyncId === asyncId && audioRetryCount.current < 12) {
             const pp = playerRef.current
             const curPos = getPlaybackTime()
             audioRetryCount.current++
-            const offsets = [2, -2, 5, -5, 10, -10, 30, -30, 60, -60]
+            const offsets = [2, -2, 5, -5, 10, -10, 30, -30, 60, -60, 120, -120]
             const offset = offsets[audioRetryCount.current - 1]
             const retryPos = Math.max(0, curPos + offset)
             dbg(`Audio retry #${audioRetryCount.current} offset=${offset >= 0 ? '+' : ''}${offset}s at ${retryPos.toFixed(2)}s`)
@@ -361,6 +361,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     dbg(`Stop at ${getPlaybackTime().toFixed(2)}s [${caller}]`)
     if (autoRefreshTimeoutRef.current) { clearTimeout(autoRefreshTimeoutRef.current); autoRefreshTimeoutRef.current = null }
     if (seekTimeoutRef.current) { clearTimeout(seekTimeoutRef.current); seekTimeoutRef.current = null }
+    p.asyncId++
     p.playbackTimeAtStart = getPlaybackTime()
     setPlaying(false)
     isPlayingRef.current = false
