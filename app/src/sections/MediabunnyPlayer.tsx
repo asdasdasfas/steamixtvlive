@@ -85,6 +85,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     const p = playerRef.current
     if (!p || !p.videoIterator) return
     const currentAsyncId = p.asyncId
+    let gotFrame = false
     while (true) {
       const result = await p.videoIterator.next()
       if (result.done || !result.value) {
@@ -104,10 +105,15 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
           ctx.drawImage(frame.canvas, 0, 0)
         }
+        gotFrame = true
       } else {
         p.nextFrame = frame
-        break
+        return
       }
+    }
+    // nextFrame alinamadiysa tick loop'u deadlock olmasin diye tekrar dener
+    if (!gotFrame && playerRef.current?.asyncId === currentAsyncId) {
+      updateNextFrame()
     }
   }, [getPlaybackTime])
 
@@ -699,6 +705,8 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
             ctx.drawImage(pp.nextFrame.canvas, 0, 0)
           }
           pp.nextFrame = null
+          updateNextFrame()
+        } else if (!pp.nextFrame) {
           updateNextFrame()
         }
 
