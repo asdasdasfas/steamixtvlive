@@ -79,10 +79,13 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     if (!p || !p.videoIterator) return
     const currentAsyncId = p.asyncId
     while (true) {
-      const result = await p.videoIterator.next()
-      if (result.done || !result.value) break
+      const raced = await Promise.race([
+        p.videoIterator.next(),
+        new Promise<IteratorResult<WrappedCanvas>>(resolve => setTimeout(() => resolve({ done: true, value: undefined as any }), 3000))
+      ])
+      if (raced.done || !raced.value) break
       if (currentAsyncId !== p.asyncId) break
-      const frame = result.value as WrappedCanvas
+      const frame = raced.value as WrappedCanvas
       const playbackTime = getPlaybackTime()
       const ctx = canvasRef.current?.getContext('2d')
       if (frame.timestamp <= playbackTime) {
@@ -167,36 +170,84 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     dbg(`Audio iterator DONE (id=${asyncId})`)
   }, [getPlaybackTime, scheduleAudioBuffer])
 
-  const play = useCallback(async () => {
+  const startPlayback = useCallback(async (seconds?: number) => {
     const p = playerRef.current
-    if (!p || !p.audioContext) { dbg('Play: no player/audioContext'); return }
-    if (p.audioContext.state === 'suspended') { dbg('Play: resume AudioContext'); await p.audioContext.resume() }
-    const pos = getPlaybackTime()
-    dbg(`Play: pos=${pos.toFixed(2)}`)
+    if (!p || !p.audioContext) { dbg('Start: no player'); return }
+    if (p.audioContext.state === 'suspended') await p.audioContext.resume()
+
+    const pos = seconds ?? getPlaybackTime()
+    dbg(`Start playback at ${pos.toFixed(2)}s (firstPlay=${firstPlayDoneRef.current})`)
+
     if (pos >= p.endTimestamp) {
       p.playbackTimeAtStart = p.firstTimestamp
       p.nextFrame = null
       setEnded(false)
     }
+
+    p.playbackTimeAtStart = pos
     p.audioContextStartTime = p.audioContext.currentTime
-    setPlaying(true)
-    isPlayingRef.current = true
+    p.audioIterator?.return()
+
+    if (p.videoSink) {
+      p.asyncId++
+      p.videoIterator = p.videoSink.canvases(pos)
+      const first = (await p.videoIterator.next()).value as WrappedCanvas | undefined
+      const second = (await p.videoIterator.next()).value as WrappedCanvas | undefined
+      p.nextFrame = second ?? null
+      const ctx = canvasRef.current?.getContext('2d')
+      if (first && ctx) {
+        ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
+        ctx.drawImage(first.canvas, 0, 0)
+      }
+    }
+
     if (p.audioSink && p.loaded) {
-      p.audioIterator?.return()
       p.asyncId++
       const id = p.asyncId
-      dbg(`New audio iterator from ${pos.toFixed(3)}s (id=${id})`)
+      dbg(`Audio iterator from ${pos.toFixed(3)}s (id=${id})`)
       p.audioIterator = p.audioSink.buffers(pos, undefined, { skipLiveWait: true })
       runAudioIterator(id)
     } else if (p.audioSink) {
       pendingPlayRef.current = true
     }
-  }, [getPlaybackTime, runAudioIterator])
 
-  const pause = useCallback(() => {
+    setPlaying(true)
+    isPlayingRef.current = true
+
+    if (!firstPlayDoneRef.current) {
+      firstPlayDoneRef.current = true
+      setTimeout(() => {
+        if (!isPlayingRef.current || !playerRef.current) return
+        const jumpTo = getPlaybackTime() + 0.1
+        if (jumpTo < (playerRef.current.endTimestamp ?? 0)) {
+          dbg(`Auto-refresh seek +0.1s`)
+          const pp = playerRef.current
+          pp.asyncId++
+          if (pp.videoSink) {
+            pp.videoIterator = pp.videoSink.canvases(jumpTo)
+            pp.videoIterator.next().then(r1 => {
+              if (r1.done || !r1.value) return
+              const ctx = canvasRef.current?.getContext('2d')
+              if (ctx && canvasRef.current) {
+                ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
+                ctx.drawImage((r1.value as WrappedCanvas).canvas, 0, 0)
+              }
+              pp.videoIterator!.next().then(r2 => {
+                pp.nextFrame = (r2.done ? null : r2.value) as WrappedCanvas | null
+              })
+            })
+          }
+          pp.audioIterator?.return()
+          pp.audioIterator = pp.audioSink?.buffers(jumpTo, undefined, { skipLiveWait: true }) ?? null
+        }
+      }, 800)
+    }
+  }, [runAudioIterator])
+
+  const stop = useCallback(() => {
     const p = playerRef.current
     if (!p) return
-    dbg(`Pause at ${getPlaybackTime().toFixed(2)}s`)
+    dbg(`Stop at ${getPlaybackTime().toFixed(2)}s`)
     p.playbackTimeAtStart = getPlaybackTime()
     setPlaying(false)
     isPlayingRef.current = false
@@ -205,8 +256,13 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     const count = p.queuedNodes.size
     for (const node of p.queuedNodes) node.stop()
     p.queuedNodes.clear()
-    dbg(`Paused, stopped ${count} audio nodes`)
+    dbg(`Stopped ${count} audio nodes`)
   }, [getPlaybackTime])
+
+  const handlePlayStop = useCallback(() => {
+    if (playing) stop()
+    else startPlayback()
+  }, [playing, stop, startPlayback])
 
   const seekTo = useCallback(async (seconds: number) => {
     if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current)
@@ -216,7 +272,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       if (!p) return
       dbg(`Seek to ${seconds.toFixed(2)} (wasPlaying=${playing})`)
       const wasPlaying = playing
-      if (wasPlaying) pause()
+      if (wasPlaying) stop()
       p.playbackTimeAtStart = seconds
       if (p.videoSink) {
         p.asyncId++
@@ -230,25 +286,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           ctx.drawImage(first.canvas, 0, 0)
         }
       }
-      if (wasPlaying && seconds < p.endTimestamp) play()
+      if (wasPlaying && seconds < p.endTimestamp) startPlayback(seconds)
     }, 50)
-  }, [playing, pause, play])
-
-  const togglePlay = useCallback(() => {
-    if (playing) pause()
-    else {
-      play()
-      if (!firstPlayDoneRef.current) {
-        firstPlayDoneRef.current = true
-        setTimeout(() => {
-          const p = playerRef.current
-          if (!p || !isPlayingRef.current) return
-          const jumpTo = getPlaybackTime() + 0.1
-          if (jumpTo < p.endTimestamp) seekTo(jumpTo)
-        }, 800)
-      }
-    }
-  }, [playing, play, pause, seekTo])
+  }, [playing, stop, startPlayback])
 
   useEffect(() => {
     let cancelled = false
@@ -356,8 +396,8 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         playerRef.current.loaded = true
         if (pendingPlayRef.current) {
           pendingPlayRef.current = false
-          dbg('Init complete, executing pending play')
-          play()
+          dbg('Init complete, executing pending start')
+          startPlayback()
         }
       } catch (err: any) {
         if (!cancelled) setLoadError(err.message || 'Playback failed')
@@ -388,7 +428,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       const playbackTime = getPlaybackTime()
       if (playbackTime >= pp.endTimestamp) {
         if (playing) {
-          pause()
+          stop()
           setEnded(true)
           onEnded?.()
         }
@@ -416,7 +456,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       cancelAnimationFrame(p.rafId)
       clearInterval(p.intervalId)
     }
-  }, [playing, getPlaybackTime, pause, onEnded, updateNextFrame])
+  }, [playing, getPlaybackTime, stop, onEnded, updateNextFrame])
 
   useEffect(() => {
     const onFs = () => setFullscreen(!!document.fullscreenElement)
@@ -439,7 +479,6 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     <div
       ref={containerRef}
       className="relative bg-black group cursor-pointer"
-      onClick={togglePlay}
       onMouseMove={startHideTimer}
     >
       <canvas
@@ -456,13 +495,6 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
           <div className="text-center max-w-xs">
             <p className="text-sm text-red-400 mb-3">{loadError}</p>
-          </div>
-        </div>
-      )}
-      {!playing && !ended && !loadError && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-          <div className="w-16 h-16 rounded-full bg-black/50 flex items-center justify-center backdrop-blur-sm">
-            <svg className="w-8 h-8 text-white ml-1" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           </div>
         </div>
       )}
@@ -483,13 +515,10 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         </div>
         <div className="flex items-center justify-between text-white">
           <div className="flex items-center gap-1 sm:gap-3">
-            <button onClick={e => { e.stopPropagation(); seekTo(Math.max(currentTime - 10, 0)) }} className="p-2 sm:p-0 hover:text-[#0099ff]">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 17l-5-5 5-5"/><path d="M18 17l-5-5 5-5"/></svg>
-            </button>
-            <button onClick={e => { e.stopPropagation(); togglePlay() }} className="p-2 sm:p-0 hover:text-[#0099ff]">
+            <button onClick={e => { e.stopPropagation(); handlePlayStop() }} className="p-2 sm:p-0 hover:text-[#0099ff]">
               {playing
-                ? <svg className="w-7 h-7 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
-                : <svg className="w-7 h-7 sm:w-6 sm:h-6 ml-1" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                ? <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
+                : <svg className="w-6 h-6 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
               }
             </button>
             <button onClick={e => { e.stopPropagation(); seekTo(Math.min(currentTime + 10, duration)) }} className="p-2 sm:p-0 hover:text-[#0099ff]">
