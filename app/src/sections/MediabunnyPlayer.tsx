@@ -212,27 +212,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
             pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
             pp.asyncId++
             const newId = pp.asyncId
-            if (pp.videoSink) {
-              const oldIt = pp.videoIterator
-              const it = pp.videoSink.canvases(retryPos)
-              pp.videoIterator = it
-              oldIt?.return()
-              dbg(`Video seek retry pos=${retryPos.toFixed(2)}`)
-              ;(async () => {
-                const first = await it.next()
-                if (first.done || !first.value || playerRef.current?.asyncId !== newId) return
-                const second = await it.next()
-                if (playerRef.current?.asyncId !== newId) return
-                pp.nextFrame = (second.done ? null : second.value) as WrappedCanvas | null
-                const ctx = canvasRef.current?.getContext('2d')
-                if (ctx) {
-                  ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
-                  ctx.drawImage(first.value.canvas, 0, 0)
-                }
-                dbg(`Video seek retry done pos=${retryPos.toFixed(2)}`)
-              })()
-            }
-            pp.audioIterator = pp.audioSink?.buffers(retryPos, undefined, { skipLiveWait: true }) ?? null
+            // Retry'de video seek YOK (video+ses ayni Input'u paylasir, cakisma)
+            // skipLiveWait yok -> decoder keyframe'e otomatik gitsin
+            pp.audioIterator = pp.audioSink?.buffers(retryPos) ?? null
             if (pp.audioIterator) runAudioIterator(newId)
           } else if (count === 0) {
             dbg(`Audio cannot start — all retries failed`)
@@ -290,7 +272,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     const audioSink = p.audioSink
     if (audioSink && p.loaded) {
       dbg(`Audio iterator from ${pos.toFixed(3)}s (id=${seekId})`)
-      p.audioIterator = audioSink.buffers(pos, undefined, { skipLiveWait: true })
+      p.audioIterator = audioSink.buffers(pos)
       runAudioIterator(seekId)
     } else if (p.audioSink) {
       dbg(`Audio pending (loaded=${p.loaded})`)
@@ -350,7 +332,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
             }
             pp.audioIterator?.return()
             const newAudioId = pp.asyncId
-            pp.audioIterator = pp.audioSink?.buffers(jumpTo, undefined, { skipLiveWait: true }) ?? null
+            pp.audioIterator = pp.audioSink?.buffers(jumpTo) ?? null
             if (pp.audioIterator) runAudioIterator(newAudioId)
           }
         }, 800)
