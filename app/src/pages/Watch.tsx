@@ -17,6 +17,7 @@ export default function Watch() {
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState('')
   const [nativePlayerUrl, setNativePlayerUrl] = useState('')
+  const [streamVaultUrl, setStreamVaultUrl] = useState('')
 
   const streamId = params.get('stream_id')
   const rotationId = params.get('rotation_id')
@@ -55,7 +56,9 @@ export default function Watch() {
           }
           if (!cancelled) { 
             if (isMobile && nativeUrl) {
-              setNativePlayerUrl(window.location.origin + nativeUrl)
+              const fullUrl = window.location.origin + nativeUrl
+              setNativePlayerUrl(fullUrl)
+              setStreamVaultUrl('intent://' + fullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=video/*;scheme=https;package=com.streamvault.app;end')
               setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1))
             } else {
               setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1))
@@ -91,7 +94,9 @@ export default function Watch() {
               if (mkvAt >= 0) {
                 const nativeUrl = allUrls[mkvAt]
                 const audioFixUrl = '/audio-fix/' + nativeUrl.slice('/dyn/'.length)
-                setNativePlayerUrl(window.location.origin + nativeUrl)
+                const fullUrl = window.location.origin + nativeUrl
+                setNativePlayerUrl(fullUrl)
+                setStreamVaultUrl('intent://' + fullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=video/*;scheme=https;package=com.streamvault.app;end')
                 setUrl(audioFixUrl); setFallbackUrls(allUrls)
               } else {
                 setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1))
@@ -165,17 +170,20 @@ export default function Watch() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-sm px-6">
             <p className="text-base text-white font-semibold mb-1">Film / Dizi</p>
-            <p className="text-xs text-gray-500 mb-6">Ses codec uyumu için AAC'ye dönüştürülüyor. İlk açılışta 30-60sn sürebilir.</p>
+            <p className="text-xs text-gray-500 mb-4">Ses codec uyumu için AAC'ye dönüştürülüyor. İlk açılışta 30-60sn sürebilir.</p>
             <button onClick={() => { setNativePlayerUrl(''); setUrl(fallbackUrls[0] || ''); setFallbackUrls(fallbackUrls.slice(1)) }}
               className="block w-full py-3.5 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-[#0099ff]/20">
               İzle (AAC Ses)
             </button>
-            <div className="mt-4">
-              <button onClick={() => window.location.href = nativePlayerUrl}
-                className="text-xs text-gray-600 hover:text-gray-400 transition-all">
-                Player'da dene (AC3)
-              </button>
-            </div>
+            <div className="h-px bg-white/5 my-4" />
+            <a href={streamVaultUrl}
+              className="block w-full py-3 rounded-xl bg-white/10 text-gray-300 text-sm hover:bg-white/20 transition-all mb-2 text-center">
+              Stream Vault'da Aç
+            </a>
+            <button onClick={() => window.location.href = nativePlayerUrl}
+              className="w-full py-2.5 rounded-xl bg-white/5 text-gray-500 text-xs hover:text-white transition-all">
+              Diğer Player'da Dene
+            </button>
           </div>
         </div>
       ) : url ? (
