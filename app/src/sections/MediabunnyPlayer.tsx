@@ -277,34 +277,36 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
 
     if (!firstPlayDoneRef.current) {
       firstPlayDoneRef.current = true
-      autoRefreshTimeoutRef.current = setTimeout(() => {
-        autoRefreshTimeoutRef.current = null
-        if (!isPlayingRef.current || !playerRef.current) return
-        const jumpTo = getPlaybackTime() + 0.1
-        if (jumpTo < (playerRef.current.endTimestamp ?? 0)) {
-          dbg(`Auto-refresh seek +0.1s`)
-          const pp = playerRef.current
-          pp.asyncId++
-          if (pp.videoSink) {
-            pp.videoIterator = pp.videoSink.canvases(jumpTo)
-            pp.videoIterator.next().then(r1 => {
-              if (r1.done || !r1.value) return
-              const ctx = canvasRef.current?.getContext('2d')
-              if (ctx && canvasRef.current) {
-                ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
-                ctx.drawImage((r1.value as WrappedCanvas).canvas, 0, 0)
-              }
-              pp.videoIterator!.next().then(r2 => {
-                pp.nextFrame = (r2.done ? null : r2.value) as WrappedCanvas | null
+      if (!IS_MOBILE) {
+        autoRefreshTimeoutRef.current = setTimeout(() => {
+          autoRefreshTimeoutRef.current = null
+          if (!isPlayingRef.current || !playerRef.current) return
+          const jumpTo = getPlaybackTime() + 0.1
+          if (jumpTo < (playerRef.current.endTimestamp ?? 0)) {
+            dbg(`Auto-refresh seek +0.1s`)
+            const pp = playerRef.current
+            pp.asyncId++
+            if (pp.videoSink) {
+              pp.videoIterator = pp.videoSink.canvases(jumpTo)
+              pp.videoIterator.next().then(r1 => {
+                if (r1.done || !r1.value) return
+                const ctx = canvasRef.current?.getContext('2d')
+                if (ctx && canvasRef.current) {
+                  ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
+                  ctx.drawImage((r1.value as WrappedCanvas).canvas, 0, 0)
+                }
+                pp.videoIterator!.next().then(r2 => {
+                  pp.nextFrame = (r2.done ? null : r2.value) as WrappedCanvas | null
+                })
               })
-            })
+            }
+            pp.audioIterator?.return()
+            const newAudioId = pp.asyncId
+            pp.audioIterator = pp.audioSink?.buffers(jumpTo, undefined, { skipLiveWait: true }) ?? null
+            if (pp.audioIterator) runAudioIterator(newAudioId)
           }
-          pp.audioIterator?.return()
-          const newAudioId = pp.asyncId
-          pp.audioIterator = pp.audioSink?.buffers(jumpTo, undefined, { skipLiveWait: true }) ?? null
-          if (pp.audioIterator) runAudioIterator(newAudioId)
-        }
-      }, 800)
+        }, 800)
+      }
     }
   }, [runAudioIterator])
 
