@@ -527,22 +527,31 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         if (!codec || !(await audioTrack.canDecode())) { dbg(`[AUDIOSYNC] Audio cannot decode`); return }
         audioSink = new AudioBufferSink(audioTrack)
         dbg(`[AUDIOSYNC] Ready`)
-        if (!video.paused) { startAudio(video.currentTime) }
       } catch (e) { dbg(`[AUDIOSYNC] Init error: ${e}`) }
     }
     initAudio()
+    // Video goruntusu gelene kadar sesi beklet
+    const onSyncTime = () => {
+      if (!audioRunning && audioSink && audioCtx && video.currentTime > 0) {
+        video.removeEventListener('timeupdate', onSyncTime)
+        dbg(`[AUDIOSYNC] Sync start at video=${video.currentTime.toFixed(2)}s`)
+        startAudio(video.currentTime)
+      }
+    }
+    video.addEventListener('timeupdate', onSyncTime)
     const onPlay = () => {
       if (audioCtx?.state === 'suspended') audioCtx.resume()
-      if (!audioRunning) startAudio(video.currentTime)
+      if (!audioRunning && video.currentTime > 0) startAudio(video.currentTime)
     }
     const onPause = () => stopAudio()
-    const onSeek = () => { if (!video.paused && !audioRunning) startAudio(video.currentTime) }
+    const onSeek = () => { if (!video.paused && !audioRunning && video.currentTime > 0) startAudio(video.currentTime) }
     video.addEventListener('play', onPlay)
     video.addEventListener('pause', onPause)
     video.addEventListener('seeked', onSeek)
     video.muted = true
     return () => {
       cancelled = true
+      video.removeEventListener('timeupdate', onSyncTime)
       video.removeEventListener('play', onPlay)
       video.removeEventListener('pause', onPause)
       video.removeEventListener('seeked', onSeek)
