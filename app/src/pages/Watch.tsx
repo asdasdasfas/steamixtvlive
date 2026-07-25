@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { liveUrl, seriesUrls, fetchVodInfo, fetchSeriesInfo, fetchLiveStreams, vodUrlTesters, vodUrlWithExt, proxyUrl } from '@/lib/supabase'
@@ -24,18 +24,7 @@ export default function Watch() {
   const episode = params.get('episode') || '1'
   const ext = params.get('ext') || ''
   const seriesId = params.get('series_id') || ''
-  const debugRef = useRef<string[]>([])
-  const [debugTxt, setDebugTxt] = useState('')
 
-  // Capture console logs on mobile
-  useEffect(() => {
-    const isM = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-    if (!isM) return
-    const origLog = console.log; const origErr = console.error
-    console.log = (...args) => { debugRef.current.push('[LOG] '+args.map(a=>typeof a==='object'?JSON.stringify(a):String(a)).join(' ')); origLog.apply(console,args) }
-    console.error = (...args) => { debugRef.current.push('[ERR] '+args.map(a=>typeof a==='object'?JSON.stringify(a):String(a)).join(' ')); origErr.apply(console,args) }
-    return () => { console.log = origLog; console.error = origErr }
-  }, [])
 
   const resolveStream = useCallback(async () => {
     if (!server) return
@@ -49,8 +38,8 @@ export default function Watch() {
       } else if (streamId) {
         const sid = parseInt(streamId)
         const { base_url, xtream_user, xtream_pass } = server
+        const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
         if (type === 'movie') {
-          const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
           const allUrls = ext
             ? [vodUrlWithExt(base_url, xtream_user, xtream_pass, sid, ext), ...vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))]
             : vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))
@@ -65,9 +54,9 @@ export default function Watch() {
           }
           if (!cancelled) { 
             if (isMobile && nativeUrl) {
-              // Mobilde direkt native playera yönlendir
-              setUrl(nativeUrl); setFallbackUrls([])
-              setTimeout(() => { if (!cancelled) window.location.href = nativeUrl }, 1500)
+              const fullUrl = window.location.origin + nativeUrl
+              const androidIntent = 'intent://' + fullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=video/*;end'
+              setUrl(androidIntent); setFallbackUrls([fullUrl, ...finalUrls])
             } else {
               setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1))
             }
@@ -96,7 +85,21 @@ export default function Watch() {
             allUrls.push(`/p2095/movie/${xtream_user}/${xtream_pass}/${streamId}.mp4`)
             allUrls.push(`/p2095/movie/${xtream_user}/${xtream_pass}/${streamId}`)
           }
-          if (!cancelled) { setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1)) }
+          if (!cancelled) { 
+            if (isMobile) {
+              const mkvAt = allUrls.findIndex(u => u.startsWith('/dyn/') && (u.endsWith('.mkv') || u.endsWith('.mp4')))
+              if (mkvAt >= 0) {
+                const nativeUrl = allUrls[mkvAt]
+                const fullUrl = window.location.origin + nativeUrl
+                const androidIntent = 'intent://' + fullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=video/*;end'
+                setUrl(androidIntent); setFallbackUrls([fullUrl, ...allUrls])
+              } else {
+                setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1))
+              }
+            } else {
+              setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1))
+            }
+          }
           try {
             const info = await fetchSeriesInfo(base_url, xtream_user, xtream_pass, sid)
             if (!cancelled) setTitle((info as any)?.info?.name || `Dizi ${streamId}`)
@@ -141,10 +144,7 @@ export default function Watch() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         {title && <span className="text-xs text-gray-400 truncate max-w-[160px] md:max-w-[200px] bg-black/40 px-2 py-1 rounded-lg">{title}</span>}
-        {/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && (
-          <button onClick={() => { const isM=!/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)?'no':'yes'; const info={ua:navigator.userAgent,type,streamId,rotationId,season,episode,ext,seriesId,url:url?.substring(0,200),fallbackUrls:fallbackUrls.map(u=>u?.substring(0,150)),loading,error,isMobile:isM,params:{stream_id:params.get('stream_id'),type:params.get('type'),ext:params.get('ext')}}; const full={...info,logs:debugRef.current.slice(-100)}; navigator.clipboard.writeText(JSON.stringify(full,null,2)).then(()=>setDebugTxt('Kopyalandi!')).catch(()=>setDebugTxt('Hata!')); setTimeout(()=>setDebugTxt(''),3000) }}
-            className="w-8 h-8 rounded-full bg-yellow-500/80 flex items-center justify-center text-[10px] font-bold text-black pointer-events-auto">{debugTxt || 'D'}</button>
-        )}
+
       </div>
       {loading && !url ? (
         <div className="flex-1 flex items-center justify-center">
@@ -161,12 +161,22 @@ export default function Watch() {
             <button onClick={() => navigate(-1)} className="px-5 py-2 rounded-lg bg-white/10 text-white text-sm">Geri Dön</button>
           </div>
         </div>
-      ) : /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && url && !rotationId ? (
+      ) : /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && url?.startsWith('intent://') && !rotationId ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-sm px-6">
-            <Loader2 className="w-10 h-10 text-[#0099ff] animate-spin mx-auto mb-4" />
-            <p className="text-base text-white font-semibold mb-2">Mobil cihazınızda açılıyor...</p>
-            <p className="text-xs text-gray-500">Telefonunuzun video player'ına yönlendiriliyorsunuz.</p>
+            <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-[#0099ff]/20 to-purple-500/20 border border-[#0099ff]/30 flex items-center justify-center">
+              <svg className="w-8 h-8 text-[#0099ff]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+            <p className="text-base text-white font-semibold mb-1">Telefonun Video Player'ında Aç</p>
+            <p className="text-xs text-gray-500 mb-6">Bu film telefonunuzun kendi video player'ında açılacaktır.</p>
+            <a href={url} className="block w-full py-3.5 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm hover:opacity-90 transition-all mb-3 shadow-lg shadow-[#0099ff]/20">
+              Player'da Aç
+            </a>
+            <button onClick={() => { setUrl(fallbackUrls[0] || ''); setFallbackUrls(fallbackUrls.slice(1)) }}
+              className="w-full py-2.5 rounded-xl bg-white/10 text-gray-400 text-xs hover:text-white transition-all">
+              Tarayıcıda İzle
+            </button>
+            <p className="text-[10px] text-gray-600 mt-3">Player açılmazsa "Tarayıcıda İzle" butonunu kullanın.</p>
           </div>
         </div>
       ) : url ? (

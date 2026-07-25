@@ -17,17 +17,6 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const progressRef = useRef<HTMLDivElement>(null)
   const hlsRef = useRef<Hls | null>(null)
   const [playing, setPlaying] = useState(false)
-  const debugRef = useRef<string[]>([])
-  const [debugInfo, setDebugInfo] = useState('')
-
-  // Capture console logs for mobile debug
-  useEffect(() => {
-    const origLog = console.log; const origErr = console.error; const origWarn = console.warn
-    console.log = (...args) => { debugRef.current.push('[LOG] '+args.map(a=>typeof a==='object'?JSON.stringify(a):String(a)).join(' ')); origLog.apply(console,args) }
-    console.error = (...args) => { debugRef.current.push('[ERR] '+args.map(a=>typeof a==='object'?JSON.stringify(a):String(a)).join(' ')); origErr.apply(console,args) }
-    console.warn = (...args) => { debugRef.current.push('[WRN] '+args.map(a=>typeof a==='object'?JSON.stringify(a):String(a)).join(' ')); origWarn.apply(console,args) }
-    return () => { console.log = origLog; console.error = origErr; console.warn = origWarn }
-  }, [])
   const [muted, setMuted] = useState(false)
   const [volume, setVolume] = useState(1)
   const [currentTime, setCurrentTime] = useState(0)
@@ -407,10 +396,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
           </div>
         </div>
       </div>
-      {/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && (
-        <button onClick={e => { e.stopPropagation(); const v=videoRef.current; const h=hlsRef.current; const info={ua:navigator.userAgent,urlIndex:urlIndexRef.current,allUrls:allUrlsRef.current.map(u=>u?.substring(0,150)),videoReady:v?.readyState,videoError:v?.error?.message||v?.error?.code,videoSrc:v?.src?.substring(0,120),hlsActive:!!h,playing,loadError,currentTime,buffered,duration}; const full={...info,logs:debugRef.current.slice(-100)}; navigator.clipboard.writeText(JSON.stringify(full,null,2)).then(()=>setDebugInfo('Kopyalandi!')).catch(()=>setDebugInfo('Kopyalama basarisiz')); setTimeout(()=>setDebugInfo(''),3000) }}
-          className="absolute top-12 right-2 z-30 w-7 h-7 rounded-full bg-yellow-500/80 flex items-center justify-center text-[10px] font-bold text-black">{debugInfo || 'D'}</button>
-      )}
+
     </div>
   )
 }
