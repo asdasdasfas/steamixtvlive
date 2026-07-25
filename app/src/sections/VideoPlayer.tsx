@@ -62,7 +62,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       dbg(`KARAR: Mediabunny KULLANILACAK`)
     } else {
       setUseMediabunny(false)
-      dbg(`KARAR: native video/HLS ${!isProxyUrl ? '' : '(proxy)} ${!isMkv ? '(mkv-degil)' : ''}`)
+      dbg(`KARAR: native video/HLS proxy=${isProxyUrl} mkv=${isMkv}`)
     }
   }, [src, fallbackSrcs])
 
@@ -231,8 +231,9 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       })
       hls.on(Hls.Events.LEVEL_LOADED, (_e, data) => {
         const d = data.details
-        console.log(`[HLS] LEVEL_LOADED: level=${data.level} totalduration=${d?.totalduration?.toFixed(1)}s frags=${d?.fragments?.length} audioCodec=${d?.audioCodec||'?'}`)
-        if (d?.fragments) { d.fragments.slice(0,2).forEach(f => console.log(`[HLS] Fragment: ${f.relurl||f.url} ${f?.audioCodec?`ac=${f.audioCodec}`:''}`)) }
+        const levelDetails = d as any
+        console.log(`[HLS] LEVEL_LOADED: level=${data.level} totalduration=${levelDetails?.totalduration?.toFixed(1)}s frags=${levelDetails?.fragments?.length} audioCodec=${levelDetails?.audioCodec||'?'}`)
+        if (levelDetails?.fragments) { levelDetails.fragments.slice(0,2).forEach((f: any) => console.log(`[HLS] Fragment: ${f.relurl||f.url} ${f?.audioCodec?`ac=${f.audioCodec}`:''}`)) }
       })
       hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_e, data) => {
         const tracks: any[] = data.audioTracks || []
