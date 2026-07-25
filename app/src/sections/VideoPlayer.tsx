@@ -3,6 +3,14 @@ import Hls from 'hls.js'
 import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForward } from 'lucide-react'
 import MediabunnyPlayer from './MediabunnyPlayer'
 
+const debugBuffer: string[] = []
+const MAX_DEBUG = 500
+function dbg(msg: string) {
+  debugBuffer.push(`[${new Date().toISOString().slice(11,19)}] ${msg}`)
+  if (debugBuffer.length > MAX_DEBUG) debugBuffer.splice(0, debugBuffer.length - MAX_DEBUG)
+  console.log(msg)
+}
+
 interface VideoPlayerProps {
   src: string
   poster?: string
@@ -48,13 +56,13 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const isProxy = (u: string) => PROXY_PREFIXES.some(p => u.startsWith(p))
     const isMkv = isDirectFileUrl(src)
     const isProxyUrl = isProxy(src)
-    console.log(`[MOBILE] karar: useMediabunny kontrol bas`, `src=${src?.substring(0,80)}`, `mkv=${isMkv}`, `proxy=${isProxyUrl}`)
+    dbg(`KARAR: mkv=${isMkv} proxy=${isProxyUrl} src=${src?.substring(0,60)}`)
     if (!isProxyUrl && (isMkv || (fallbackSrcs && fallbackSrcs.some(isDirectFileUrl)))) {
       setUseMediabunny(true)
-      console.log(`[MOBILE] KARAR: Mediabunny KULLANILACAK`)
+      dbg(`KARAR: Mediabunny KULLANILACAK`)
     } else {
       setUseMediabunny(false)
-      console.log(`[MOBILE] KARAR: native video + HLS kullanilacak`, `neden=${!isProxyUrl ? '' : 'proxy'} ${!isMkv ? 'mkv-degil' : ''}`)
+      dbg(`KARAR: native video/HLS ${!isProxyUrl ? '' : '(proxy)} ${!isMkv ? '(mkv-degil)' : ''}`)
     }
   }, [src, fallbackSrcs])
 
@@ -115,7 +123,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     // MKV needs extra time to buffer seek table (metadata at end of file)
     const maxStuck = currentSrc.endsWith('.mkv') ? 15 : 5
     console.log(`%c[WATCHDOG] Basladi URL#${urlIdx}/${total} maxStuck=${maxStuck}`, 'color:yellow')
-    if (currentSrc.endsWith('.mkv')) console.log(`%c[MOBILE] WATCHDOG: MKV dosyasi -> watchdog AC3 sesi beklemez, video ilerlerse takilmaz`, 'color:orange')
+    if (currentSrc.endsWith('.mkv')) dbg(`WATCHDOG: MKV dosyasi -> AC3 sesi yok, video ilerlerse watchdog takilmaz`)
     watchdogRef.current = setInterval(() => {
       if (!video || video.seeking) return
       if (video.readyState >= 2 && video.currentTime > lastProgressRef.current) {
@@ -179,7 +187,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const isHls = srcNoQuery.endsWith('.m3u8')
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
     console.log(`[TRYURL] isHLS:${isHls} HLS.destek:${Hls.isSupported()} Safari:${isSafari}`)
-    if (currentSrc.endsWith('.mkv')) console.log(`%c[MOBILE] MKV native video -> AC3 ses OLMAZ!`, 'color:red;font-size:13px')
+    if (currentSrc.endsWith('.mkv')) dbg(`MKV native -> AC3 ses OLMAZ!`)
 
     if (isHls && Hls.isSupported() && !isSafari) {
       const isVirtualHls = currentSrc.startsWith('/v/')
@@ -234,7 +242,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
           console.log(`[HLS] Selecting audio track: id=${track.id} name=${track.name}`)
           hls.audioTrack = track.id
         } else {
-          console.log(`%c[MOBILE] HLS'de HIC ses kanali bulunamadi! AC3 kod cozucu eksik`, 'color:red;font-size:14px')
+          dbg(`HLS'de HIC ses kanali yok! AC3 veya desteklenmeyen codec`) 
         }
       })
       hls.on(Hls.Events.FRAG_LOADING, (_e, data) => {
@@ -400,6 +408,8 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   return (
     <div ref={containerRef} className="relative bg-black group cursor-pointer" onClick={togglePlay} onMouseMove={startHideTimer}>
       <video ref={videoRef} className="w-full aspect-video object-contain" poster={poster} playsInline crossOrigin="anonymous" />
+      <button onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(debugBuffer.join('\n')).then(() => dbg('KOPYALANDI')).catch(() => dbg('KLIPBOARD HATA')) }}
+        className="absolute top-2 right-2 z-30 w-7 h-7 rounded-full bg-yellow-500/80 flex items-center justify-center text-[10px] font-bold text-black">D</button>
       {title && <div className="absolute top-4 left-4 text-white text-sm font-medium drop-shadow-lg bg-black/40 px-3 py-1.5 rounded-lg">{title}</div>}
       {loadError && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
