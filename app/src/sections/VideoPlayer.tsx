@@ -53,6 +53,8 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const retryCountRef = useRef(0)
   const [useMediabunny, setUseMediabunny] = useState<boolean | null>(null)
   const [useAudioSync, setUseAudioSync] = useState(false)
+  const audioSyncRef = useRef(false)
+  const [audioSyncKey, setAudioSyncKey] = useState(0)
 
   // Detect if Mediabunny should be used for this source
   useEffect(() => {
@@ -67,7 +69,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       dbg(`KARAR: Mediabunny KULLANILACAK (sadece PC)`)
     } else if (IS_MOBILE && isMkv && isProxyUrl) {
       setUseMediabunny(false)
-      setUseAudioSync(true)
+      setUseAudioSync(true); audioSyncRef.current = true; setAudioSyncKey(k => k + 1)
       dbg(`KARAR: mobil MKV -> native video + Mediabunny audio`)
     } else {
       setUseMediabunny(false)
@@ -144,6 +146,13 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       stuckCount++
       console.log(`[WATCHDOG] Takildi! #${urlIdx}/${total} stuck:${stuckCount}/${maxStuck} readyState:${video.readyState} currentTime:${video.currentTime.toFixed(2)}s lastProgress:${lastProgressRef.current.toFixed(2)}s buffered:${video.buffered?.length||0}`)
       if (stuckCount >= maxStuck) {
+        // Ses-sync modunda MKV'yi atlama — beklemeye devam et
+        // Audio-sync modu: video calismissa bekle, calismadiysa (currentTime=0) gec
+        if (audioSyncRef.current && currentSrc.endsWith('.mkv') && lastProgressRef.current > 0) {
+          stuckCount = Math.floor(maxStuck * 0.7)
+          console.log(`[WATCHDOG] Audio-sync MKV bekleniyor (stuck=${stuckCount})`)
+          return
+        }
         console.log(`%c[WATCHDOG] ${maxStuck} kez takildi -> SONRAKI URL`, 'color:red')
         clearInterval(watchdogRef.current)
         if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null }
@@ -151,6 +160,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         video.src = ''
         video.load()
         urlIndexRef.current++
+        if (audioSyncRef.current) setAudioSyncKey(k => k + 1)
         if (urlIndexRef.current < allUrlsRef.current.length) {
           tryUrl(video)
         } else {
@@ -539,7 +549,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       stopAudio()
       audioCtx?.close()
     }
-  }, [useAudioSync])
+  }, [useAudioSync, audioSyncKey])
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
   const bufferedPct = duration > 0 ? (buffered / duration) * 100 : 0
