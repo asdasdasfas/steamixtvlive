@@ -175,8 +175,6 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const pendingPlayRef = useRef(false)
   const firstPlayDoneRef = useRef(false)
   const seekTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [recreateKey, setRecreateKey] = useState(0)
-  const pendingPlayAfterRecreate = useRef(false)
   const autoRefreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const audioRetryCount = useRef(0)
 
@@ -197,16 +195,19 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
               audioStallTimeout(1500),
             ])
           : { tag: 'next' as const, ...(await it.next()) }
-        if (raced === 'timeout') {
+        if (raced === 'timeout' || raced.done) {
           const count = audioBufCountRef.current
-          dbg(`Audio TIMEOUT after ${count} buffers (id=${asyncId})`)
+          if (raced === 'timeout') dbg(`Audio TIMEOUT after ${count} buffers (id=${asyncId})`)
           it.return?.()
-          if (count === 0 && playerRef.current?.asyncId === asyncId && audioRetryCount.current < 5) {
+          if (count === 0 && playerRef.current?.asyncId === asyncId && audioRetryCount.current < 6) {
             const pp = playerRef.current
             const curPos = getPlaybackTime()
-            const retryPos = curPos + 2
             audioRetryCount.current++
-            dbg(`Audio retry #${audioRetryCount.current} at ${retryPos.toFixed(2)}s`)
+            // Alternating offset: +2, -2, +5, -5, +10, -10
+            const offsets = [2, -2, 5, -5, 10, -10]
+            const offset = offsets[audioRetryCount.current - 1]
+            const retryPos = Math.max(0, curPos + offset)
+            dbg(`Audio retry #${audioRetryCount.current} offset=${offset >= 0 ? '+' : ''}${offset}s at ${retryPos.toFixed(2)}s`)
             pp.playbackTimeAtStart = retryPos
             pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
             pp.asyncId++
@@ -233,14 +234,8 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
             }
             pp.audioIterator = pp.audioSink?.buffers(retryPos, undefined, { skipLiveWait: true }) ?? null
             if (pp.audioIterator) runAudioIterator(newId)
-          }
-          break
-        }
-        if (raced.done) {
-          if (audioBufCountRef.current === 0 && playerRef.current?.asyncId === asyncId) {
-            dbg('Audio iterator exhausted immediately, recreating player')
-            pendingPlayAfterRecreate.current = true
-            setRecreateKey(k => k + 1)
+          } else if (count === 0) {
+            dbg(`Audio cannot start — all retries failed`)
           } else {
             dbg('Audio ended')
           }
@@ -524,11 +519,6 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           dbg('Init complete, executing pending start')
           startPlayback()
         }
-        if (pendingPlayAfterRecreate.current) {
-          pendingPlayAfterRecreate.current = false
-          dbg('Init complete, executing pending start after recreate')
-          startPlayback()
-        }
       } catch (err: any) {
         if (!cancelled) setLoadError(err.message || 'Playback failed')
       }
@@ -546,7 +536,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         p.audioContext?.close()
       }
     }
-  }, [src, recreateKey])
+  }, [src])
 
   useEffect(() => {
     const p = playerRef.current
