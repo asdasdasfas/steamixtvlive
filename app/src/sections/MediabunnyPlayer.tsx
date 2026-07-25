@@ -208,24 +208,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           if (raced === 'timeout') dbg(`Audio TIMEOUT after ${count} buffers (id=${asyncId})`)
           it.return?.()
           const pp = playerRef.current
-          if (count === 0 && pp && pp.asyncId === asyncId && audioRetryCount.current < 12) {
-            audioRetryCount.current++
-            const curPos = getPlaybackTime()
-            const offsets = [2, -2, 5, -5, 10, -10, 30, -30, 60, -60, 120, -120]
-            const offset = offsets[audioRetryCount.current - 1]
-            const retryPos = Math.max(0, curPos + offset)
-            dbg(`Audio retry #${audioRetryCount.current} offset=${offset >= 0 ? '+' : ''}${offset}s at ${retryPos.toFixed(2)}s`)
-            for (const node of pp.queuedNodes) { try { node.stop() } catch {} }; pp.queuedNodes.clear()
-            pp.playbackTimeAtStart = retryPos
-            pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
-            pp.asyncId++
-            const newId = pp.asyncId
-            try { pp.audioIterator = pp.audioSink?.buffers(retryPos) ?? null } catch (e) { dbg(`Retry error: ${e}`); pp.audioIterator = null }
-            if (pp.audioIterator) runAudioIterator(newId)
-          } else if (count === 0 && pp && pp.asyncId === asyncId) {
-            // Tüm offsetler bitti — Input'u yeniden olustur (nuclear)
-            audioRetryCount.current = 0
-            dbg(`Retry cycle complete — recreating Input`)
+          if (count === 0 && pp && pp.asyncId === asyncId) {
+            // Hic buffer gelmedi, decoder olmus — direkt recreate (retry yok)
+            dbg(`Decoder dead at ${getPlaybackTime().toFixed(2)}s (id=${asyncId}) — recreating session`)
             recreateSession()
           } else if (count > 0 && pp && pp.asyncId === asyncId) {
             audioRetryCount.current = 0
