@@ -184,19 +184,18 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     if (!p || !p.audioSink || !p.audioContext || !p.gainNode || !p.audioIterator) { dbg('Audio exit: missing refs'); return }
     try {
       const it = p.audioIterator
-      audioBufCountRef.current = 0
+      let bufCount = 0
       while (true) {
         if (playerRef.current?.asyncId !== asyncId) { dbg(`Audio exit: asyncId changed`); break }
-        // Sadece ILK buffer icin timeout (0 buffer -> keyframe sorunu)
-        // Buffer gelmeye basladiysa timeout YOK, sonsuza dek bekler
-        const raced = audioBufCountRef.current === 0
+        const raced = bufCount === 0
           ? await Promise.race([
               it.next().then(r => ({ tag: 'next' as const, done: r.done, value: r.value })),
               audioStallTimeout(1500),
             ])
           : { tag: 'next' as const, ...(await it.next()) }
+        if (playerRef.current?.asyncId !== asyncId) { dbg(`Audio exit: asyncId changed`); break }
         if (raced === 'timeout' || raced.done) {
-          const count = audioBufCountRef.current
+          const count = bufCount
           if (raced === 'timeout') dbg(`Audio TIMEOUT after ${count} buffers (id=${asyncId})`)
           it.return?.()
           if (count === 0 && playerRef.current?.asyncId === asyncId && audioRetryCount.current < 6) {
@@ -227,11 +226,11 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         const { buffer, timestamp } = raced.value as { buffer: AudioBuffer; timestamp: number }
         const beforeSched = performance.now()
         scheduleAudioBuffer(buffer, timestamp)
-        if (audioBufCountRef.current === 0) dbg(`First buf arrived ts=${timestamp.toFixed(2)} sched_dur=${(performance.now()-beforeSched).toFixed(1)}ms`)
-        audioBufCountRef.current++
-        if (audioBufCountRef.current === 1 || audioBufCountRef.current % 30 === 0) {
+        if (bufCount === 0) dbg(`First buf arrived ts=${timestamp.toFixed(2)} sched_dur=${(performance.now()-beforeSched).toFixed(1)}ms`)
+        bufCount++
+        if (bufCount === 1 || bufCount % 30 === 0) {
           const pt = getPlaybackTime()
-          dbg(`Audio buf#${audioBufCountRef.current} ts=${timestamp.toFixed(2)} ctx=${p.audioContext.currentTime.toFixed(2)} playTime=${pt.toFixed(2)}`)
+          dbg(`Audio buf#${bufCount} ts=${timestamp.toFixed(2)} ctx=${p.audioContext.currentTime.toFixed(2)} playTime=${pt.toFixed(2)}`)
         }
         // Bekleme YOK -> decoder'a back-pressure uygulama
       }
