@@ -184,9 +184,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     dbg(`Audio iterator started (id=${asyncId})`)
     const p = playerRef.current
     if (!p || !p.audioSink || !p.audioContext || !p.gainNode || !p.audioIterator) { dbg('Audio exit: missing refs'); return }
+    let it = p.audioIterator
+    let bufCount = 0
     try {
-      const it = p.audioIterator
-      let bufCount = 0
       while (true) {
         if (playerRef.current?.asyncId !== asyncId) { dbg(`Audio exit: asyncId changed`); break }
         const timeoutMs = bufCount === 0 ? 2000 : 30000
@@ -236,7 +236,6 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         scheduleAudioBuffer(buffer, timestamp)
         if (bufCount === 0) {
           dbg(`First buf arrived ts=${timestamp.toFixed(2)} sched_dur=${(performance.now()-beforeSched).toFixed(1)}ms`)
-          // Desync kontrol: decoder curPos'tan farkli yere giderse playbackTimeAtStart'i duzelt
           if (Math.abs(timestamp - p.playbackTimeAtStart) > 2) {
             dbg(`Desync: adj playbackTimeAtStart ${p.playbackTimeAtStart.toFixed(2)} -> ${timestamp.toFixed(2)}`)
             p.playbackTimeAtStart = timestamp
@@ -248,7 +247,6 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           const pt = getPlaybackTime()
           dbg(`Audio buf#${bufCount} ts=${timestamp.toFixed(2)} ctx=${p.audioContext.currentTime.toFixed(2)} playTime=${pt.toFixed(2)}`)
         }
-        // Queue limit: max 64 node (~2sn, browser node limiti)
         if (p.queuedNodes.size > 64) {
           await new Promise<void>(resolve => {
             const check = () => { if (!playerRef.current || playerRef.current.queuedNodes.size < 32 || playerRef.current.asyncId !== asyncId) resolve(); else setTimeout(check, 50) }
@@ -259,10 +257,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     } catch (err) {
       dbg(`Audio iterator ERROR: ${err}`)
     }
-    if (playerRef.current?.audioIterator && playerRef.current?.asyncId === asyncId) {
-      playerRef.current.audioIterator.return()
-      playerRef.current.audioIterator = null
-    }
+    // HER ZAMAN iterator'i temizle (asyncId degisse bile!)
+    try { it.return() } catch {}
+    if (playerRef.current?.audioIterator === it) playerRef.current.audioIterator = null
     dbg(`Audio iterator DONE (id=${asyncId})`)
   }, [getPlaybackTime, scheduleAudioBuffer])
 
