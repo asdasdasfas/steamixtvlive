@@ -306,6 +306,8 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         canvasRef.current.width = await newVideoTrack.getDisplayWidth()
         canvasRef.current.height = await newVideoTrack.getDisplayHeight()
       }
+      // ESKI Input'u dispose et (decoder'lari kapat, WASM belleği boşalt)
+      try { p.input?.dispose() } catch (e) { dbg(`Dispose old input error: ${e}`) }
       const startPos = Math.min(pos, p.endTimestamp - 0.5)
       p.input = newInput
       p.videoSink = newVideoSink
