@@ -7,6 +7,18 @@ import VideoPlayer from '@/sections/VideoPlayer'
 import LivePlayer from '@/sections/LivePlayer'
 import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react'
 
+const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+
+const preferNonMkv = (urls: string[]) => {
+  if (!isMobile) return urls
+  return [...urls].sort((a, b) => {
+    const aMkv = a.endsWith('.mkv'), bMkv = b.endsWith('.mkv')
+    if (aMkv && !bMkv) return 1
+    if (!aMkv && bMkv) return -1
+    return 0
+  })
+}
+
 export default function Watch() {
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
@@ -40,9 +52,9 @@ export default function Watch() {
         const sid = parseInt(streamId)
         const { base_url, xtream_user, xtream_pass } = server
         if (type === 'movie') {
-          const allUrls = ext
+          const allUrls = preferNonMkv(ext
             ? [vodUrlWithExt(base_url, xtream_user, xtream_pass, sid, ext), ...vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))]
-            : vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))
+            : vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid)))
           if (!cancelled) { 
             setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1))
           }
@@ -70,8 +82,9 @@ export default function Watch() {
             allUrls.push(`/p2095/movie/${xtream_user}/${xtream_pass}/${streamId}.mp4`)
             allUrls.push(`/p2095/movie/${xtream_user}/${xtream_pass}/${streamId}`)
           }
-          if (!cancelled) { 
-            setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1))
+          if (!cancelled) {
+            const ordered = preferNonMkv(allUrls)
+            setUrl(ordered[0]); setFallbackUrls(ordered.slice(1))
           }
           try {
             const info = await fetchSeriesInfo(base_url, xtream_user, xtream_pass, sid)
