@@ -127,18 +127,44 @@ function doRequest(reqHeaders, opts, body, redirectCount, res) {
   proxyReq.end()
 }
 
-function fetchAndProxy(req, res, targetBase, pathPrefix) {
+function fetchAndProxy(req, res, targetBase, pathPrefix, extraHeaders) {
   let path = req.url
   if (pathPrefix && req.url.startsWith(pathPrefix)) {
     path = '/' + req.url.slice(pathPrefix.length)
   }
+  // Strip query params for the backend URL (dl=1 is client-only)
+  const qIdx = path.indexOf('?')
+  if (qIdx >= 0) path = path.slice(0, qIdx)
   const url = targetBase + path
   const opts = makeHttpOpts(url, req.method, req.headers)
   const chunks = []
   req.on('data', c => chunks.push(c))
   req.on('end', () => {
     const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined
-    doRequest(req.headers, opts, body, 0, res)
+    let done = false
+    const proxyReq = httpModule(opts).request(opts, proxyRes => {
+      if (done) return; done = true
+      const sc = proxyRes.statusCode || 200
+      if (sc >= 301 && sc <= 308 && proxyRes.headers.location) {
+        let loc = proxyRes.headers.location
+        if (!loc.startsWith('http://') && !loc.startsWith('https://')) {
+          const base = opts.hostname + (opts.port && opts.port != 80 ? ':' + opts.port : '')
+          loc = 'http://' + base + (loc.startsWith('/') ? loc : '/' + loc)
+        }
+        proxyReq.destroy()
+        const newOpts = makeHttpOpts(loc, req.method, req.headers)
+        doRequest(req.headers, newOpts, undefined, 0, res)
+        return
+      }
+      const headers = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
+      if (extraHeaders) Object.assign(headers, extraHeaders)
+      delete headers['transfer-encoding']
+      try { res.writeHead(sc, headers); proxyRes.pipe(res) } catch {}
+    })
+    proxyReq.on('error', () => { if (done) return; done = true; try { res.writeHead(502); res.end('Proxy Error') } catch {} })
+    proxyReq.on('timeout', () => { if (done) return; done = true; proxyReq.destroy(); try { res.writeHead(504); res.end('Timeout') } catch {} })
+    if (body) proxyReq.write(body)
+    proxyReq.end()
   })
 }
 
@@ -385,7 +411,12 @@ http.createServer((req, res) => {
 
   // Dynamic proxy: /dyn/{base64url(base_url)}/{path}
   if (req.url.startsWith('/dyn/')) {
-    const afterDyn = req.url.slice(5) // skip '/dyn/'
+    const qIdx = req.url.indexOf('?')
+    const pathOnly = qIdx >= 0 ? req.url.slice(0, qIdx) : req.url
+    const query = qIdx >= 0 ? req.url.slice(qIdx + 1) : ''
+    const params = new URLSearchParams(query)
+    const extraHeaders = params.has('dl') ? { 'content-disposition': 'attachment; filename="video.mkv"' } : null
+    const afterDyn = pathOnly.slice(5)
     const slashIdx = afterDyn.indexOf('/')
     if (slashIdx > 0) {
       const encoded = afterDyn.slice(0, slashIdx)
@@ -394,7 +425,7 @@ http.createServer((req, res) => {
         if (decoded.startsWith('http://') || decoded.startsWith('https://')) {
           const targetBase = decoded.replace(/\/+$/, '')
           const prefix = '/dyn/' + encoded
-          return fetchAndProxy(req, res, targetBase, prefix)
+          return fetchAndProxy(req, res, targetBase, prefix, extraHeaders)
         }
       } catch {}
     }

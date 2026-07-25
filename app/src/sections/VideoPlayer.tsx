@@ -15,13 +15,10 @@ const decodeProxyUrl = (url: string): string | null => {
 }
 
 const openExternalPlayer = (url: string) => {
-  const directUrl = decodeProxyUrl(url)
-  if (!directUrl) return
-  if (navigator.share) {
-    navigator.share({ title: 'Video', url: directUrl }).catch(() => {})
-  } else {
-    window.location.href = directUrl
-  }
+  // /audio-fix/ -> /dyn/ + ?dl=1 (server Content-Disposition: attachment gonderir)
+  // Boylece Chrome indirme notifi -> tikla -> ACTION_VIEW ile MX Player oynatir
+  const dlUrl = url.replace(/^\/audio-fix\//, '/dyn/') + (url.includes('?') ? '&' : '?') + 'dl=1'
+  window.location.href = dlUrl
 }
 
 const toAudioFix = (url: string) => {
