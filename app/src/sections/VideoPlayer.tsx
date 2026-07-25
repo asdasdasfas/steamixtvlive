@@ -15,15 +15,10 @@ const decodeProxyUrl = (url: string): string | null => {
 }
 
 const openExternalPlayer = (url: string) => {
-  const directUrl = decodeProxyUrl(url)
-  if (!directUrl) return
-  // Android Intent: ACTION_VIEW ile MX Player'a URL gonder
-  const hostPath = directUrl.replace(/^https?:\/\//, '')
-  const encUrl = encodeURIComponent(directUrl)
-  const intentUrl = `intent://${hostPath}#Intent;scheme=http;action=android.intent.action.VIEW;type=video%2F*;package=com.mxtech.videoplayer.ad;S.browser_fallback_url=${encUrl};end`
-  window.location.href = intentUrl
-  // Fallback: intent calismazsa direkt backend URL'sine yonlen
-  setTimeout(() => { window.location.href = directUrl }, 1200)
+  // /dyn/?dl=1: server application/octet-stream doner -> Chrome indirme notifi
+  // Notife tikla -> MX Player SW decoder ile AC3 destekler -> ses gelir
+  const dlUrl = url.replace(/^\/audio-fix\//, '/dyn/') + '?dl=1'
+  window.location.href = dlUrl
 }
 
 const toAudioFix = (url: string) => {
