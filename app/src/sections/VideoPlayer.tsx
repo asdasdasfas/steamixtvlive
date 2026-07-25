@@ -46,10 +46,15 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   // Detect if Mediabunny should be used for this source
   useEffect(() => {
     const isProxy = (u: string) => PROXY_PREFIXES.some(p => u.startsWith(p))
-    if (!isProxy(src) && (isDirectFileUrl(src) || (fallbackSrcs && fallbackSrcs.some(isDirectFileUrl)))) {
+    const isMkv = isDirectFileUrl(src)
+    const isProxyUrl = isProxy(src)
+    console.log(`[MOBILE] karar: useMediabunny kontrol bas`, `src=${src?.substring(0,80)}`, `mkv=${isMkv}`, `proxy=${isProxyUrl}`)
+    if (!isProxyUrl && (isMkv || (fallbackSrcs && fallbackSrcs.some(isDirectFileUrl)))) {
       setUseMediabunny(true)
+      console.log(`[MOBILE] KARAR: Mediabunny KULLANILACAK`)
     } else {
       setUseMediabunny(false)
+      console.log(`[MOBILE] KARAR: native video + HLS kullanilacak`, `neden=${!isProxyUrl ? '' : 'proxy'} ${!isMkv ? 'mkv-degil' : ''}`)
     }
   }, [src, fallbackSrcs])
 
@@ -110,6 +115,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     // MKV needs extra time to buffer seek table (metadata at end of file)
     const maxStuck = currentSrc.endsWith('.mkv') ? 15 : 5
     console.log(`%c[WATCHDOG] Basladi URL#${urlIdx}/${total} maxStuck=${maxStuck}`, 'color:yellow')
+    if (currentSrc.endsWith('.mkv')) console.log(`%c[MOBILE] WATCHDOG: MKV dosyasi -> watchdog AC3 sesi beklemez, video ilerlerse takilmaz`, 'color:orange')
     watchdogRef.current = setInterval(() => {
       if (!video || video.seeking) return
       if (video.readyState >= 2 && video.currentTime > lastProgressRef.current) {
@@ -173,6 +179,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const isHls = srcNoQuery.endsWith('.m3u8')
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
     console.log(`[TRYURL] isHLS:${isHls} HLS.destek:${Hls.isSupported()} Safari:${isSafari}`)
+    if (currentSrc.endsWith('.mkv')) console.log(`%c[MOBILE] MKV native video -> AC3 ses OLMAZ!`, 'color:red;font-size:13px')
 
     if (isHls && Hls.isSupported() && !isSafari) {
       const isVirtualHls = currentSrc.startsWith('/v/')
@@ -216,8 +223,8 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       })
       hls.on(Hls.Events.LEVEL_LOADED, (_e, data) => {
         const d = data.details
-        console.log(`[HLS] LEVEL_LOADED: level=${data.level} totalduration=${d?.totalduration?.toFixed(1)}s frags=${d?.fragments?.length}`)
-        if (d?.fragments) { d.fragments.slice(0,2).forEach(f => console.log(`[HLS] Fragment: ${f.relurl||f.url}`)) }
+        console.log(`[HLS] LEVEL_LOADED: level=${data.level} totalduration=${d?.totalduration?.toFixed(1)}s frags=${d?.fragments?.length} audioCodec=${d?.audioCodec||'?'}`)
+        if (d?.fragments) { d.fragments.slice(0,2).forEach(f => console.log(`[HLS] Fragment: ${f.relurl||f.url} ${f?.audioCodec?`ac=${f.audioCodec}`:''}`)) }
       })
       hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_e, data) => {
         const tracks: any[] = data.audioTracks || []
@@ -227,7 +234,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
           console.log(`[HLS] Selecting audio track: id=${track.id} name=${track.name}`)
           hls.audioTrack = track.id
         } else {
-          console.log(`[HLS] WARNING: No audio tracks found! VOD likely has unsupported audio codec.`)
+          console.log(`%c[MOBILE] HLS'de HIC ses kanali bulunamadi! AC3 kod cozucu eksik`, 'color:red;font-size:14px')
         }
       })
       hls.on(Hls.Events.FRAG_LOADING, (_e, data) => {
@@ -247,7 +254,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         )
         if (data.fatal) {
           if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-            console.log(`%c[HLS] MEDIA_ERROR -> swapAudioCodec`, 'color:orange')
+            console.log(`%c[HLS] MEDIA_ERROR -> swapAudioCodec (AC3 cozumu deneniyor)`, 'color:orange')
             hls.swapAudioCodec()
             hls.recoverMediaError()
             return
