@@ -185,6 +185,8 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const pendingPlayRef = useRef(false)
   const firstPlayDoneRef = useRef(false)
   const seekTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastSeekTimeRef = useRef(0)
+  const pendingSeekRef = useRef<number | null>(null)
   const autoRefreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const audioRetryCount = useRef(0)
   const recreateCount = useRef(0)
@@ -481,18 +483,25 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
 
   const seekTo = useCallback(async (seconds: number) => {
     if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current)
+    pendingSeekRef.current = seconds
     seekTimeoutRef.current = setTimeout(() => {
       seekTimeoutRef.current = null
+      const target = pendingSeekRef.current
+      pendingSeekRef.current = null
+      if (target === null) return
+      const now = Date.now()
+      if (now - lastSeekTimeRef.current < 1500) { dbg(`Seek skip (too fast) ${target.toFixed(1)}`); return }
+      lastSeekTimeRef.current = now
       const p = playerRef.current
       if (!p) return
       const wasPlaying = isPlayingRef.current
-      dbg(`Seek to ${seconds.toFixed(2)} (wasPlaying=${wasPlaying})`)
+      const curPos = getPlaybackTime()
+      dbg(`Seek ${curPos.toFixed(1)} → ${target.toFixed(1)} (wasPlaying=${wasPlaying})`)
       if (wasPlaying) stop('seek')
-      p.playbackTimeAtStart = seconds
-      dbg(`Seek startPlayback seconds=${seconds.toFixed(2)} endTs=${p.endTimestamp.toFixed(2)}`)
-      if (wasPlaying && seconds < p.endTimestamp) startPlayback(seconds)
-    }, 0)
-  }, [stop, startPlayback])
+      p.playbackTimeAtStart = target
+      if (wasPlaying && target < p.endTimestamp) startPlayback(target)
+    }, 200)
+  }, [stop, startPlayback, getPlaybackTime])
 
   useEffect(() => {
     let cancelled = false
@@ -630,6 +639,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     init()
     return () => {
       cancelled = true
+      if (seekTimeoutRef.current) { clearTimeout(seekTimeoutRef.current); seekTimeoutRef.current = null }
       if (autoRefreshTimeoutRef.current) { clearTimeout(autoRefreshTimeoutRef.current); autoRefreshTimeoutRef.current = null }
       const p = playerRef.current
       if (p) {
