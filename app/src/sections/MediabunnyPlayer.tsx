@@ -100,11 +100,32 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     }
   }, [getPlaybackTime])
 
+  const ensureStereo = useCallback((buffer: AudioBuffer, ctx: AudioContext): AudioBuffer => {
+    if (buffer.numberOfChannels <= 2) return buffer
+    const ch = buffer.numberOfChannels
+    const stereo = ctx.createBuffer(2, buffer.length, buffer.sampleRate)
+    const L = stereo.getChannelData(0), R = stereo.getChannelData(1)
+    const FL = buffer.getChannelData(0), FR = buffer.getChannelData(Math.min(1, ch - 1))
+    const FC = ch >= 3 ? buffer.getChannelData(2) : null
+    const LFE = ch >= 4 ? buffer.getChannelData(3) : null
+    const BL = ch >= 5 ? buffer.getChannelData(4) : null
+    const BR = ch >= 6 ? buffer.getChannelData(5) : null
+    for (let i = 0; i < buffer.length; i++) {
+      L[i] = FL[i] + (FC ? FC[i] * 0.707 : 0) + (BL ? BL[i] * 0.707 : 0) + (LFE ? LFE[i] * 0.5 : 0)
+      R[i] = FR[i] + (FC ? FC[i] * 0.707 : 0) + (BR ? BR[i] * 0.707 : 0) + (LFE ? LFE[i] * 0.5 : 0)
+    }
+    return stereo
+  }, [])
+
   const scheduleAudioBuffer = useCallback((buffer: AudioBuffer, timestamp: number) => {
     const p = playerRef.current
     if (!p || !p.audioContext || !p.gainNode) return
     const node = p.audioContext.createBufferSource()
-    node.buffer = buffer
+    try {
+      node.buffer = buffer
+    } catch {
+      node.buffer = ensureStereo(buffer, p.audioContext)
+    }
     node.connect(p.gainNode)
     const startTime = (p.audioContextStartTime ?? 0) + timestamp - p.playbackTimeAtStart
     const rounded = Math.round(p.audioContext.sampleRate * startTime) / p.audioContext.sampleRate
@@ -115,7 +136,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     }
     p.queuedNodes.add(node)
     node.onended = () => { p.queuedNodes.delete(node) }
-  }, [])
+  }, [ensureStereo])
 
   const audioBufCountRef = useRef(0)
   const audioStallTimeout = (ms: number) => new Promise<'timeout'>(resolve => setTimeout(() => resolve('timeout'), ms))
@@ -276,14 +297,28 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     dbg(`Stopped ${count} audio nodes`)
   }, [getPlaybackTime])
 
+  const ensureAudioContext = useCallback(() => {
+    const p = playerRef.current
+    if (!p) return
+    if (p.audioContext && p.audioContext.state !== 'suspended') return
+    // iOS: AudioContext created outside user gesture is permanently suspended.
+    // Close & recreate synchronously inside user gesture so it starts in 'running' state.
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+    if (p.audioContext) p.audioContext.close()
+    p.audioContext = new AudioContextClass()
+    p.audioContextStartTime = null
+    p.gainNode = p.audioContext.createGain()
+    p.gainNode.connect(p.audioContext.destination)
+    p.gainNode.gain.value = volume
+  }, [volume])
+
   const handlePlayStop = useCallback(() => {
     if (playing) stop()
     else {
-      const p = playerRef.current
-      if (p?.audioContext?.state === 'suspended') p.audioContext.resume()
+      ensureAudioContext()
       startPlayback()
     }
-  }, [playing, stop, startPlayback])
+  }, [playing, stop, startPlayback, ensureAudioContext])
 
   const seekTo = useCallback(async (seconds: number) => {
     if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current)
