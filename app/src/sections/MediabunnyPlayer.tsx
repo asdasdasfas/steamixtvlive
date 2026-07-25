@@ -178,7 +178,6 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const [recreateKey, setRecreateKey] = useState(0)
   const pendingPlayAfterRecreate = useRef(false)
   const autoRefreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const lastHpsTime = useRef(0)
   const audioRetryCount = useRef(0)
 
   const runAudioIterator = useCallback(async (asyncId: number) => {
@@ -357,11 +356,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   }, [getPlaybackTime])
 
   const handlePlayStop = useCallback(() => {
-    const now = Date.now()
-    if (now - lastHpsTime.current < 800) { dbg('hps debounced'); return }
-    lastHpsTime.current = now
-    const isPlaying = isPlayingRef.current
-    if (isPlaying) stop('hps')
+    if (isPlayingRef.current) stop('hps')
     else {
       if (IS_MOBILE) {
         const p = playerRef.current
@@ -627,7 +622,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         <div className="flex items-center justify-between text-white">
           <div className="flex items-center gap-1 sm:gap-3">
             <button onClick={e => { e.stopPropagation(); seekTo(Math.max(currentTime - 10, 0)) }} className="p-2 sm:p-0 hover:text-[#0099ff]"><SkipBack className="w-5 h-5 sm:w-5 sm:h-5" /></button>
-            <button onClick={e => { e.stopPropagation(); playStopRef.current() }} className="p-2 sm:p-0 hover:text-[#0099ff]">{playing ? <Pause className="w-7 h-7 sm:w-6 sm:h-6" /> : <Play className="w-7 h-7 sm:w-6 sm:h-6" />}</button>
+            <div role="button" tabIndex={0} onPointerDown={e => { e.preventDefault(); e.stopPropagation(); playStopRef.current() }} className="p-2 sm:p-0 hover:text-[#0099ff] cursor-pointer">{playing ? <Pause className="w-7 h-7 sm:w-6 sm:h-6" /> : <Play className="w-7 h-7 sm:w-6 sm:h-6" />}</div>
             <button onClick={e => { e.stopPropagation(); seekTo(Math.min(currentTime + 10, duration)) }} className="p-2 sm:p-0 hover:text-[#0099ff]"><SkipForward className="w-5 h-5 sm:w-5 sm:h-5" /></button>
             <div className="flex items-center gap-1 sm:gap-2">
               <button onClick={e => { e.stopPropagation(); setMuted(!muted) }} className="p-2 sm:p-0 hover:text-[#0099ff]">{muted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}</button>
