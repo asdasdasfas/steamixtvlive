@@ -251,8 +251,21 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     p.audioContextStartTime = p.audioContext.currentTime
     p.audioIterator?.return()
 
-    if (p.videoSink) {
+    // Ses ONCE baslasin (video frame'leri beklenmez)
+    const audioSink = p.audioSink
+    if (audioSink && p.loaded) {
       p.asyncId++
+      const id = p.asyncId
+      dbg(`Audio iterator from ${pos.toFixed(3)}s (id=${id})`)
+      p.audioIterator = audioSink.buffers(pos, undefined, { skipLiveWait: true })
+      runAudioIterator(id)
+    } else if (p.audioSink) {
+      pendingPlayRef.current = true
+    }
+
+    // Video karelerini arka planda getir (asyncId degismez, audio iterator bozulmaz)
+    if (p.videoSink) {
+      p.videoIterator?.return()
       p.videoIterator = p.videoSink.canvases(pos)
       const first = (await p.videoIterator.next()).value as WrappedCanvas | undefined
       const second = (await p.videoIterator.next()).value as WrappedCanvas | undefined
@@ -262,16 +275,6 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
         ctx.drawImage(first.canvas, 0, 0)
       }
-    }
-
-    if (p.audioSink && p.loaded) {
-      p.asyncId++
-      const id = p.asyncId
-      dbg(`Audio iterator from ${pos.toFixed(3)}s (id=${id})`)
-      p.audioIterator = p.audioSink.buffers(pos, undefined, { skipLiveWait: true })
-      runAudioIterator(id)
-    } else if (p.audioSink) {
-      pendingPlayRef.current = true
     }
 
     setPlaying(true)
@@ -352,7 +355,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
 
   const seekTo = useCallback(async (seconds: number) => {
     if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current)
-    seekTimeoutRef.current = setTimeout(async () => {
+    seekTimeoutRef.current = setTimeout(() => {
       seekTimeoutRef.current = null
       const p = playerRef.current
       if (!p) return
@@ -360,20 +363,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       dbg(`Seek to ${seconds.toFixed(2)} (wasPlaying=${wasPlaying})`)
       if (wasPlaying) stop('seek')
       p.playbackTimeAtStart = seconds
-      if (p.videoSink) {
-        p.asyncId++
-        p.videoIterator = p.videoSink.canvases(seconds)
-        const first = (await p.videoIterator.next()).value as WrappedCanvas | undefined
-        const second = (await p.videoIterator.next()).value as WrappedCanvas | undefined
-        p.nextFrame = second ?? null
-        const ctx = canvasRef.current?.getContext('2d')
-        if (first && ctx) {
-          ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
-          ctx.drawImage(first.canvas, 0, 0)
-        }
-      }
       if (wasPlaying && seconds < p.endTimestamp) startPlayback(seconds)
-    }, 50)
+      // Video+audio seek'u startPlayback halleder
+    }, 0)
   }, [stop, startPlayback])
 
   useEffect(() => {
