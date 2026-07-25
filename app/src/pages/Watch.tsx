@@ -17,6 +17,7 @@ export default function Watch() {
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState('')
   const [nativePlayerUrl, setNativePlayerUrl] = useState('')
+  const [nativeIntentUrl, setNativeIntentUrl] = useState('')
 
   const streamId = params.get('stream_id')
   const rotationId = params.get('rotation_id')
@@ -55,7 +56,9 @@ export default function Watch() {
           }
           if (!cancelled) { 
             if (isMobile && nativeUrl) {
-              setNativePlayerUrl(window.location.origin + nativeUrl)
+              const fullUrl = window.location.origin + nativeUrl
+              setNativePlayerUrl(fullUrl)
+              setNativeIntentUrl('intent://' + fullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=video/*;scheme=https;package=com.mxtech.videoplayer.ad;end')
               setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1))
             } else {
               setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1))
@@ -91,7 +94,9 @@ export default function Watch() {
               if (mkvAt >= 0) {
                 const nativeUrl = allUrls[mkvAt]
                 const audioFixUrl = '/audio-fix/' + nativeUrl.slice('/dyn/'.length)
-                setNativePlayerUrl(window.location.origin + nativeUrl)
+                const fullUrl = window.location.origin + nativeUrl
+                setNativePlayerUrl(fullUrl)
+                setNativeIntentUrl('intent://' + fullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=video/*;scheme=https;package=com.mxtech.videoplayer.ad;end')
                 setUrl(audioFixUrl); setFallbackUrls(allUrls)
               } else {
                 setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1))
@@ -167,17 +172,21 @@ export default function Watch() {
             <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-[#0099ff]/20 to-purple-500/20 border border-[#0099ff]/30 flex items-center justify-center">
               <svg className="w-8 h-8 text-[#0099ff]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             </div>
-            <p className="text-base text-white font-semibold mb-1">Telefonun Video Player'ında Aç</p>
-            <p className="text-xs text-gray-500 mb-6">Uygulama seçicide video oynatıcınızı seçin (Galeri, VLC, MX Player).</p>
+            <p className="text-base text-white font-semibold mb-1">Video Player'da Aç</p>
+            <p className="text-xs text-gray-500 mb-6">Telefonunuzda yüklü video oynatıcıda açılır.</p>
+            <a href={nativeIntentUrl}
+              className="block w-full py-3.5 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm hover:opacity-90 transition-all mb-2 shadow-lg shadow-[#0099ff]/20">
+              MX Player'da Aç
+            </a>
             <button onClick={() => { navigator.share({ url: nativePlayerUrl }).catch(() => window.open(nativePlayerUrl, '_blank')) }}
-              className="block w-full py-3.5 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm hover:opacity-90 transition-all mb-3 shadow-lg shadow-[#0099ff]/20">
-              Player'da Aç
+              className="block w-full py-3 rounded-xl bg-white/10 text-gray-300 text-sm hover:bg-white/20 transition-all mb-2">
+              Diğer Player'da Aç
             </button>
+            <div className="h-px bg-white/5 my-3" />
             <button onClick={() => { setNativePlayerUrl(''); setUrl(fallbackUrls[0] || ''); setFallbackUrls(fallbackUrls.slice(1)) }}
-              className="w-full py-2.5 rounded-xl bg-white/10 text-gray-400 text-xs hover:text-white transition-all">
+              className="w-full py-2.5 rounded-xl bg-white/5 text-gray-500 text-xs hover:text-white transition-all">
               Tarayıcıda İzle (AAC Ses)
             </button>
-            <p className="text-[10px] text-gray-600 mt-3">Player açılmazsa "Tarayıcıda İzle" ile devam edin.</p>
           </div>
         </div>
       ) : url ? (
