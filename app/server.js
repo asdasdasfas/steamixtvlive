@@ -328,7 +328,7 @@ function transcodeDirect(req, res, sourceUrl) {
     const extra = ['-movflags', 'frag_keyframe+empty_moov']
     const ff = spawn(ffmpegPath, ['-nostats','-hide_banner','-probesize','2M','-analyzeduration','2M','-i',sourceUrl,'-c:v','copy','-c:a','aac','-ar','44100','-ac','2','-b:a','128k',...extra,'-f',outFmt,'-y','pipe:1'])
     let hs = false
-    let timer = setTimeout(() => { if (!hs) { console.log(`[FFDIR] timeout 20s`); ff.kill(); doRequest(req.headers, opts, reqBody, 0, res) } }, 20000)
+    let timer = setTimeout(() => { if (!hs) { console.log(`[FFDIR] timeout 120s`); ff.kill(); doRequest(req.headers, opts, reqBody, 0, res) } }, 120000)
     ff.stdout.on('data', d => { if (!hs) { hs = true; clearTimeout(timer); try { res.writeHead(200,{'Content-Type':outCt,'access-control-allow-origin':'*'}) } catch {} }; try { res.write(d) } catch {} })
     ff.stderr.on('data', d => { console.log(`[FFDIR] ${d.toString().trim().substring(0,200)}`) })
     ff.on('exit', (code, sig) => { clearTimeout(timer); console.log(`[FFDIR] exit code=${code} hs=${hs}`); if (hs) { try { res.end() } catch {} } else { doRequest(req.headers, opts, reqBody, 0, res) } })
@@ -460,9 +460,9 @@ http.createServer((req, res) => {
           const isDirect = pathLower.endsWith('.mkv')||pathLower.endsWith('.mp4')
           console.log(`[AFIX] fullUrl=${url.substring(0,120)} isM3u8=${isM3u8} isDirect=${isDirect}`)
           if (isM3u8) return handleM3u8Vod(req, res, url)
-          if (isDirect) { console.log(`[AFIX] direct file -> transcodeStream`); return transcodeStream(req, res, url) }
-          console.log(`[AFIX] other -> transcodeStream`)
-          return transcodeStream(req, res, url)
+          if (isDirect) { console.log(`[AFIX] direct file -> transcodeDirect`); return transcodeDirect(req, res, url) }
+          console.log(`[AFIX] other -> transcodeDirect`)
+          return transcodeDirect(req, res, url)
         }
       } catch(e) { console.log(`[AFIX] decode error: ${e.message}`) }
     }

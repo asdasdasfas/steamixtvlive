@@ -15,15 +15,11 @@ const decodeProxyUrl = (url: string): string | null => {
 }
 
 const openExternalPlayer = (url: string) => {
-  const dlUrl = url.replace(/^\/audio-fix\//, '/dyn/') + (url.includes('?') ? '&' : '?') + 'dl=1'
-  // <a download> ile sayfadan ayrilmadan indirme baslat -> Chrome notif -> tikla -> MX Player
-  const a = document.createElement('a')
-  a.href = dlUrl
-  a.download = 'video.mkv'
-  a.style.display = 'none'
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
+  const directUrl = decodeProxyUrl(url)
+  if (!directUrl) return
+  if (navigator.share) {
+    navigator.share({ title: 'Video', url: directUrl }).catch(() => {})
+  }
 }
 
 const toAudioFix = (url: string) => {
