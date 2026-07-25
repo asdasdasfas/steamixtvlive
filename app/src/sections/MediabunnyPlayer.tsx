@@ -230,22 +230,6 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     dbg(`Paused, stopped ${count} audio nodes`)
   }, [getPlaybackTime])
 
-  const togglePlay = useCallback(() => {
-    if (playing) pause()
-    else {
-      play()
-      if (!firstPlayDoneRef.current) {
-        firstPlayDoneRef.current = true
-        setTimeout(() => {
-          const p = playerRef.current
-          if (!p || !isPlayingRef.current) return
-          const jumpTo = getPlaybackTime() + 0.1
-          if (jumpTo < p.endTimestamp) seekTo(jumpTo)
-        }, 800)
-      }
-    }
-  }, [playing, play, pause, seekTo])
-
   const seekTo = useCallback(async (seconds: number) => {
     if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current)
     seekTimeoutRef.current = setTimeout(async () => {
@@ -271,6 +255,22 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       if (wasPlaying && seconds < p.endTimestamp) play()
     }, 50)
   }, [playing, pause, play])
+
+  const togglePlay = useCallback(() => {
+    if (playing) pause()
+    else {
+      play()
+      if (!firstPlayDoneRef.current) {
+        firstPlayDoneRef.current = true
+        setTimeout(() => {
+          const p = playerRef.current
+          if (!p || !isPlayingRef.current) return
+          const jumpTo = getPlaybackTime() + 0.1
+          if (jumpTo < p.endTimestamp) seekTo(jumpTo)
+        }, 800)
+      }
+    }
+  }, [playing, play, pause, seekTo])
 
   useEffect(() => {
     let cancelled = false
