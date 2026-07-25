@@ -174,8 +174,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         }
         if (!playerRef.current?.loaded) { dbg('Audio restart exit: loaded timeout'); break }
       }
-      dbg(`Audio restart #${restartCount} from ${getPlaybackTime().toFixed(2)}s`)
-      pp.audioIterator = pp.audioSink.buffers(getPlaybackTime())
+      const rPos = getPlaybackTime()
+      dbg(`Audio restart #${restartCount} from ${rPos.toFixed(3)}s`)
+      pp.audioIterator = pp.audioSink.buffers(rPos + 0.01)
     }
     dbg(`Audio iterator DONE (id=${asyncId})`)
   }, [getPlaybackTime, scheduleAudioBuffer])
@@ -212,8 +213,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       } else {
         p.asyncId++
         const id = p.asyncId
-        dbg(`Creating audio iterator from ${getPlaybackTime().toFixed(2)}s (id=${id})`)
-        p.audioIterator = p.audioSink.buffers(getPlaybackTime())
+        const audioPos = getPlaybackTime()
+        dbg(`Creating audio iterator from ${audioPos.toFixed(3)}s (id=${id})`)
+        p.audioIterator = p.audioSink.buffers(audioPos + 0.01)
         runAudioIterator(id)
       }
     }
