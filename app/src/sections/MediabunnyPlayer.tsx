@@ -82,38 +82,71 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   }, [])
 
   const updateNextFrame = useCallback(async () => {
+    if (updatingFrameRef.current) return
+    updatingFrameRef.current = true
     const p = playerRef.current
-    if (!p || !p.videoIterator) return
+    if (!p || !p.videoIterator) { updatingFrameRef.current = false; return }
     const currentAsyncId = p.asyncId
     let gotFrame = false
-    while (true) {
-      const result = await p.videoIterator.next()
-      if (result.done || !result.value) {
-        if (currentAsyncId === p.asyncId && p.videoSink) {
-          const pos = getPlaybackTime()
-          p.videoIterator = p.videoSink.canvases(pos)
-          continue
+    try {
+      while (true) {
+        const result = await p.videoIterator.next()
+        if (result.done || !result.value) {
+          if (currentAsyncId === p.asyncId && p.videoSink) {
+            const pos = getPlaybackTime()
+            p.videoIterator = p.videoSink.canvases(pos)
+            continue
+          }
+          break
         }
-        break
-      }
-      if (currentAsyncId !== p.asyncId) break
-      const frame = result.value as WrappedCanvas
-      const playbackTime = getPlaybackTime()
-      const ctx = canvasRef.current?.getContext('2d')
-      if (frame.timestamp <= playbackTime) {
-        if (ctx) {
-          ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
-          ctx.drawImage(frame.canvas, 0, 0)
+        if (currentAsyncId !== p.asyncId) break
+        const frame = result.value as WrappedCanvas
+        const playbackTime = getPlaybackTime()
+        const ctx = canvasRef.current?.getContext('2d')
+        if (frame.timestamp <= playbackTime) {
+          if (ctx) {
+            ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
+            ctx.drawImage(frame.canvas, 0, 0)
+          }
+          gotFrame = true
+        } else {
+          p.nextFrame = frame
+          return
         }
-        gotFrame = true
-      } else {
-        p.nextFrame = frame
-        return
       }
+    } finally {
+      updatingFrameRef.current = false
     }
-    // nextFrame alinamadiysa tick loop'u deadlock olmasin diye tekrar dener
+    // hic frame gelmedi - siyah ekran korumasi
     if (!gotFrame && playerRef.current?.asyncId === currentAsyncId) {
-      updateNextFrame()
+      blackScreenWarnRef.current++
+      if (blackScreenWarnRef.current > 5) {
+        dbg(`Black screen detected at ${getPlaybackTime().toFixed(1)}s — recreating video`)
+        blackScreenWarnRef.current = 0
+        const pp = playerRef.current
+        if (pp?.videoSink) {
+          const pos = getPlaybackTime()
+          pp.asyncId++
+          const newId = pp.asyncId
+          pp.videoIterator = pp.videoSink.canvases(pos)
+          pp.nextFrame = null
+          pp.videoIterator.next().then(r1 => {
+            if (r1.done || !r1.value || playerRef.current?.asyncId !== newId) return
+            const ctx = canvasRef.current?.getContext('2d')
+            if (ctx) {
+              ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
+              ctx.drawImage(r1.value.canvas, 0, 0)
+            }
+            pp.videoIterator!.next().then(r2 => {
+              pp.nextFrame = (r2.done ? null : r2.value) as WrappedCanvas | null
+            })
+          })
+        }
+      } else {
+        updateNextFrame()
+      }
+    } else {
+      blackScreenWarnRef.current = 0
     }
   }, [getPlaybackTime])
 
@@ -197,6 +230,8 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const audioRetryCount = useRef(0)
   const recreateCount = useRef(0)
   const RECREATE_LIMIT = 3
+  const updatingFrameRef = useRef(false)
+  const blackScreenWarnRef = useRef(0)
 
   const forceReload = useCallback(() => {
     const pos = getPlaybackTime()
@@ -250,6 +285,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         const beforeSched = performance.now()
         scheduleAudioBuffer(buffer, timestamp)
         recreateCount.current = 0  // basarili buffer -> recreate sayaci sifir
+        lastSeekTimeRef.current = 0  // seek kilidi acik (pipeline stabilize)
         if (bufCount === 0) {
           dbg(`First buf arrived ts=${timestamp.toFixed(2)} sched_dur=${(performance.now()-beforeSched).toFixed(1)}ms`)
           if (Math.abs(timestamp - p.playbackTimeAtStart) > 2) {
