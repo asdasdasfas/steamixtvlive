@@ -413,17 +413,42 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     let audioRunning = false
     const fixBuf = (buf: AudioBuffer, ctx: AudioContext): AudioBuffer => {
       const sameSr = buf.sampleRate === ctx.sampleRate
-      const sameCh = buf.numberOfChannels <= 2
-      if (sameSr && sameCh) return buf
-      const outCh = Math.min(buf.numberOfChannels, 2)
+      const ch = buf.numberOfChannels
+      if (sameSr && ch <= 2) return buf
+      const outCh = Math.min(ch, 2)
       const ratio = buf.sampleRate / ctx.sampleRate
       const outLen = sameSr ? buf.length : Math.round(buf.length / ratio)
       const out = ctx.createBuffer(outCh, outLen, ctx.sampleRate)
-      for (let oc = 0; oc < outCh; oc++) {
-        const d = out.getChannelData(oc)
-        const s = buf.getChannelData(Math.min(oc, buf.numberOfChannels - 1))
-        if (sameSr) { d.set(s); continue }
-        for (let i = 0; i < outLen; i++) { const si = i * ratio; const i1 = Math.floor(si); const i2 = Math.min(i1 + 1, s.length - 1); d[i] = s[i1] + (s[i2] - s[i1]) * (si - i1) }
+      if (ch <= 2) {
+        for (let oc = 0; oc < outCh; oc++) {
+          const d = out.getChannelData(oc)
+          const s = buf.getChannelData(oc)
+          if (sameSr) { d.set(s); continue }
+          for (let i = 0; i < outLen; i++) { const si = i * ratio; const i1 = Math.floor(si); const i2 = Math.min(i1 + 1, s.length - 1); d[i] = s[i1] + (s[i2] - s[i1]) * (si - i1) }
+        }
+      } else if (ch >= 6) {
+        const FL = buf.getChannelData(0), FR = buf.getChannelData(1), FC = buf.getChannelData(2)
+        const LFE = buf.getChannelData(3), BL = buf.getChannelData(4), BR = buf.getChannelData(5)
+        for (let oc = 0; oc < outCh; oc++) {
+          const d = out.getChannelData(oc)
+          if (sameSr) {
+            for (let i = 0; i < outLen; i++) {
+              const l = FL[i] + FC[i] + BL[i] * 0.5
+              const r = FR[i] + FC[i] + BR[i] * 0.5
+              d[i] = oc === 0 ? l : r
+            }
+          } else {
+            for (let i = 0; i < outLen; i++) {
+              const si = i * ratio; const i1 = Math.floor(si); const i2 = Math.min(i1 + 1, FL.length - 1); const f = si - i1
+              const fl = FL[i1] + (FL[i2] - FL[i1]) * f
+              const fr = FR[i1] + (FR[i2] - FR[i1]) * f
+              const fc = FC[i1] + (FC[i2] - FC[i1]) * f
+              const bl = BL[i1] + (BL[i2] - BL[i1]) * f
+              const br = BR[i1] + (BR[i2] - BR[i1]) * f
+              d[i] = oc === 0 ? fl + fc + bl * 0.5 : fr + fc + br * 0.5
+            }
+          }
+        }
       }
       return out
     }
@@ -446,10 +471,13 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
           if (cancelled || asyncId !== id) break
           const result = await Promise.race([
             it.next().then(r => ({ tag: 'next' as const, done: r.done, value: r.value })),
-            new Promise<'timeout'>(r => setTimeout(() => r('timeout'), bufCount === 0 ? 8000 : 30000)),
+            new Promise<'timeout'>(r => setTimeout(() => r('timeout'), bufCount === 0 ? 10000 : 60000)),
           ])
           if (cancelled || asyncId !== id) break
-          if (result === 'timeout' || result.done) { it.return?.(); break }
+          if (result === 'timeout' || result.done) {
+            it.return?.()
+            break
+          }
           const { buffer, timestamp } = result.value as { buffer: AudioBuffer; timestamp: number }
           schedBuf(buffer, timestamp, playStart, ctxStart)
           bufCount++
@@ -461,6 +489,12 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       } catch (e) { dbg(`[AUDIOSYNC] Error: ${e}`) }
       try { it.return() } catch {}
       audioRunning = false
+      // Iterator oldu — otomatik restart (video event'i bekleme)
+      if (!cancelled && asyncId === id && audioSink && audioCtx && !video.paused) {
+        const curPos = video.currentTime
+        dbg(`[AUDIOSYNC] Auto-restart at ${curPos.toFixed(1)}s`)
+        startAudio(curPos)
+      }
     }
     const stopAudio = () => {
       asyncId++
