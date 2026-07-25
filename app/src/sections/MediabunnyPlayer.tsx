@@ -221,6 +221,22 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
             const newId = pp.asyncId
             try { pp.audioIterator = pp.audioSink?.buffers(retryPos) ?? null } catch (e) { dbg(`Retry error: ${e}`); pp.audioIterator = null }
             if (pp.audioIterator) runAudioIterator(newId)
+          } else if (count === 0 && pp && pp.asyncId === asyncId) {
+            // Tüm offsetler bitti — 30sn bekle, sifirdan basla (sonsuz retry)
+            audioRetryCount.current = 0
+            dbg(`Retry cycle complete — waiting 30s then retry from current pos`)
+            setTimeout(() => {
+              const p2 = playerRef.current
+              if (!p2 || p2.asyncId !== asyncId) return
+              const curPos2 = getPlaybackTime()
+              for (const node of p2.queuedNodes) { try { node.stop() } catch {} }; p2.queuedNodes.clear()
+              p2.playbackTimeAtStart = curPos2
+              p2.audioContextStartTime = p2.audioContext?.currentTime ?? 0
+              p2.asyncId++
+              const newId2 = p2.asyncId
+              try { p2.audioIterator = p2.audioSink?.buffers(curPos2) ?? null } catch (e) { dbg(`Cycle retry error: ${e}`); p2.audioIterator = null }
+              if (p2.audioIterator) runAudioIterator(newId2)
+            }, 30000)
           } else if (count > 0 && pp && pp.asyncId === asyncId) {
             audioRetryCount.current = 0
             const curPos = getPlaybackTime()
