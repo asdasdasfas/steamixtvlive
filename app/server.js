@@ -84,7 +84,7 @@ function httpModule(opts) {
   return opts.protocol === 'https:' ? https : http
 }
 
-function doRequest(reqHeaders, opts, body, redirectCount, res) {
+function doRequest(reqHeaders, opts, body, redirectCount, res, extraHeaders) {
   if (redirectCount > 5) { try { res.writeHead(502); res.end('Too many redirects') } catch {}; return }
   let done = false
   const proxyReq = httpModule(opts).request(opts, proxyRes => {
@@ -99,14 +99,12 @@ function doRequest(reqHeaders, opts, body, redirectCount, res) {
       const redirectUrl = new URL(loc)
       const key = redirectUrl.hostname + ':' + (redirectUrl.port || 80)
       proxyTargets[key] = 'http://' + key
-      // Store CDN referer for TS auth: playlist URL → referer for subsequent TS segment requests to this host
       const oldKey = opts.hostname + ':' + (opts.port || (opts.protocol === 'https:' ? 443 : 80))
       if (loc.includes('.m3u8') || loc.includes('.m3u')) {
         proxyReferers[key] = loc
         hlsDefaultTarget = 'http://' + key
         if (!hlsProxyKeys.includes(key)) hlsProxyKeys.push(key)
       } else if (key !== oldKey) {
-        // Host changed (redirect to CDN without .m3u8) — still update default target
         hlsDefaultTarget = 'http://' + key
         if (!hlsProxyKeys.includes(key)) hlsProxyKeys.push(key)
       }
@@ -114,10 +112,11 @@ function doRequest(reqHeaders, opts, body, redirectCount, res) {
       if (hlsMatch) hlsTargets[hlsMatch[1]] = 'http://' + key
       proxyReq.destroy()
       const newOpts = makeHttpOpts(loc, opts.method, reqHeaders)
-      doRequest(reqHeaders, newOpts, undefined, redirectCount + 1, res)
+      doRequest(reqHeaders, newOpts, undefined, redirectCount + 1, res, extraHeaders)
       return
     }
     const headers = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
+    if (extraHeaders) Object.assign(headers, extraHeaders)
     delete headers['transfer-encoding']
     try { res.writeHead(sc, headers); proxyRes.pipe(res) } catch {}
   })
@@ -132,39 +131,13 @@ function fetchAndProxy(req, res, targetBase, pathPrefix, extraHeaders) {
   if (pathPrefix && req.url.startsWith(pathPrefix)) {
     path = '/' + req.url.slice(pathPrefix.length)
   }
-  // Strip query params for the backend URL (dl=1 is client-only)
-  const qIdx = path.indexOf('?')
-  if (qIdx >= 0) path = path.slice(0, qIdx)
   const url = targetBase + path
   const opts = makeHttpOpts(url, req.method, req.headers)
   const chunks = []
   req.on('data', c => chunks.push(c))
   req.on('end', () => {
     const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined
-    let done = false
-    const proxyReq = httpModule(opts).request(opts, proxyRes => {
-      if (done) return; done = true
-      const sc = proxyRes.statusCode || 200
-      if (sc >= 301 && sc <= 308 && proxyRes.headers.location) {
-        let loc = proxyRes.headers.location
-        if (!loc.startsWith('http://') && !loc.startsWith('https://')) {
-          const base = opts.hostname + (opts.port && opts.port != 80 ? ':' + opts.port : '')
-          loc = 'http://' + base + (loc.startsWith('/') ? loc : '/' + loc)
-        }
-        proxyReq.destroy()
-        const newOpts = makeHttpOpts(loc, req.method, req.headers)
-        doRequest(req.headers, newOpts, undefined, 0, res)
-        return
-      }
-      const headers = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
-      if (extraHeaders) Object.assign(headers, extraHeaders)
-      delete headers['transfer-encoding']
-      try { res.writeHead(sc, headers); proxyRes.pipe(res) } catch {}
-    })
-    proxyReq.on('error', () => { if (done) return; done = true; try { res.writeHead(502); res.end('Proxy Error') } catch {} })
-    proxyReq.on('timeout', () => { if (done) return; done = true; proxyReq.destroy(); try { res.writeHead(504); res.end('Timeout') } catch {} })
-    if (body) proxyReq.write(body)
-    proxyReq.end()
+    doRequest(req.headers, opts, body, 0, res, extraHeaders)
   })
 }
 
