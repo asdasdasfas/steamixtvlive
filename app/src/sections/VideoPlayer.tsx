@@ -26,12 +26,7 @@ interface VideoPlayerProps {
 const IS_MOBILE = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 const PROXY_PREFIXES = ['/dyn/', '/p2095/', '/p8080/']
 
-const _isDirectFileUrl = (url: string) => {
-  if (!url) return false
-  if (!IS_MOBILE && PROXY_PREFIXES.some(p => url.startsWith(p))) return false
-  const ext = url.split('?')[0].toLowerCase()
-  return ext.endsWith('.mkv')
-}
+const isDirectMkv = (url: string) => url && !PROXY_PREFIXES.some(p => url.startsWith(p)) && url.split('?')[0].toLowerCase().endsWith('.mkv')
 
 export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs, onToggleFullscreen }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -57,11 +52,11 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
 
   // Detect which player to use for this source
   useEffect(() => {
-    const isMkv = src.endsWith('.mkv')
-    dbg(`KARAR: mkv=${isMkv} mobil=${IS_MOBILE} src=${src?.substring(0,60)}`)
-    if (isMkv && !IS_MOBILE) {
+    const directMkv = isDirectMkv(src)
+    dbg(`KARAR: directMkv=${directMkv} mobil=${IS_MOBILE} src=${src?.substring(0,60)}`)
+    if (directMkv && !IS_MOBILE) {
       setUseMediabunny(true)
-      dbg(`KARAR: Mediabunny (PC)`)
+      dbg(`KARAR: Mediabunny (PC direct MKV)`)
     } else {
       setUseMediabunny(false)
       dbg(`KARAR: native video/HLS`)
