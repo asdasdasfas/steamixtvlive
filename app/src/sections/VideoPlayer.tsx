@@ -17,10 +17,11 @@ const decodeProxyUrl = (url: string): string | null => {
 const openExternalPlayer = (url: string) => {
   const directUrl = decodeProxyUrl(url)
   if (!directUrl) return
-  // Android 10+ sistem decoder AC3 destekler; Chrome'un <video>'su da sistem
-  // decoder'ini kullanir. intent:// Chrome 85+'da verified link olmayan uygulamalar
-  // icin bloklanir, o yuzden direkt backend URL'sine gidip Chrome'da aciyoruz.
-  window.location.href = directUrl
+  if (navigator.share) {
+    navigator.share({ title: 'Video', url: directUrl }).catch(() => {})
+  } else {
+    window.location.href = directUrl
+  }
 }
 
 const toAudioFix = (url: string) => {
