@@ -393,7 +393,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const bufferedPct = duration > 0 ? (buffered / duration) * 100 : 0
 
   const isProxyUrl = (u: string) => PROXY_PREFIXES.some(p => u.startsWith(p))
-  const canUseMediabunny = useMediabunny === true && src && !isProxyUrl(src) && !(fallbackSrcs?.some(isProxyUrl))
+  const canUseMediabunny = useMediabunny === true && src && (!isProxyUrl(src) || IS_MOBILE) && (!(fallbackSrcs?.some(isProxyUrl)) || IS_MOBILE)
 
   if (canUseMediabunny) {
     return (
