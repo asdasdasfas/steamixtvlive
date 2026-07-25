@@ -16,8 +16,7 @@ export default function Watch() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState('')
-  const [nativePlayerUrl, setNativePlayerUrl] = useState('')
-  const [genericIntentUrl, setGenericIntentUrl] = useState('')
+
 
   const streamId = params.get('stream_id')
   const rotationId = params.get('rotation_id')
@@ -40,30 +39,12 @@ export default function Watch() {
       } else if (streamId) {
         const sid = parseInt(streamId)
         const { base_url, xtream_user, xtream_pass } = server
-        const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
         if (type === 'movie') {
           const allUrls = ext
             ? [vodUrlWithExt(base_url, xtream_user, xtream_pass, sid, ext), ...vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))]
             : vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))
-          let finalUrls = allUrls
-          let nativeUrl = ''
-          if (isMobile) {
-            const mkvAt = allUrls.findIndex(u => u.startsWith('/dyn/') && (u.endsWith('.mkv') || u.endsWith('.mp4')))
-            if (mkvAt >= 0) { 
-              nativeUrl = allUrls[mkvAt]
-              finalUrls = ['/audio-fix/' + allUrls[mkvAt].slice('/dyn/'.length), ...allUrls] 
-            }
-          }
           if (!cancelled) { 
-            if (isMobile && nativeUrl) {
-              const fullUrl = window.location.origin + nativeUrl
-              setNativePlayerUrl(fullUrl)
-              const m3uFullUrl = window.location.origin + '/m3u/' + btoa(fullUrl).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
-              setGenericIntentUrl('intent://' + m3uFullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=application/x-mpegurl;scheme=https;end')
-              setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1))
-            } else {
-              setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1))
-            }
+            setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1))
           }
           try {
             const info = await fetchVodInfo(base_url, xtream_user, xtream_pass, sid)
@@ -90,22 +71,7 @@ export default function Watch() {
             allUrls.push(`/p2095/movie/${xtream_user}/${xtream_pass}/${streamId}`)
           }
           if (!cancelled) { 
-            if (isMobile) {
-              const mkvAt = allUrls.findIndex(u => u.startsWith('/dyn/') && (u.endsWith('.mkv') || u.endsWith('.mp4')))
-              if (mkvAt >= 0) {
-                const nativeUrl = allUrls[mkvAt]
-                const audioFixUrl = '/audio-fix/' + nativeUrl.slice('/dyn/'.length)
-                const fullUrl = window.location.origin + nativeUrl
-                const m3uFullUrl = window.location.origin + '/m3u/' + btoa(fullUrl).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
-                setNativePlayerUrl(fullUrl)
-                setGenericIntentUrl('intent://' + m3uFullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=application/x-mpegurl;scheme=https;end')
-                setUrl(audioFixUrl); setFallbackUrls(allUrls)
-              } else {
-                setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1))
-              }
-            } else {
-              setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1))
-            }
+            setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1))
           }
           try {
             const info = await fetchSeriesInfo(base_url, xtream_user, xtream_pass, sid)
@@ -166,26 +132,6 @@ export default function Watch() {
             <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-3" />
             <p className="text-sm text-red-400 mb-4">{error}</p>
             <button onClick={() => navigate(-1)} className="px-5 py-2 rounded-lg bg-white/10 text-white text-sm">Geri Dön</button>
-          </div>
-        </div>
-      ) : /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && nativePlayerUrl && !rotationId ? (
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center max-w-sm px-6">
-            <p className="text-base text-white font-semibold mb-1">Film / Dizi</p>
-            <p className="text-xs text-gray-500 mb-4">Ses codec uyumu için AAC'ye dönüştürülüyor. İlk açılışta 30-60sn sürebilir.</p>
-            <button onClick={() => { setNativePlayerUrl(''); setUrl(fallbackUrls[0] || ''); setFallbackUrls(fallbackUrls.slice(1)) }}
-              className="block w-full py-3.5 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-[#0099ff]/20">
-              İzle (AAC Ses)
-            </button>
-            <div className="h-px bg-white/5 my-4" />
-            <button onClick={() => { window.location.href = genericIntentUrl }}
-              className="block w-full py-3 rounded-xl bg-white/10 text-gray-300 text-sm hover:bg-white/20 transition-all mb-2">
-              Player'da Aç (AC3)
-            </button>
-            <button onClick={() => { navigator.share({ url: nativePlayerUrl }).catch(() => window.location.href = nativePlayerUrl) }}
-              className="w-full py-2.5 rounded-xl bg-white/5 text-gray-500 text-xs hover:text-white transition-all">
-              Paylaşarak Aç
-            </button>
           </div>
         </div>
       ) : url ? (
