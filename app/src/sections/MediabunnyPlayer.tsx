@@ -185,7 +185,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const startPlayback = useCallback(async (seconds?: number) => {
     const p = playerRef.current
     if (!p || !p.audioContext) { dbg('Start: no player'); return }
-    if (p.audioContext.state === 'suspended') await p.audioContext.resume()
+    if (p.audioContext.state === 'suspended') p.audioContext.resume()
 
     const pos = seconds ?? getPlaybackTime()
     dbg(`Start playback at ${pos.toFixed(2)}s (firstPlay=${firstPlayDoneRef.current})`)
@@ -278,7 +278,11 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
 
   const handlePlayStop = useCallback(() => {
     if (playing) stop()
-    else startPlayback()
+    else {
+      const p = playerRef.current
+      if (p?.audioContext?.state === 'suspended') p.audioContext.resume()
+      startPlayback()
+    }
   }, [playing, stop, startPlayback])
 
   const seekTo = useCallback(async (seconds: number) => {
@@ -373,8 +377,13 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         if (audioTrack) {
           const sr = await audioTrack.getSampleRate()
           if (sr) {
-            activeAudioCtx.close()
-            activeAudioCtx = new AudioContextClass({ sampleRate: sr })
+            try {
+              activeAudioCtx.close()
+              activeAudioCtx = new AudioContextClass({ sampleRate: sr })
+            } catch {
+              dbg(`Sample rate ${sr} not supported on this device, using default`)
+              activeAudioCtx = new AudioContextClass()
+            }
             activeGain = activeAudioCtx.createGain()
             activeGain.connect(activeAudioCtx.destination)
           }
