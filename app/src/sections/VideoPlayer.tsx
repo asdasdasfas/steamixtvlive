@@ -15,11 +15,10 @@ const decodeProxyUrl = (url: string): string | null => {
 }
 
 const openExternalPlayer = (url: string) => {
-  const directUrl = decodeProxyUrl(url)
-  if (!directUrl) return
-  if (navigator.share) {
-    navigator.share({ title: 'Video', url: directUrl }).catch(() => {})
-  }
+  // /dyn/ proxy ile + dl=1: server Content-Type: application/octet-stream doner
+  // Chrome oynatamaz -> indirme notifi gosterir -> tikla -> MX Player acar
+  const dlUrl = url.replace(/^\/audio-fix\//, '/dyn/') + '?dl=1'
+  window.open(dlUrl, '_blank')
 }
 
 const toAudioFix = (url: string) => {
