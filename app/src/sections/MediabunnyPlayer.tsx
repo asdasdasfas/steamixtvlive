@@ -187,6 +187,15 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const seekTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const autoRefreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const audioRetryCount = useRef(0)
+  const recreateCount = useRef(0)
+  const RECREATE_LIMIT = 3
+
+  const forceReload = useCallback(() => {
+    const pos = getPlaybackTime()
+    try { localStorage.setItem('mb_resume_pos', String(pos)); localStorage.setItem('mb_resume_src', src) } catch {}
+    dbg(`FORCE RELOAD at ${pos.toFixed(2)}s (recreateCount=${recreateCount.current})`)
+    setTimeout(() => location.reload(), 100)
+  }, [getPlaybackTime, src])
 
   const runAudioIterator = useCallback(async (asyncId: number) => {
     dbg(`Audio iterator started (id=${asyncId})`)
@@ -232,6 +241,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         const { buffer, timestamp } = raced.value as { buffer: AudioBuffer; timestamp: number }
         const beforeSched = performance.now()
         scheduleAudioBuffer(buffer, timestamp)
+        recreateCount.current = 0  // basarili buffer -> recreate sayaci sifir
         if (bufCount === 0) {
           dbg(`First buf arrived ts=${timestamp.toFixed(2)} sched_dur=${(performance.now()-beforeSched).toFixed(1)}ms`)
           if (Math.abs(timestamp - p.playbackTimeAtStart) > 2) {
@@ -264,8 +274,14 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const recreateSession = useCallback(async () => {
     const p = playerRef.current
     if (!p || !p.src) { dbg(`Recreate: no player`); return }
+    recreateCount.current++
+    if (recreateCount.current > RECREATE_LIMIT) {
+      dbg(`Recreate limit exceeded (${recreateCount.current}) — force reload`)
+      forceReload()
+      return
+    }
     const pos = getPlaybackTime()
-    dbg(`Recreating Mediabunny session at ${pos.toFixed(2)}s`)
+    dbg(`Recreating Mediabunny session #${recreateCount.current} at ${pos.toFixed(2)}s`)
     try {
       const newInput = new Input({
         source: new UrlSource(p.src, {
@@ -347,6 +363,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     p.audioContextStartTime = p.audioContext.currentTime
     p.audioIterator?.return()
     audioRetryCount.current = 0
+    recreateCount.current = 0
 
     // Her seek'te asyncId artir (audio+video korelasyonu icin)
     p.asyncId++
@@ -583,6 +600,23 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           }
         }
 
+        // Reload sonrasi pozisyonu geri yukle
+        try {
+          const resumeSrc = localStorage.getItem('mb_resume_src')
+          const resumePos = localStorage.getItem('mb_resume_pos')
+          const pp = playerRef.current
+          if (pp && resumeSrc === pp.src && resumePos) {
+            const pos = parseFloat(resumePos)
+            if (isFinite(pos) && pos > 0 && pos < endTs) {
+              dbg(`Resuming from ${pos.toFixed(2)}s (reload resume)`)
+              pp.playbackTimeAtStart = pos
+              pp.firstTimestamp = pos
+              localStorage.removeItem('mb_resume_src')
+              localStorage.removeItem('mb_resume_pos')
+            }
+          }
+        } catch {}
+
         playerRef.current.loaded = true
         if (pendingPlayRef.current) {
           pendingPlayRef.current = false
@@ -632,6 +666,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
             dbg(`Audio queue empty at ${playbackTime.toFixed(2)}s — restarting`)
             for (const node of pp.queuedNodes) { try { node.stop() } catch {} }; pp.queuedNodes.clear()
             pp.lastScheduledEnd = 0; pp.lastBufferTime = 0
+            recreateCount.current = 0
             pp.playbackTimeAtStart = playbackTime; pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
             pp.asyncId++; const newId = pp.asyncId
             try { pp.audioIterator = pp.audioSink?.buffers(playbackTime) ?? null } catch (e) { dbg(`Restart error: ${e}`); pp.audioIterator = null }
