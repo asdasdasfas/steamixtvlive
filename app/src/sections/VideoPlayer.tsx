@@ -57,7 +57,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const isProxy = (u: string) => PROXY_PREFIXES.some(p => u.startsWith(p))
     const isMkv = src.endsWith('.mkv')
     const isProxyUrl = isProxy(src)
-    const canMkv = isMkv || (fallbackSrcs && fallbackSrcs.some(u => u.endsWith('.mkv')))
+    const canMkv = isMkv
     dbg(`KARAR: mkv=${isMkv} proxy=${isProxyUrl} mobil=${IS_MOBILE} src=${src?.substring(0,60)}`)
     if (canMkv && (!isProxyUrl || IS_MOBILE)) {
       setUseMediabunny(true)
