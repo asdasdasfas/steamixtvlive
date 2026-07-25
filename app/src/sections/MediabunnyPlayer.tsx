@@ -118,7 +118,6 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const audioBufCountRef = useRef(0)
   const audioStallTimeout = (ms: number) => new Promise<'timeout'>(resolve => setTimeout(() => resolve('timeout'), ms))
   const pendingPlayRef = useRef(false)
-  const firstPlayRef = useRef(false)
 
   const runAudioIterator = useCallback(async (asyncId: number) => {
     dbg(`Audio iterator started (id=${asyncId})`)
@@ -192,57 +191,41 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const play = useCallback(async () => {
     const p = playerRef.current
     if (!p || !p.audioContext) { dbg('Play: no player/audioContext'); return }
-    if (p.audioContext.state === 'suspended') { dbg('Audio context resumed from suspended'); await p.audioContext.resume() }
-    dbg(`Play: pos=${getPlaybackTime().toFixed(2)} endTs=${p.endTimestamp.toFixed(2)} audioCtxState=${p.audioContext.state}`)
-    if (getPlaybackTime() >= p.endTimestamp) {
+    if (p.audioContext.state === 'suspended') { dbg('Play: resume AudioContext'); await p.audioContext.resume() }
+    const pos = getPlaybackTime()
+    dbg(`Play: pos=${pos.toFixed(2)} endTs=${p.endTimestamp.toFixed(2)}`)
+    if (pos >= p.endTimestamp) {
       p.playbackTimeAtStart = p.firstTimestamp
       p.nextFrame = null
-      if (p.videoSink) {
-        p.asyncId++
-        p.videoIterator = p.videoSink.canvases(p.playbackTimeAtStart)
-        const first = (await p.videoIterator.next()).value as WrappedCanvas | undefined
-        const second = (await p.videoIterator.next()).value as WrappedCanvas | undefined
-        p.nextFrame = second ?? null
-        const ctx = canvasRef.current?.getContext('2d')
-        if (first && ctx) {
-          ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
-          ctx.drawImage(first.canvas, 0, 0)
-        }
-      }
       setEnded(false)
+    }
+    // Video seek: resets shared demuxer so audio iterator works
+    if (p.videoSink) {
+      const seekPos = pos >= p.endTimestamp ? p.firstTimestamp : pos
+      p.asyncId++
+      p.videoIterator = p.videoSink.canvases(seekPos)
+      const first = (await p.videoIterator.next()).value as WrappedCanvas | undefined
+      const second = (await p.videoIterator.next()).value as WrappedCanvas | undefined
+      p.nextFrame = second ?? null
+      const ctx = canvasRef.current?.getContext('2d')
+      if (first && ctx) {
+        ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
+        ctx.drawImage(first.canvas, 0, 0)
+      }
     }
     p.audioContextStartTime = p.audioContext.currentTime
     setPlaying(true)
     isPlayingRef.current = true
-    if (p.audioSink) {
-      if (!p.loaded) {
-        dbg('Play: audio waiting for init...')
-        pendingPlayRef.current = true
-      } else if (p.audioIterator) {
-        dbg('Resume: waking existing iterator')
-      } else {
-        const audioPos = getPlaybackTime()
-        dbg(`Creating new audio iterator from ${audioPos.toFixed(3)}s`)
-        p.asyncId++
-        const id = p.asyncId
-        p.audioIterator = p.audioSink.buffers(audioPos + 0.01)
-        runAudioIterator(id)
-        if (!firstPlayRef.current) {
-          firstPlayRef.current = true
-          setTimeout(() => {
-            const pp = playerRef.current
-            if (!pp || !isPlayingRef.current) return
-            dbg('Auto-refresh: seeking 1.5s to fix audio')
-            pp.asyncId++
-            pp.audioIterator = null
-            pp.playbackTimeAtStart = 1.5
-            pp.audioContextStartTime = pp.audioContext!.currentTime
-            pp.audioIterator = pp.audioSink!.buffers(1.5 + 0.01)
-            const newId = pp.asyncId
-            runAudioIterator(newId)
-          }, 400)
-        }
-      }
+    if (p.audioSink && p.loaded) {
+      const audioPos = getPlaybackTime()
+      p.asyncId++
+      const id = p.asyncId
+      dbg(`New audio iterator from ${audioPos.toFixed(3)}s (id=${id})`)
+      p.audioIterator = p.audioSink.buffers(audioPos + 0.01)
+      runAudioIterator(id)
+    } else if (p.audioSink) {
+      dbg('Play: audio waiting for init...')
+      pendingPlayRef.current = true
     }
   }, [getPlaybackTime, runAudioIterator])
 
@@ -254,10 +237,12 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     if (p.audioContext) p.audioContextStartTime = p.audioContext.currentTime
     setPlaying(false)
     isPlayingRef.current = false
+    p.audioIterator?.return()
+    p.audioIterator = null
     const count = p.queuedNodes.size
     for (const node of p.queuedNodes) node.stop()
     p.queuedNodes.clear()
-    dbg(`Paused, stopped ${count} audio nodes - iterator kept alive`)
+    dbg(`Paused, stopped ${count} audio nodes`)
   }, [getPlaybackTime])
 
   const togglePlay = useCallback(() => {
@@ -271,21 +256,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     dbg(`Seek to ${seconds.toFixed(2)} (wasPlaying=${playing})`)
     const wasPlaying = playing
     if (wasPlaying) pause()
-    p.asyncId++
-    p.audioIterator = null
     p.playbackTimeAtStart = seconds
-    if (p.videoSink) {
-      p.asyncId++
-      p.videoIterator = p.videoSink.canvases(seconds)
-      const first = (await p.videoIterator.next()).value as WrappedCanvas | undefined
-      const second = (await p.videoIterator.next()).value as WrappedCanvas | undefined
-      p.nextFrame = second ?? null
-      const ctx = canvasRef.current?.getContext('2d')
-      if (first && ctx) {
-        ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
-        ctx.drawImage(first.canvas, 0, 0)
-      }
-    }
     if (wasPlaying && seconds < p.endTimestamp) play()
   }, [playing, pause, play])
 
