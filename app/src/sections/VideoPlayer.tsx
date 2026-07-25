@@ -19,11 +19,20 @@ const openExternalPlayer = (url: string) => {
   if (!directUrl) return
   const isAndroid = /android/i.test(navigator.userAgent)
   if (isAndroid) {
-    // Android Intent: Android sistemine "bu videoyu MX Player/VLC ile aç" der
-    const intentUrl = `intent://${directUrl.replace(/^https?:\/\//, '')}#Intent;action=android.intent.action.VIEW;type=video/x-matroska;end`
-    window.location.href = intentUrl
-    // Fallback: intent calismazsa direkt ac
-    setTimeout(() => window.location.href = directUrl, 500)
+    const encUrl = encodeURIComponent(directUrl)
+    // Chrome intent:// scheme: HOST/PATH + #Intent params
+    const hostPath = directUrl.replace(/^https?:\/\//, '')
+    const intentUrl = `intent://${hostPath}#Intent;action=android.intent.action.VIEW;type=video%2F*;S.browser_fallback_url=${encUrl};end`
+    const a = document.createElement('a')
+    a.href = intentUrl
+    a.style.display = 'none'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    setTimeout(() => {
+      try { if (document.hidden === false) window.location.href = directUrl }
+      catch { window.location.href = directUrl }
+    }, 1000)
   } else {
     window.location.href = directUrl
   }
