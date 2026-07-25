@@ -80,41 +80,25 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
 
   const updateNextFrame = useCallback(async () => {
     const p = playerRef.current
-    if (!p || !p.videoSink) return
+    if (!p || !p.videoIterator) return
     const currentAsyncId = p.asyncId
-    // If iterator ended, restart from current position
-    if (!p.videoIterator) {
-      const pos = getPlaybackTime()
-      p.videoIterator = p.videoSink.canvases(pos)
-      dbg(`Video iterator restart at ${pos.toFixed(2)}s`)
-    }
     while (true) {
       const raced = await Promise.race([
         p.videoIterator.next(),
         new Promise<IteratorResult<WrappedCanvas>>(resolve => setTimeout(() => resolve({ done: true, value: undefined as any }), 3000))
       ])
-      if (!raced.done && raced.value) {
-        if (currentAsyncId !== p.asyncId) break
-        const frame = raced.value as WrappedCanvas
-        const playbackTime = getPlaybackTime()
-        const ctx = canvasRef.current?.getContext('2d')
-        if (frame.timestamp <= playbackTime) {
-          if (ctx) {
-            ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
-            ctx.drawImage(frame.canvas, 0, 0)
-          }
-        } else {
-          p.nextFrame = frame
-          break
+      if (raced.done || !raced.value) break
+      if (currentAsyncId !== p.asyncId) break
+      const frame = raced.value as WrappedCanvas
+      const playbackTime = getPlaybackTime()
+      const ctx = canvasRef.current?.getContext('2d')
+      if (frame.timestamp <= playbackTime) {
+        if (ctx) {
+          ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
+          ctx.drawImage(frame.canvas, 0, 0)
         }
-      } else if (currentAsyncId === p.asyncId) {
-        // Iterator ended — restart from current position
-        const pos = getPlaybackTime()
-        dbg(`Video iterator ended — restart at ${pos.toFixed(2)}s`)
-        p.videoIterator = p.videoSink.canvases(pos)
-        // Continue loop with new iterator
-        continue
       } else {
+        p.nextFrame = frame
         break
       }
     }
