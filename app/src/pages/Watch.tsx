@@ -55,12 +55,23 @@ export default function Watch() {
             ? [vodUrlWithExt(base_url, xtream_user, xtream_pass, sid, ext), ...vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))]
             : vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))
           let finalUrls = allUrls
+          let nativeUrl = ''
           if (isMobile) {
-            // Try audio-fix on MKV first (other formats like M3U8/MP4 often don't exist)
             const mkvAt = allUrls.findIndex(u => u.startsWith('/dyn/') && (u.endsWith('.mkv') || u.endsWith('.mp4')))
-            if (mkvAt >= 0) { finalUrls = ['/audio-fix/' + allUrls[mkvAt].slice('/dyn/'.length), ...allUrls] }
+            if (mkvAt >= 0) { 
+              nativeUrl = allUrls[mkvAt]
+              finalUrls = ['/audio-fix/' + allUrls[mkvAt].slice('/dyn/'.length), ...allUrls] 
+            }
           }
-          if (!cancelled) { setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1)) }
+          if (!cancelled) { 
+            if (isMobile && nativeUrl) {
+              // Mobilde direkt native playera yönlendir
+              setUrl(nativeUrl); setFallbackUrls([])
+              setTimeout(() => { if (!cancelled) window.location.href = nativeUrl }, 1500)
+            } else {
+              setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1))
+            }
+          }
           try {
             const info = await fetchVodInfo(base_url, xtream_user, xtream_pass, sid)
             if (!cancelled) setTitle((info as any)?.info?.name || `Film ${streamId}`)
@@ -148,6 +159,14 @@ export default function Watch() {
             <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-3" />
             <p className="text-sm text-red-400 mb-4">{error}</p>
             <button onClick={() => navigate(-1)} className="px-5 py-2 rounded-lg bg-white/10 text-white text-sm">Geri Dön</button>
+          </div>
+        </div>
+      ) : /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && url && !rotationId ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center max-w-sm px-6">
+            <Loader2 className="w-10 h-10 text-[#0099ff] animate-spin mx-auto mb-4" />
+            <p className="text-base text-white font-semibold mb-2">Mobil cihazınızda açılıyor...</p>
+            <p className="text-xs text-gray-500">Telefonunuzun video player'ına yönlendiriliyorsunuz.</p>
           </div>
         </div>
       ) : url ? (
