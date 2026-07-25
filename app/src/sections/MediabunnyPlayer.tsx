@@ -83,13 +83,10 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     if (!p || !p.videoIterator) return
     const currentAsyncId = p.asyncId
     while (true) {
-      const raced = await Promise.race([
-        p.videoIterator.next(),
-        new Promise<IteratorResult<WrappedCanvas>>(resolve => setTimeout(() => resolve({ done: true, value: undefined as any }), 3000))
-      ])
-      if (raced.done || !raced.value) break
+      const result = await p.videoIterator.next()
+      if (result.done || !result.value) break
       if (currentAsyncId !== p.asyncId) break
-      const frame = raced.value as WrappedCanvas
+      const frame = result.value as WrappedCanvas
       const playbackTime = getPlaybackTime()
       const ctx = canvasRef.current?.getContext('2d')
       if (frame.timestamp <= playbackTime) {
