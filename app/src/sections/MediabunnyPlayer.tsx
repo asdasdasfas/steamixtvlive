@@ -205,7 +205,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         gain.connect(audioCtx.destination)
 
         const input = new Input({
-          source: new UrlSource(src),
+          source: new UrlSource(src, {
+            requestInit: { credentials: 'include' },
+          }),
           formats: ALL_FORMATS,
         })
 
