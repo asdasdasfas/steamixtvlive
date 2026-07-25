@@ -122,69 +122,47 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
 
   const runAudioIterator = useCallback(async (asyncId: number) => {
     dbg(`Audio iterator started (id=${asyncId})`)
-    let restartCount = 0
-    while (true) {
-      const p = playerRef.current
-      if (!p || !p.audioSink || !p.audioContext || !p.gainNode) { dbg('Audio exit: player/ctx missing'); break }
-      if (p.asyncId !== asyncId) { dbg(`Audio exit: asyncId ${p.asyncId} != ${asyncId}`); break }
-      try {
-        audioBufCountRef.current = 0
-        const it = p.audioIterator
-        if (!it) { dbg('Audio no iterator'); break }
-        while (true) {
-          // Wait if paused (don't consume iterator, keep it alive)
-          while (!isPlayingRef.current) {
-            await new Promise(r => setTimeout(r, 100))
-            if (playerRef.current?.asyncId !== asyncId) return
-          }
-          if (playerRef.current?.asyncId !== asyncId) break
-          const raced = await Promise.race([
-            it.next().then(r => ({ tag: 'next' as const, done: r.done, value: r.value })),
-            audioStallTimeout(3000),
-          ])
-          if (raced === 'timeout') {
-            dbg(`Audio TIMEOUT after ${audioBufCountRef.current} buffers`)
-            it.return?.()
-            break
-          }
-          if (raced.done) { dbg('Audio ended naturally'); break }
-          if (!isPlayingRef.current) continue
-          const { buffer, timestamp } = raced.value as { buffer: AudioBuffer; timestamp: number }
-          if (playerRef.current?.asyncId !== asyncId) break
-          scheduleAudioBuffer(buffer, timestamp)
-          audioBufCountRef.current++
-          if (audioBufCountRef.current === 1 || audioBufCountRef.current % 30 === 0) {
-            dbg(`Audio buf#${audioBufCountRef.current} ts=${timestamp.toFixed(2)} ctx=${p.audioContext.currentTime.toFixed(2)}`)
-          }
-          if (timestamp - getPlaybackTime() >= 1) {
-            await new Promise<void>(resolve => {
-              const id = setInterval(() => {
-                if (timestamp - getPlaybackTime() < 1 || playerRef.current?.asyncId !== asyncId) {
-                  clearInterval(id)
-                  resolve()
-                }
-              }, 100)
-            })
-          }
+    const p = playerRef.current
+    if (!p || !p.audioSink || !p.audioContext || !p.gainNode || !p.audioIterator) { dbg('Audio exit: missing refs'); return }
+    try {
+      const it = p.audioIterator
+      audioBufCountRef.current = 0
+      while (true) {
+        if (playerRef.current?.asyncId !== asyncId) { dbg(`Audio exit: asyncId changed`); break }
+        const raced = await Promise.race([
+          it.next().then(r => ({ tag: 'next' as const, done: r.done, value: r.value })),
+          audioStallTimeout(3000),
+        ])
+        if (raced === 'timeout') {
+          dbg(`Audio TIMEOUT after ${audioBufCountRef.current} buffers`)
+          it.return?.()
+          break
         }
-      } catch (err) {
-        dbg(`Audio iterator ERROR: ${err}`)
-      }
-      // Restart if iterator ended but still playing
-      restartCount++
-      const pp = playerRef.current
-      if (!pp || !pp.audioSink || !isPlayingRef.current) { if (pp) pp.audioIterator = null; dbg(`Audio restart exit`); break }
-      if (!pp.loaded) {
-        dbg(`Audio waiting for loaded...`)
-        for (let i = 0; i < 100; i++) {
-          await new Promise(r => setTimeout(r, 100))
-          if (playerRef.current?.loaded || playerRef.current?.asyncId !== asyncId) break
+        if (raced.done) { dbg('Audio ended'); break }
+        if (playerRef.current?.asyncId !== asyncId) break
+        const { buffer, timestamp } = raced.value as { buffer: AudioBuffer; timestamp: number }
+        scheduleAudioBuffer(buffer, timestamp)
+        audioBufCountRef.current++
+        if (audioBufCountRef.current === 1 || audioBufCountRef.current % 30 === 0) {
+          dbg(`Audio buf#${audioBufCountRef.current} ts=${timestamp.toFixed(2)} ctx=${p.audioContext.currentTime.toFixed(2)}`)
         }
-        if (!playerRef.current?.loaded) { dbg('Audio restart exit: loaded timeout'); break }
+        if (timestamp - getPlaybackTime() >= 1) {
+          await new Promise<void>(resolve => {
+            const id = setInterval(() => {
+              if (timestamp - getPlaybackTime() < 1 || playerRef.current?.asyncId !== asyncId) {
+                clearInterval(id)
+                resolve()
+              }
+            }, 100)
+          })
+        }
       }
-      const rPos = getPlaybackTime()
-      dbg(`Audio restart #${restartCount} from ${rPos.toFixed(3)}s`)
-      pp.audioIterator = pp.audioSink.buffers(rPos + 0.01)
+    } catch (err) {
+      dbg(`Audio iterator ERROR: ${err}`)
+    }
+    if (playerRef.current?.audioIterator && playerRef.current?.asyncId === asyncId) {
+      playerRef.current.audioIterator.return()
+      playerRef.current.audioIterator = null
     }
     dbg(`Audio iterator DONE (id=${asyncId})`)
   }, [getPlaybackTime, scheduleAudioBuffer])
@@ -204,10 +182,11 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     setPlaying(true)
     isPlayingRef.current = true
     if (p.audioSink && p.loaded) {
+      p.audioIterator?.return()
       p.asyncId++
       const id = p.asyncId
       dbg(`New audio iterator from ${pos.toFixed(3)}s (id=${id})`)
-      p.audioIterator = p.audioSink.buffers(pos)
+      p.audioIterator = p.audioSink.buffers(pos, undefined, { skipLiveWait: true })
       runAudioIterator(id)
     } else if (p.audioSink) {
       pendingPlayRef.current = true
@@ -219,7 +198,6 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     if (!p) return
     dbg(`Pause at ${getPlaybackTime().toFixed(2)}s`)
     p.playbackTimeAtStart = getPlaybackTime()
-    if (p.audioContext) p.audioContextStartTime = p.audioContext.currentTime
     setPlaying(false)
     isPlayingRef.current = false
     p.audioIterator?.return()
