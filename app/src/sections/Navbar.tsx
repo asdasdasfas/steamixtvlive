@@ -1,7 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useLang } from '@/lib/language'
 import { useAuth } from '@/hooks/use-auth'
-import { useIsMobile } from '@/hooks/use-mobile'
 import { Home, Tv, Film, Clapperboard, Search, Settings, LogOut, Globe, ChevronDown, Heart } from 'lucide-react'
 import { useState } from 'react'
 
@@ -16,7 +15,6 @@ const allTabs = [
 export default function Navbar() {
   const { t, lang, setLang, langNames, languages } = useLang()
   const { user, logout } = useAuth()
-  const isMobile = useIsMobile()
   const navigate = useNavigate()
   const location = useLocation()
   const [langOpen, setLangOpen] = useState(false)
@@ -104,23 +102,15 @@ export default function Navbar() {
       </div>
       {/* Mobile bottom bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 flex border-t border-white/10 bg-black/95 backdrop-blur-lg z-50">
-        {isMobile ? (
-          <button onClick={() => navigate('/profile')} className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${location.pathname === '/profile' ? 'text-[#0099ff]' : 'text-gray-500'}`}>
-            <Settings className="w-5 h-5" />Profil
+        {tabs.map(tab => (
+          <button key={tab.key} onClick={() => handleTab(tab.key)}
+            className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${activeTab === tab.key ? 'text-[#0099ff]' : 'text-gray-500'}`}>
+            <tab.icon className="w-5 h-5" />{t(tab.labelKey)}
           </button>
-        ) : (
-          <>
-            {tabs.map(tab => (
-              <button key={tab.key} onClick={() => handleTab(tab.key)}
-                className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${activeTab === tab.key ? 'text-[#0099ff]' : 'text-gray-500'}`}>
-                <tab.icon className="w-5 h-5" />{t(tab.labelKey)}
-              </button>
-            ))}
-            <button onClick={() => navigate('/profile')} className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors text-gray-500`}>
-              <Settings className="w-5 h-5" />{t('nav.profile')}
-            </button>
-          </>
-        )}
+        ))}
+        <button onClick={() => navigate('/profile')} className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors text-gray-500`}>
+          <Settings className="w-5 h-5" />{t('nav.profile')}
+        </button>
       </div>
     </nav>
   )

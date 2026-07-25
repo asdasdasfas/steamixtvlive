@@ -2,13 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useLang } from '@/lib/language'
 import { useAuth } from '@/hooks/use-auth'
-import { useIsMobile } from '@/hooks/use-mobile'
-import { Eye, EyeOff, Globe, ChevronDown, Loader2, ShoppingCart, X, CreditCard, Check, Mail, AlertTriangle, Monitor } from 'lucide-react'
+import { Eye, EyeOff, Globe, ChevronDown, Loader2, ShoppingCart, X, CreditCard, Check, Mail, AlertTriangle } from 'lucide-react'
 
 export default function Login() {
   const { t, lang, setLang, langNames, languages } = useLang()
   const { login } = useAuth()
-  const isMobile = useIsMobile()
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const expired = params.get('expired') === '1'
@@ -138,22 +136,7 @@ export default function Login() {
           </div>
           {/* Sağ taraf - Giriş Formu */}
           <div className="w-full max-w-sm">
-            {isMobile && (
-              <div className="mb-4 p-3 rounded-xl bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/20">
-                <div className="flex items-start gap-2">
-                  <Monitor className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
-                  <p className="text-xs text-gray-400 leading-relaxed">
-                    Mobil tarayıcı sitemiz yalnızca abonelik bilgilerinizi sorgulamak içindir. 
-                    Giriş yaptıktan sonra profil sayfanızdan abonelik sürenizi görüntüleyebilir 
-                    ve Android APK uygulamamızı indirebilirsiniz. Normal tarayıcı tabanlı izleme 
-                    yalnızca <span className="text-yellow-300 font-semibold">PC MASAÜSTÜ versiyonu</span> 
-                    ile uyumludur. Siteden izlemek isterseniz <span className="text-yellow-300 font-semibold">PC masaüstü versiyonuyla</span> 
-                    giriş yapabilirsiniz, mobil tarayıcı ile açılmaz. Mobilde izlemek için 
-                    giriş yaptıktan sonra profil sayfanızdan Android APK uygulamamızı kullanın.
-                  </p>
-                </div>
-              </div>
-            )}
+
             <div className="text-center mb-8">
               <h2 className="text-xl md:text-2xl font-bold text-white" style={{ fontFamily: 'Orbitron, sans-serif' }}>{t('login.title')}</h2>
             </div>

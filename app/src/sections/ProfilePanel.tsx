@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
-import { useIsMobile } from '@/hooks/use-mobile'
 import { parseSureDuration } from '@/lib/supabase'
-import { ArrowLeft, Check, Loader2, ShoppingCart, LogOut, Edit3, User, Clock, Calendar, ChevronDown, Download, Smartphone, Monitor } from 'lucide-react'
+import { ArrowLeft, Check, Loader2, ShoppingCart, LogOut, Edit3, User, Clock, Calendar, ChevronDown, Download } from 'lucide-react'
 
 const avatars = [1, 2, 3, 4, 5]
 
@@ -34,7 +33,6 @@ function formatDurationFull(ms: number): string {
 
 export default function ProfilePanel() {
   const { user, saveAvatar, logout } = useAuth()
-  const isMobile = useIsMobile()
   const navigate = useNavigate()
   const [showAvatars, setShowAvatars] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -71,31 +69,9 @@ export default function ProfilePanel() {
   return (
     <div className="min-h-screen bg-[#0f172a] pt-20 md:pt-24 pb-24">
       <div className="max-w-3xl mx-auto px-4">
-        {isMobile && (
-          <div className="mb-6 p-4 rounded-xl bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/20">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center shrink-0">
-                <Monitor className="w-5 h-5 text-yellow-400" />
-              </div>
-              <div className="flex-1">
-                <p className="text-xs text-gray-400 leading-relaxed">
-                  Mobil tarayıcı sitemiz yalnızca abonelik bilgilerinizi sorgulamak içindir. 
-                  Giriş yaptıktan sonra profil sayfanızdan abonelik sürenizi görüntüleyebilir 
-                  ve Android APK uygulamamızı indirebilirsiniz. Normal tarayıcı tabanlı izleme 
-                  yalnızca <span className="text-yellow-300 font-semibold">PC MASAÜSTÜ versiyonu</span> 
-                  ile uyumludur. Siteden izlemek isterseniz <span className="text-yellow-300 font-semibold">PC masaüstü versiyonuyla</span> 
-                  giriş yapabilirsiniz, mobil tarayıcı ile açılmaz. Mobilde izlemek için 
-                  giriş yaptıktan sonra profil sayfanızdan Android APK uygulamamızı kullanın.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-        {!isMobile && (
         <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" />Geri
         </button>
-        )}
 
         {/* Kullanıcı Kartı */}
         <div className="bg-gradient-to-br from-white/5 to-white/[0.02] rounded-2xl p-6 md:p-8 border border-white/10 mb-8">
