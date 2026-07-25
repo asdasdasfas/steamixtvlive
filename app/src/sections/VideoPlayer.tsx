@@ -84,6 +84,13 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     // Mobilde MKV URL'lerini /audio-fix/ ile server-side transcoding'e yonlendir
     if (IS_MOBILE) {
       allUrlsRef.current = filtered.map(u => mkvToAudioFix(u))
+      // Raw MKV'leri sona at (once /audio-fix/ denensin, basarisizsa M3U8/MP4, en son raw MKV)
+      const audioFix = allUrlsRef.current.filter(u => u.startsWith('/audio-fix/'))
+      const nonMkvRaw = allUrlsRef.current.filter(u => !u.endsWith('.mkv'))
+      const rawMkv = allUrlsRef.current.filter(u => u.endsWith('.mkv') && !u.startsWith('/audio-fix/'))
+      allUrlsRef.current = [...audioFix, ...nonMkvRaw, ...rawMkv]
+      // Tekrarlari temizle
+      allUrlsRef.current = allUrlsRef.current.filter((u,i,a) => a.indexOf(u) === i)
       dbg(`MOBIL URL'ler: ${allUrlsRef.current.map((u,i)=>`#${i}: ${u?.substring(0,100)}`).join(' | ')}`)
     } else {
       allUrlsRef.current = filtered
@@ -138,10 +145,11 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const urlIdx = urlIndexRef.current
     const total = allUrlsRef.current.length
     const currentSrc = allUrlsRef.current[urlIdx] || ''
-    // MKV needs extra time to buffer seek table (metadata at end of file)
-    const maxStuck = currentSrc.endsWith('.mkv') ? 15 : 5
+    // MKV needs extra time. /audio-fix/ (ffmpeg transcoding) needs even more.
+    const maxStuck = currentSrc.startsWith('/audio-fix/') ? 40 : (currentSrc.endsWith('.mkv') ? 15 : 5)
     console.log(`%c[WATCHDOG] Basladi URL#${urlIdx}/${total} maxStuck=${maxStuck}`, 'color:yellow')
-    if (currentSrc.endsWith('.mkv')) dbg(`WATCHDOG: MKV dosyasi -> AC3 sesi yok, video ilerlerse watchdog takilmaz`)
+    if (currentSrc.startsWith('/audio-fix/')) dbg(`WATCHDOG: /audio-fix/ ffmpeg transcoding -> bekleniyor`)
+    else if (currentSrc.endsWith('.mkv')) dbg(`WATCHDOG: MKV native -> AC3 sesi yok!`)
     watchdogRef.current = setInterval(() => {
       if (!video || video.seeking) return
       if (video.readyState >= 2 && video.currentTime > lastProgressRef.current) {
@@ -205,7 +213,8 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const isHls = srcNoQuery.endsWith('.m3u8')
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
     console.log(`[TRYURL] isHLS:${isHls} HLS.destek:${Hls.isSupported()} Safari:${isSafari}`)
-    if (currentSrc.endsWith('.mkv')) dbg(`MKV native -> AC3 ses OLMAZ!`)
+    if (currentSrc.endsWith('.mkv') && !currentSrc.startsWith('/audio-fix/')) dbg(`MKV native -> AC3 ses OLMAZ!`)
+    else if (currentSrc.startsWith('/audio-fix/')) dbg(`/audio-fix/ ffmpeg transcoding ile ses var`)
 
     if (isHls && Hls.isSupported() && !isSafari) {
       const isVirtualHls = currentSrc.startsWith('/v/')
