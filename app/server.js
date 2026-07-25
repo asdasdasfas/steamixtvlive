@@ -272,7 +272,7 @@ function transcodeStream(req, res, sourceUrl, hop) {
       const outFmt = isMp4 ? 'mp4' : 'mpegts'
       const outCt = isMp4 ? 'video/mp4' : 'video/mp2t'
       const extra = isMp4 ? ['-movflags', 'frag_keyframe+empty_moov'] : []
-      const ff = spawn(ffmpegPath, ['-nostats','-hide_banner','-i','pipe:0','-c:v','copy','-c:a','aac','-b:a','128k',...extra,'-f',outFmt,'-y','pipe:1'])
+      const ff = spawn(ffmpegPath, ['-nostats','-hide_banner','-i','pipe:0','-c:v','copy','-c:a','aac','-ar','44100','-ac','2','-b:a','128k',...extra,'-f',outFmt,'-y','pipe:1'])
       let hs = false
       ff.stdout.on('data', d => { if (!hs) { hs = true; try { res.writeHead(200,{'Content-Type':outCt,'access-control-allow-origin':'*'}) } catch {} }; try { res.write(d) } catch {} })
       ff.stderr.on('data', d => { console.log(`[FF] ${d.toString().trim()}`) })
@@ -298,7 +298,7 @@ function transcodeDirect(req, res, sourceUrl) {
     try { fs.accessSync(ffmpegPath) } catch(e) { console.log(`[FFDIR] ffmpeg not found: ${e.message}, proxy`); return doRequest(req.headers, opts, reqBody, 0, res) }
     const outFmt = 'mp4'; const outCt = 'video/mp4'
     const extra = ['-movflags', 'frag_keyframe+empty_moov']
-    const ff = spawn(ffmpegPath, ['-nostats','-hide_banner','-probesize','2M','-analyzeduration','2M','-i',sourceUrl,'-map','0:v?','-map','0:a?','-c:v','copy','-c:a','aac','-ac','2','-b:a','128k',...extra,'-f',outFmt,'-y','pipe:1'])
+    const ff = spawn(ffmpegPath, ['-nostats','-hide_banner','-probesize','2M','-analyzeduration','2M','-i',sourceUrl,'-c:v','copy','-c:a','aac','-ar','44100','-ac','2','-b:a','128k',...extra,'-f',outFmt,'-y','pipe:1'])
     let hs = false
     let timer = setTimeout(() => { if (!hs) { console.log(`[FFDIR] timeout 20s`); ff.kill(); doRequest(req.headers, opts, reqBody, 0, res) } }, 20000)
     ff.stdout.on('data', d => { if (!hs) { hs = true; clearTimeout(timer); try { res.writeHead(200,{'Content-Type':outCt,'access-control-allow-origin':'*'}) } catch {} }; try { res.write(d) } catch {} })
@@ -427,7 +427,7 @@ http.createServer((req, res) => {
           const isDirect = pathLower.endsWith('.mkv')||pathLower.endsWith('.mp4')
           console.log(`[AFIX] fullUrl=${url.substring(0,120)} isM3u8=${isM3u8} isDirect=${isDirect}`)
           if (isM3u8) return handleM3u8Vod(req, res, url)
-          if (isDirect) { console.log(`[AFIX] direct file -> ffmpegDirect`); return transcodeDirect(req, res, url) }
+          if (isDirect) { console.log(`[AFIX] direct file -> transcodeStream`); return transcodeStream(req, res, url) }
           console.log(`[AFIX] other -> transcodeStream`)
           return transcodeStream(req, res, url)
         }
