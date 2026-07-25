@@ -263,6 +263,10 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       pendingPlayRef.current = true
     }
 
+    // isPlayingRef hemen true (video seek beklenmez, getPlaybackTime calissin)
+    setPlaying(true)
+    isPlayingRef.current = true
+
     // Video karelerini arka planda getir (asyncId degismez, audio iterator bozulmaz)
     if (p.videoSink) {
       p.videoIterator?.return()
@@ -276,9 +280,6 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         ctx.drawImage(first.canvas, 0, 0)
       }
     }
-
-    setPlaying(true)
-    isPlayingRef.current = true
 
     if (!firstPlayDoneRef.current) {
       firstPlayDoneRef.current = true
