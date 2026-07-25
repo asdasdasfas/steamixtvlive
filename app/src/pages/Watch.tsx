@@ -176,13 +176,13 @@ export default function Watch() {
               İzle (AAC Ses)
             </button>
             <div className="h-px bg-white/5 my-4" />
-            <a href={genericIntentUrl}
-              className="block w-full py-3 rounded-xl bg-white/10 text-gray-300 text-sm hover:bg-white/20 transition-all mb-2 text-center">
+            <button onClick={() => { window.location.href = genericIntentUrl }}
+              className="block w-full py-3 rounded-xl bg-white/10 text-gray-300 text-sm hover:bg-white/20 transition-all mb-2">
               Player'da Aç (AC3)
-            </a>
-            <button onClick={() => window.location.href = nativePlayerUrl}
+            </button>
+            <button onClick={() => { navigator.share({ url: nativePlayerUrl }).catch(() => window.location.href = nativePlayerUrl) }}
               className="w-full py-2.5 rounded-xl bg-white/5 text-gray-500 text-xs hover:text-white transition-all">
-              Diğer Player'da Dene
+              Paylaşarak Aç
             </button>
           </div>
         </div>
