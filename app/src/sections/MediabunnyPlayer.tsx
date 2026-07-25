@@ -57,6 +57,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     asyncId: number
     loaded: boolean
     lastScheduledEnd: number
+    lastBufferTime: number
   } | null>(null)
 
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -166,6 +167,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     }
     p.queuedNodes.add(node)
     node.onended = () => { p.queuedNodes.delete(node) }
+    p.lastBufferTime = Date.now()
     const bufEnd = rounded + node.buffer.duration
     if (bufEnd > (p.lastScheduledEnd ?? 0)) p.lastScheduledEnd = bufEnd
   }, [fixBuffer])
@@ -246,10 +248,10 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           const pt = getPlaybackTime()
           dbg(`Audio buf#${bufCount} ts=${timestamp.toFixed(2)} ctx=${p.audioContext.currentTime.toFixed(2)} playTime=${pt.toFixed(2)}`)
         }
-        // Queue limit: max 150 node (browser ~200 limiti, mobilde alt limit)
-        if (p.queuedNodes.size > 150) {
+        // Queue limit: max 64 node (~2sn, browser node limiti)
+        if (p.queuedNodes.size > 64) {
           await new Promise<void>(resolve => {
-            const check = () => { if (!playerRef.current || playerRef.current.queuedNodes.size < 100 || playerRef.current.asyncId !== asyncId) resolve(); else setTimeout(check, 50) }
+            const check = () => { if (!playerRef.current || playerRef.current.queuedNodes.size < 32 || playerRef.current.asyncId !== asyncId) resolve(); else setTimeout(check, 50) }
             check()
           })
         }
@@ -504,6 +506,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           asyncId: 0,
           loaded: false,
           lastScheduledEnd: 0,
+          lastBufferTime: 0,
         }
 
         if (videoSink && playerRef.current.videoIterator) {
@@ -558,16 +561,25 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         }
       }
 
-      if (playing && pp.queuedNodes.size === 0 && (pp.lastScheduledEnd ?? 0) > 0 && playbackTime > (pp.lastScheduledEnd ?? 0) + 0.5 && playbackTime < pp.endTimestamp) {
-        dbg(`Audio queue empty at ${playbackTime.toFixed(2)}s — restarting`)
-        for (const node of pp.queuedNodes) { try { node.stop() } catch {} }; pp.queuedNodes.clear()
-        pp.lastScheduledEnd = 0
-        pp.playbackTimeAtStart = playbackTime
-        pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
-        pp.asyncId++
-        const newId = pp.asyncId
-        pp.audioIterator = pp.audioSink?.buffers(playbackTime) ?? null
-        if (pp.audioIterator) runAudioIterator(newId)
+      if (playing && playbackTime < pp.endTimestamp) {
+        const now = Date.now()
+        if (pp.queuedNodes.size === 0 && (pp.lastScheduledEnd ?? 0) > 0 && playbackTime > (pp.lastScheduledEnd ?? 0) + 0.5) {
+          dbg(`Audio queue empty at ${playbackTime.toFixed(2)}s — restarting`)
+          for (const node of pp.queuedNodes) { try { node.stop() } catch {} }; pp.queuedNodes.clear()
+          pp.lastScheduledEnd = 0; pp.lastBufferTime = 0
+          pp.playbackTimeAtStart = playbackTime; pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
+          pp.asyncId++; const newId = pp.asyncId
+          pp.audioIterator = pp.audioSink?.buffers(playbackTime) ?? null
+          if (pp.audioIterator) runAudioIterator(newId)
+        } else if ((pp.lastBufferTime ?? 0) > 0 && now - (pp.lastBufferTime ?? 0) > 10000) {
+          dbg(`No buffer for 10s at ${playbackTime.toFixed(2)}s — restarting`)
+          for (const node of pp.queuedNodes) { try { node.stop() } catch {} }; pp.queuedNodes.clear()
+          pp.lastScheduledEnd = 0; pp.lastBufferTime = 0
+          pp.playbackTimeAtStart = playbackTime; pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
+          pp.asyncId++; const newId = pp.asyncId
+          pp.audioIterator = pp.audioSink?.buffers(playbackTime) ?? null
+          if (pp.audioIterator) runAudioIterator(newId)
+        }
       }
 
       if (pp.nextFrame && pp.nextFrame.timestamp <= playbackTime) {
