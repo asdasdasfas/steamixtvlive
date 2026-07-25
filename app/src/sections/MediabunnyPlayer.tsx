@@ -191,7 +191,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         if (playerRef.current?.asyncId !== asyncId) { dbg(`Audio exit: asyncId changed`); break }
         const raced = await Promise.race([
           it.next().then(r => ({ tag: 'next' as const, done: r.done, value: r.value })),
-          audioStallTimeout(3000),
+          audioStallTimeout(1500),
         ])
         if (raced === 'timeout') {
           const count = audioBufCountRef.current
@@ -200,11 +200,33 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           if (count === 0 && playerRef.current?.asyncId === asyncId && audioRetryCount.current < 5) {
             const pp = playerRef.current
             const curPos = getPlaybackTime()
-            const retryPos = curPos + 0.5
+            const retryPos = curPos + 2
             audioRetryCount.current++
             dbg(`Audio retry #${audioRetryCount.current} at ${retryPos.toFixed(2)}s`)
+            pp.playbackTimeAtStart = retryPos
+            pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
             pp.asyncId++
             const newId = pp.asyncId
+            if (pp.videoSink) {
+              const oldIt = pp.videoIterator
+              const it = pp.videoSink.canvases(retryPos)
+              pp.videoIterator = it
+              oldIt?.return()
+              dbg(`Video seek retry pos=${retryPos.toFixed(2)}`)
+              ;(async () => {
+                const first = await it.next()
+                if (first.done || !first.value || playerRef.current?.asyncId !== newId) return
+                const second = await it.next()
+                if (playerRef.current?.asyncId !== newId) return
+                pp.nextFrame = (second.done ? null : second.value) as WrappedCanvas | null
+                const ctx = canvasRef.current?.getContext('2d')
+                if (ctx) {
+                  ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
+                  ctx.drawImage(first.value.canvas, 0, 0)
+                }
+                dbg(`Video seek retry done pos=${retryPos.toFixed(2)}`)
+              })()
+            }
             pp.audioIterator = pp.audioSink?.buffers(retryPos, undefined, { skipLiveWait: true }) ?? null
             if (pp.audioIterator) runAudioIterator(newId)
           }
@@ -270,14 +292,16 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     p.audioIterator?.return()
     audioRetryCount.current = 0
 
+    // Her seek'te asyncId artir (audio+video korelasyonu icin)
+    p.asyncId++
+    const seekId = p.asyncId
+
     // Ses ONCE baslasin (video frame'leri beklenmez)
     const audioSink = p.audioSink
     if (audioSink && p.loaded) {
-      p.asyncId++
-      const id = p.asyncId
-      dbg(`Audio iterator from ${pos.toFixed(3)}s (id=${id})`)
+      dbg(`Audio iterator from ${pos.toFixed(3)}s (id=${seekId})`)
       p.audioIterator = audioSink.buffers(pos, undefined, { skipLiveWait: true })
-      runAudioIterator(id)
+      runAudioIterator(seekId)
     } else if (p.audioSink) {
       dbg(`Audio pending (loaded=${p.loaded})`)
       pendingPlayRef.current = true
@@ -296,8 +320,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       dbg(`Video seek start pos=${pos.toFixed(2)}`)
       ;(async () => {
         const first = await it.next()
-        if (first.done || !first.value) return
+        if (first.done || !first.value || playerRef.current?.asyncId !== seekId) return
         const second = await it.next()
+        if (playerRef.current?.asyncId !== seekId) return
         p.nextFrame = (second.done ? null : second.value) as WrappedCanvas | null
         const ctx = canvasRef.current?.getContext('2d')
         if (ctx) {
