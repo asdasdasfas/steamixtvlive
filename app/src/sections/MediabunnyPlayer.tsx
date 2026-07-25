@@ -100,56 +100,11 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     }
   }, [getPlaybackTime])
 
-  const normalizeBuffer = useCallback((buf: AudioBuffer, ctx: AudioContext): AudioBuffer => {
-    const srMatch = buf.sampleRate === ctx.sampleRate
-    const chMatch = buf.numberOfChannels <= 2
-    if (srMatch && chMatch) return buf
-    const outCh = Math.min(buf.numberOfChannels, 2)
-    const ratio = buf.sampleRate / ctx.sampleRate
-    const outLen = srMatch ? buf.length : Math.round(buf.length / ratio)
-    const out = ctx.createBuffer(outCh, outLen, ctx.sampleRate)
-    const ch = buf.numberOfChannels
-    for (let oc = 0; oc < outCh; oc++) {
-      const srcData: Float32Array[] = []
-      if (ch <= 2) {
-        srcData.push(buf.getChannelData(oc))
-      } else {
-        // Downmix 5.1 -> stereo
-        const FL = buf.getChannelData(0), FR = buf.getChannelData(1)
-        const FC = ch >= 3 ? buf.getChannelData(2) : null
-        const LFE = ch >= 4 ? buf.getChannelData(3) : null
-        const BL = ch >= 5 ? buf.getChannelData(4) : null
-        const BR = ch >= 6 ? buf.getChannelData(5) : null
-        const l = new Float32Array(buf.length)
-        const r = new Float32Array(buf.length)
-        for (let i = 0; i < buf.length; i++) {
-          l[i] = FL[i] + (FC ? FC[i] * 0.707 : 0) + (BL ? BL[i] * 0.707 : 0) + (LFE ? LFE[i] * 0.5 : 0)
-          r[i] = FR[i] + (FC ? FC[i] * 0.707 : 0) + (BR ? BR[i] * 0.707 : 0) + (LFE ? LFE[i] * 0.5 : 0)
-        }
-        srcData.push(oc === 0 ? l : r)
-      }
-      const dst = out.getChannelData(oc)
-      const src = srcData[0]
-      if (srMatch) {
-        dst.set(src)
-      } else {
-        for (let i = 0; i < outLen; i++) {
-          const srcIdx = i * ratio
-          const i1 = Math.floor(srcIdx)
-          const i2 = Math.min(i1 + 1, src.length - 1)
-          const f = srcIdx - i1
-          dst[i] = src[i1] + (src[i2] - src[i1]) * f
-        }
-      }
-    }
-    return out
-  }, [])
-
   const scheduleAudioBuffer = useCallback((buffer: AudioBuffer, timestamp: number) => {
     const p = playerRef.current
     if (!p || !p.audioContext || !p.gainNode) return
     const node = p.audioContext.createBufferSource()
-    node.buffer = normalizeBuffer(buffer, p.audioContext)
+    node.buffer = buffer
     node.connect(p.gainNode)
     const startTime = (p.audioContextStartTime ?? 0) + timestamp - p.playbackTimeAtStart
     const rounded = Math.round(p.audioContext.sampleRate * startTime) / p.audioContext.sampleRate
@@ -160,7 +115,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     }
     p.queuedNodes.add(node)
     node.onended = () => { p.queuedNodes.delete(node) }
-  }, [normalizeBuffer])
+  }, [])
 
   const audioBufCountRef = useRef(0)
   const audioStallTimeout = (ms: number) => new Promise<'timeout'>(resolve => setTimeout(() => resolve('timeout'), ms))
@@ -230,7 +185,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const startPlayback = useCallback(async (seconds?: number) => {
     const p = playerRef.current
     if (!p || !p.audioContext) { dbg('Start: no player'); return }
-    if (p.audioContext.state === 'suspended') p.audioContext.resume()
+    if (p.audioContext.state === 'suspended') await p.audioContext.resume()
 
     const pos = seconds ?? getPlaybackTime()
     dbg(`Start playback at ${pos.toFixed(2)}s (firstPlay=${firstPlayDoneRef.current})`)
@@ -321,28 +276,10 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     dbg(`Stopped ${count} audio nodes`)
   }, [getPlaybackTime])
 
-  const ensureAudioContext = useCallback(() => {
-    const p = playerRef.current
-    if (!p) return
-    if (p.audioContext && p.audioContext.state !== 'suspended') return
-    // iOS: AudioContext created outside user gesture is permanently suspended.
-    // Close & recreate synchronously inside user gesture so it starts in 'running' state.
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
-    if (p.audioContext) p.audioContext.close()
-    p.audioContext = new AudioContextClass()
-    p.audioContextStartTime = null
-    p.gainNode = p.audioContext.createGain()
-    p.gainNode.connect(p.audioContext.destination)
-    p.gainNode.gain.value = volume
-  }, [volume])
-
   const handlePlayStop = useCallback(() => {
     if (playing) stop()
-    else {
-      ensureAudioContext()
-      startPlayback()
-    }
-  }, [playing, stop, startPlayback, ensureAudioContext])
+    else startPlayback()
+  }, [playing, stop, startPlayback])
 
   const seekTo = useCallback(async (seconds: number) => {
     if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current)
@@ -435,19 +372,12 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
 
         if (audioTrack) {
           const sr = await audioTrack.getSampleRate()
-          const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-          if (sr && !isMobile) {
-            try {
-              activeAudioCtx.close()
-              activeAudioCtx = new AudioContextClass({ sampleRate: sr })
-            } catch {
-              dbg(`Sample rate ${sr} not supported, using default`)
-              activeAudioCtx = new AudioContextClass()
-            }
+          if (sr) {
+            activeAudioCtx.close()
+            activeAudioCtx = new AudioContextClass({ sampleRate: sr })
+            activeGain = activeAudioCtx.createGain()
+            activeGain.connect(activeAudioCtx.destination)
           }
-          // On mobile, always use default sample rate (custom rates can silently fail)
-          activeGain = activeAudioCtx.createGain()
-          activeGain.connect(activeAudioCtx.destination)
         }
 
         playerRef.current = {

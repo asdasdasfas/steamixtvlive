@@ -12,8 +12,11 @@ interface VideoPlayerProps {
   onToggleFullscreen?: () => void
 }
 
+const PROXY_PREFIXES = ['/audio-fix/', '/dyn/', '/p2095/', '/p8080/']
+
 const isDirectFileUrl = (url: string) => {
   if (!url) return false
+  if (PROXY_PREFIXES.some(p => url.startsWith(p))) return false
   const ext = url.split('?')[0].toLowerCase()
   return ext.endsWith('.mkv')
 }
@@ -42,7 +45,8 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
 
   // Detect if Mediabunny should be used for this source
   useEffect(() => {
-    if (isDirectFileUrl(src) || (fallbackSrcs && fallbackSrcs.some(isDirectFileUrl))) {
+    const isProxy = (u: string) => PROXY_PREFIXES.some(p => u.startsWith(p))
+    if (!isProxy(src) && (isDirectFileUrl(src) || (fallbackSrcs && fallbackSrcs.some(isDirectFileUrl)))) {
       setUseMediabunny(true)
     } else {
       setUseMediabunny(false)
@@ -370,7 +374,10 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
   const bufferedPct = duration > 0 ? (buffered / duration) * 100 : 0
 
-  if (useMediabunny === true) {
+  const isProxyUrl = (u: string) => PROXY_PREFIXES.some(p => u.startsWith(p))
+  const canUseMediabunny = useMediabunny === true && src && !isProxyUrl(src) && !(fallbackSrcs?.some(isProxyUrl))
+
+  if (canUseMediabunny) {
     return (
       <MediabunnyPlayer
         key={src}
