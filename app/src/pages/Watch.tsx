@@ -11,7 +11,7 @@ const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|i
 
 const reorderUrls = (urls: string[]) => {
   if (!isMobile) return urls
-  // Mobile: MKV first (Mediabunny AC3 decoder icin), HLS/MP4 sonra
+  // Mobile: MKV first (ffmpeg-wasm-mkv AC3→AAC remux icin), HLS/MP4 sonra
   return [...urls].sort((a, b) => {
     const aMkv = a.endsWith('.mkv'), bMkv = b.endsWith('.mkv')
     if (aMkv && !bMkv) return -1  // MKV once

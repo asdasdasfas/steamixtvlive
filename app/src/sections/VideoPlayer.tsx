@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import Hls from 'hls.js'
 import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForward } from 'lucide-react'
 import MediabunnyPlayer from './MediabunnyPlayer'
+import MkvWasmPlayer from './MkvWasmPlayer'
 import { Input, ALL_FORMATS, UrlSource, AudioBufferSink } from 'mediabunny'
 
 const debugBuffer: string[] = []
@@ -24,7 +25,7 @@ interface VideoPlayerProps {
 const IS_MOBILE = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 const PROXY_PREFIXES = ['/dyn/', '/p2095/', '/p8080/']
 
-const isDirectFileUrl = (url: string) => {
+const _isDirectFileUrl = (url: string) => {
   if (!url) return false
   if (!IS_MOBILE && PROXY_PREFIXES.some(p => url.startsWith(p))) return false
   const ext = url.split('?')[0].toLowerCase()
@@ -52,27 +53,31 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const lastProgressRef = useRef(0)
   const retryCountRef = useRef(0)
   const [useMediabunny, setUseMediabunny] = useState<boolean | null>(null)
+  const [useMkvWasm, setUseMkvWasm] = useState(false)
   const [useAudioSync, setUseAudioSync] = useState(false)
   const audioSyncRef = useRef(false)
   const [audioSyncKey, setAudioSyncKey] = useState(0)
 
-  // Detect if Mediabunny should be used for this source
+  // Detect which player to use for this source
   useEffect(() => {
     const isProxy = (u: string) => PROXY_PREFIXES.some(p => u.startsWith(p))
     const isMkv = src.endsWith('.mkv')
     const isProxyUrl = isProxy(src)
     const canMkv = isMkv
     dbg(`KARAR: mkv=${isMkv} proxy=${isProxyUrl} mobil=${IS_MOBILE} src=${src?.substring(0,60)}`)
-    if (canMkv && !isProxyUrl && !IS_MOBILE) {
+    if (canMkv && !IS_MOBILE) {
       setUseMediabunny(true)
+      setUseMkvWasm(false)
       setUseAudioSync(false)
       dbg(`KARAR: Mediabunny KULLANILACAK (sadece PC)`)
-    } else if (IS_MOBILE && isMkv && isProxyUrl) {
+    } else if (IS_MOBILE && isMkv) {
       setUseMediabunny(false)
-      setUseAudioSync(true); audioSyncRef.current = true; setAudioSyncKey(k => k + 1)
-      dbg(`KARAR: mobil MKV -> native video + Mediabunny audio`)
+      setUseMkvWasm(true)
+      setUseAudioSync(false)
+      dbg(`KARAR: mobil MKV -> ffmpeg-wasm-mkv (WASM remux)`)
     } else {
       setUseMediabunny(false)
+      setUseMkvWasm(false)
       setUseAudioSync(false)
       dbg(`KARAR: native video/HLS`)
     }
@@ -554,12 +559,22 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
   const bufferedPct = duration > 0 ? (buffered / duration) * 100 : 0
 
-  const isProxyUrl = (u: string) => PROXY_PREFIXES.some(p => u.startsWith(p))
-  const canUseMediabunny = useMediabunny === true && src && (!isProxyUrl(src) || IS_MOBILE) && (!(fallbackSrcs?.some(isProxyUrl)) || IS_MOBILE)
-
-  if (canUseMediabunny) {
+  if (useMediabunny && src) {
     return (
       <MediabunnyPlayer
+        key={src}
+        src={src}
+        poster={poster}
+        title={title}
+        onEnded={onEnded}
+        onToggleFullscreen={onToggleFullscreen}
+      />
+    )
+  }
+
+  if (useMkvWasm && src) {
+    return (
+      <MkvWasmPlayer
         key={src}
         src={src}
         poster={poster}
