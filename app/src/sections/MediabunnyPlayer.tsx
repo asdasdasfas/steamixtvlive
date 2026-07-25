@@ -377,11 +377,17 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         }
 
         playerRef.current.loaded = true
-        if (pendingPlayRef.current) {
-          pendingPlayRef.current = false
-          dbg('Init complete, starting pending play')
-          play()
-        }
+        dbg('Init complete, auto-starting')
+        play()
+        setTimeout(() => {
+          const pp = playerRef.current
+          if (!pp) return
+          dbg('Auto-seek 1s to refresh audio iterator')
+          const wasPlaying = isPlayingRef.current
+          if (wasPlaying) { pause(); pp.asyncId++; pp.audioIterator = null }
+          pp.playbackTimeAtStart = 1
+          if (wasPlaying) play()
+        }, 200)
       } catch (err: any) {
         if (!cancelled) setLoadError(err.message || 'Playback failed')
       }
