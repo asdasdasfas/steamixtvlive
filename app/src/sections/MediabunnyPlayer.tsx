@@ -219,7 +219,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
             pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
             pp.asyncId++
             const newId = pp.asyncId
-            pp.audioIterator = pp.audioSink?.buffers(retryPos) ?? null
+            try { pp.audioIterator = pp.audioSink?.buffers(retryPos) ?? null } catch (e) { dbg(`Retry error: ${e}`); pp.audioIterator = null }
             if (pp.audioIterator) runAudioIterator(newId)
           } else if (count > 0 && pp && pp.asyncId === asyncId) {
             audioRetryCount.current = 0
@@ -230,7 +230,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
             pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
             pp.asyncId++
             const newId = pp.asyncId
-            pp.audioIterator = pp.audioSink?.buffers(curPos) ?? null
+            try { pp.audioIterator = pp.audioSink?.buffers(curPos) ?? null } catch (e) { dbg(`Stall restart error: ${e}`); pp.audioIterator = null }
             if (pp.audioIterator) runAudioIterator(newId)
           } else {
             dbg('Audio ended')
@@ -297,8 +297,8 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     const audioSink = p.audioSink
     if (audioSink && p.loaded) {
       dbg(`Audio iterator from ${pos.toFixed(3)}s (id=${seekId})`)
-      p.audioIterator = audioSink.buffers(pos)
-      runAudioIterator(seekId)
+      try { p.audioIterator = audioSink.buffers(pos) } catch (e) { dbg(`Start buffers() error: ${e}`); p.audioIterator = null }
+      if (p.audioIterator) runAudioIterator(seekId)
     } else if (p.audioSink) {
       dbg(`Audio pending (loaded=${p.loaded})`)
       pendingPlayRef.current = true
@@ -553,50 +553,54 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     if (!p) return
 
     const tick = () => {
-      const pp = playerRef.current
-      if (!pp || !pp.loaded) { p.rafId = requestAnimationFrame(tick); return }
+      try {
+        const pp = playerRef.current
+        if (!pp || !pp.loaded) return
 
-      const playbackTime = getPlaybackTime()
-      if (playbackTime >= pp.endTimestamp) {
-        if (playing) {
-          stop('tick')
-          setEnded(true)
-          onEnded?.()
+        const playbackTime = getPlaybackTime()
+        if (playbackTime >= pp.endTimestamp) {
+          if (playing) {
+            stop('tick')
+            setEnded(true)
+            onEnded?.()
+          }
         }
-      }
 
-      if (playing && playbackTime < pp.endTimestamp) {
-        const now = Date.now()
-        if (pp.queuedNodes.size === 0 && (pp.lastScheduledEnd ?? 0) > 0 && playbackTime > (pp.lastScheduledEnd ?? 0) + 0.5) {
-          dbg(`Audio queue empty at ${playbackTime.toFixed(2)}s — restarting`)
-          for (const node of pp.queuedNodes) { try { node.stop() } catch {} }; pp.queuedNodes.clear()
-          pp.lastScheduledEnd = 0; pp.lastBufferTime = 0
-          pp.playbackTimeAtStart = playbackTime; pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
-          pp.asyncId++; const newId = pp.asyncId
-          pp.audioIterator = pp.audioSink?.buffers(playbackTime) ?? null
-          if (pp.audioIterator) runAudioIterator(newId)
-        } else if ((pp.lastBufferTime ?? 0) > 0 && now - (pp.lastBufferTime ?? 0) > 10000) {
-          dbg(`No buffer for 10s at ${playbackTime.toFixed(2)}s — restarting`)
-          for (const node of pp.queuedNodes) { try { node.stop() } catch {} }; pp.queuedNodes.clear()
-          pp.lastScheduledEnd = 0; pp.lastBufferTime = 0
-          pp.playbackTimeAtStart = playbackTime; pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
-          pp.asyncId++; const newId = pp.asyncId
-          pp.audioIterator = pp.audioSink?.buffers(playbackTime) ?? null
-          if (pp.audioIterator) runAudioIterator(newId)
+        if (playing && playbackTime < pp.endTimestamp) {
+          const now = Date.now()
+          if (pp.queuedNodes.size === 0 && (pp.lastScheduledEnd ?? 0) > 0 && playbackTime > (pp.lastScheduledEnd ?? 0) + 0.5) {
+            dbg(`Audio queue empty at ${playbackTime.toFixed(2)}s — restarting`)
+            for (const node of pp.queuedNodes) { try { node.stop() } catch {} }; pp.queuedNodes.clear()
+            pp.lastScheduledEnd = 0; pp.lastBufferTime = 0
+            pp.playbackTimeAtStart = playbackTime; pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
+            pp.asyncId++; const newId = pp.asyncId
+            try { pp.audioIterator = pp.audioSink?.buffers(playbackTime) ?? null } catch (e) { dbg(`Restart error: ${e}`); pp.audioIterator = null }
+            if (pp.audioIterator) runAudioIterator(newId)
+          } else if ((pp.lastBufferTime ?? 0) > 0 && now - (pp.lastBufferTime ?? 0) > 10000) {
+            dbg(`No buffer for 10s at ${playbackTime.toFixed(2)}s — restarting`)
+            for (const node of pp.queuedNodes) { try { node.stop() } catch {} }; pp.queuedNodes.clear()
+            pp.lastScheduledEnd = 0; pp.lastBufferTime = 0
+            pp.playbackTimeAtStart = playbackTime; pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
+            pp.asyncId++; const newId = pp.asyncId
+            try { pp.audioIterator = pp.audioSink?.buffers(playbackTime) ?? null } catch (e) { dbg(`Restart error: ${e}`); pp.audioIterator = null }
+            if (pp.audioIterator) runAudioIterator(newId)
+          }
         }
-      }
 
-      if (pp.nextFrame && pp.nextFrame.timestamp <= playbackTime) {
-        const ctx = canvasRef.current?.getContext('2d')
-        if (ctx && canvasRef.current) {
-          ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
-          ctx.drawImage(pp.nextFrame.canvas, 0, 0)
+        if (pp.nextFrame && pp.nextFrame.timestamp <= playbackTime) {
+          const ctx = canvasRef.current?.getContext('2d')
+          if (ctx && canvasRef.current) {
+            ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
+            ctx.drawImage(pp.nextFrame.canvas, 0, 0)
+          }
+          pp.nextFrame = null
+          updateNextFrame()
         }
-        pp.nextFrame = null
-        updateNextFrame()
-      }
 
-      setCurrentTime(playbackTime)
+        setCurrentTime(playbackTime)
+      } catch (err) {
+        dbg(`Tick error: ${err}`)
+      }
       p.rafId = requestAnimationFrame(tick)
     }
     p.rafId = requestAnimationFrame(tick)
