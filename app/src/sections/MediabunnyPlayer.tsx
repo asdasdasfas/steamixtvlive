@@ -253,7 +253,15 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         const { buffer, timestamp } = raced.value as { buffer: AudioBuffer; timestamp: number }
         const beforeSched = performance.now()
         scheduleAudioBuffer(buffer, timestamp)
-        if (bufCount === 0) dbg(`First buf arrived ts=${timestamp.toFixed(2)} sched_dur=${(performance.now()-beforeSched).toFixed(1)}ms`)
+        if (bufCount === 0) {
+          dbg(`First buf arrived ts=${timestamp.toFixed(2)} sched_dur=${(performance.now()-beforeSched).toFixed(1)}ms`)
+          // Desync kontrol: decoder curPos'tan farkli yere giderse playbackTimeAtStart'i duzelt
+          if (Math.abs(timestamp - p.playbackTimeAtStart) > 2) {
+            dbg(`Desync: adj playbackTimeAtStart ${p.playbackTimeAtStart.toFixed(2)} -> ${timestamp.toFixed(2)}`)
+            p.playbackTimeAtStart = timestamp
+            p.audioContextStartTime = p.audioContext?.currentTime ?? 0
+          }
+        }
         bufCount++
         if (bufCount === 1 || bufCount % 30 === 0) {
           const pt = getPlaybackTime()
