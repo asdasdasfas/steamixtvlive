@@ -246,7 +246,13 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           const pt = getPlaybackTime()
           dbg(`Audio buf#${bufCount} ts=${timestamp.toFixed(2)} ctx=${p.audioContext.currentTime.toFixed(2)} playTime=${pt.toFixed(2)}`)
         }
-        // Bekleme YOK -> decoder'a back-pressure uygulama
+        // Queue limit: max 150 node (browser ~200 limiti, mobilde alt limit)
+        if (p.queuedNodes.size > 150) {
+          await new Promise<void>(resolve => {
+            const check = () => { if (!playerRef.current || playerRef.current.queuedNodes.size < 100 || playerRef.current.asyncId !== asyncId) resolve(); else setTimeout(check, 50) }
+            check()
+          })
+        }
       }
     } catch (err) {
       dbg(`Audio iterator ERROR: ${err}`)
