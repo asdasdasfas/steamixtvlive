@@ -236,18 +236,6 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
 
         if (!videoTrack && !audioTrack) throw new Error('No playable audio or video track found')
 
-        if (audioTrack) {
-          const sr = await audioTrack.getSampleRate()
-          if (sr) {
-            audioCtx.close()
-            const newCtx = new AudioContextClass({ sampleRate: sr })
-            const newGain = newCtx.createGain()
-            newGain.connect(newCtx.destination)
-            playerRef.current!.audioContext = newCtx
-            playerRef.current!.gainNode = newGain
-          }
-        }
-
         const videoSink = videoTrack && new CanvasSink(videoTrack, { poolSize: 2, fit: 'contain' })
         const audioSink = audioTrack && new AudioBufferSink(audioTrack)
 
@@ -259,6 +247,19 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           canvas.style.display = 'none'
         }
 
+        let activeAudioCtx = audioCtx
+        let activeGain = gain
+
+        if (audioTrack) {
+          const sr = await audioTrack.getSampleRate()
+          if (sr) {
+            activeAudioCtx.close()
+            activeAudioCtx = new AudioContextClass({ sampleRate: sr })
+            activeGain = activeAudioCtx.createGain()
+            activeGain.connect(activeAudioCtx.destination)
+          }
+        }
+
         playerRef.current = {
           input,
           videoSink,
@@ -266,8 +267,8 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           videoIterator: videoSink ? videoSink.canvases(firstTs) : null,
           audioIterator: null,
           nextFrame: null,
-          audioContext: audioCtx,
-          gainNode: gain,
+          audioContext: activeAudioCtx,
+          gainNode: activeGain,
           audioContextStartTime: null,
           playbackTimeAtStart: firstTs,
           firstTimestamp: firstTs,
