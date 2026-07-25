@@ -9,6 +9,8 @@ import {
   type WrappedAudioBuffer,
 } from 'mediabunny'
 
+const IS_MOBILE = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+
 interface MediabunnyPlayerProps {
   src: string
   poster?: string
@@ -100,11 +102,58 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     }
   }, [getPlaybackTime])
 
+  const fixBuffer = useCallback((buf: AudioBuffer, ctx: AudioContext): AudioBuffer => {
+    const sameSr = buf.sampleRate === ctx.sampleRate
+    const sameCh = buf.numberOfChannels <= 2
+    if (sameSr && sameCh) return buf
+    const outCh = Math.min(buf.numberOfChannels, 2)
+    const ratio = buf.sampleRate / ctx.sampleRate
+    const outLen = sameSr ? buf.length : Math.round(buf.length / ratio)
+    const out = ctx.createBuffer(outCh, outLen, ctx.sampleRate)
+    const ch = buf.numberOfChannels
+    for (let oc = 0; oc < outCh; oc++) {
+      const dst = out.getChannelData(oc)
+      if (ch <= 2) {
+        const src = buf.getChannelData(oc)
+        if (sameSr) { dst.set(src); continue }
+        for (let i = 0; i < outLen; i++) {
+          const si = i * ratio; const i1 = Math.floor(si); const i2 = Math.min(i1 + 1, src.length - 1); const f = si - i1
+          dst[i] = src[i1] + (src[i2] - src[i1]) * f
+        }
+      } else {
+        const FL = buf.getChannelData(0), FR = buf.getChannelData(1)
+        const FC = ch >= 3 ? buf.getChannelData(2) : null, LFE = ch >= 4 ? buf.getChannelData(3) : null
+        const BL = ch >= 5 ? buf.getChannelData(4) : null, BR = ch >= 6 ? buf.getChannelData(5) : null
+        if (sameSr) {
+          for (let i = 0; i < outLen; i++) {
+            const l = FL[i] + (FC ? FC[i] * 0.707 : 0) + (BL ? BL[i] * 0.707 : 0) + (LFE ? LFE[i] * 0.5 : 0)
+            const r = FR[i] + (FC ? FC[i] * 0.707 : 0) + (BR ? BR[i] * 0.707 : 0) + (LFE ? LFE[i] * 0.5 : 0)
+            dst[i] = oc === 0 ? l : r
+          }
+        } else {
+          for (let i = 0; i < outLen; i++) {
+            const si = i * ratio; const i1 = Math.floor(si); const i2 = Math.min(i1 + 1, FL.length - 1); const f = si - i1
+            const fl = FL[i1] + (FL[i2] - FL[i1]) * f
+            const fr = FR[i1] + (FR[i2] - FR[i1]) * f
+            const fc = FC ? FC[i1] + (FC[i2] - FC[i1]) * f : 0
+            const lfe = LFE ? LFE[i1] + (LFE[i2] - LFE[i1]) * f : 0
+            const bl = BL ? BL[i1] + (BL[i2] - BL[i1]) * f : 0
+            const br = BR ? BR[i1] + (BR[i2] - BR[i1]) * f : 0
+            dst[i] = oc === 0
+              ? fl + fc * 0.707 + bl * 0.707 + lfe * 0.5
+              : fr + fc * 0.707 + br * 0.707 + lfe * 0.5
+          }
+        }
+      }
+    }
+    return out
+  }, [])
+
   const scheduleAudioBuffer = useCallback((buffer: AudioBuffer, timestamp: number) => {
     const p = playerRef.current
     if (!p || !p.audioContext || !p.gainNode) return
     const node = p.audioContext.createBufferSource()
-    node.buffer = buffer
+    node.buffer = fixBuffer(buffer, p.audioContext)
     node.connect(p.gainNode)
     const startTime = (p.audioContextStartTime ?? 0) + timestamp - p.playbackTimeAtStart
     const rounded = Math.round(p.audioContext.sampleRate * startTime) / p.audioContext.sampleRate
@@ -115,7 +164,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     }
     p.queuedNodes.add(node)
     node.onended = () => { p.queuedNodes.delete(node) }
-  }, [])
+  }, [fixBuffer])
 
   const audioBufCountRef = useRef(0)
   const audioStallTimeout = (ms: number) => new Promise<'timeout'>(resolve => setTimeout(() => resolve('timeout'), ms))
@@ -278,7 +327,19 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
 
   const handlePlayStop = useCallback(() => {
     if (playing) stop()
-    else startPlayback()
+    else {
+      if (IS_MOBILE) {
+        const p = playerRef.current
+        if (p?.audioContext?.state === 'suspended') {
+          const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+          p.audioContext.close()
+          p.audioContext = new AudioContextClass()
+          p.gainNode = p.audioContext.createGain()
+          p.gainNode.connect(p.audioContext.destination)
+        }
+      }
+      startPlayback()
+    }
   }, [playing, stop, startPlayback])
 
   const seekTo = useCallback(async (seconds: number) => {
@@ -370,7 +431,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         let activeAudioCtx = audioCtx
         let activeGain = gain
 
-        if (audioTrack) {
+        if (audioTrack && !IS_MOBILE) {
           const sr = await audioTrack.getSampleRate()
           if (sr) {
             activeAudioCtx.close()

@@ -20,11 +20,12 @@ interface VideoPlayerProps {
   onToggleFullscreen?: () => void
 }
 
+const IS_MOBILE = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 const PROXY_PREFIXES = ['/audio-fix/', '/dyn/', '/p2095/', '/p8080/']
 
 const isDirectFileUrl = (url: string) => {
   if (!url) return false
-  if (PROXY_PREFIXES.some(p => url.startsWith(p))) return false
+  if (!IS_MOBILE && PROXY_PREFIXES.some(p => url.startsWith(p))) return false
   const ext = url.split('?')[0].toLowerCase()
   return ext.endsWith('.mkv')
 }
@@ -54,15 +55,16 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   // Detect if Mediabunny should be used for this source
   useEffect(() => {
     const isProxy = (u: string) => PROXY_PREFIXES.some(p => u.startsWith(p))
-    const isMkv = isDirectFileUrl(src)
+    const isMkv = src.endsWith('.mkv')
     const isProxyUrl = isProxy(src)
-    dbg(`KARAR: mkv=${isMkv} proxy=${isProxyUrl} src=${src?.substring(0,60)}`)
-    if (!isProxyUrl && (isMkv || (fallbackSrcs && fallbackSrcs.some(isDirectFileUrl)))) {
+    const canMkv = isMkv || (fallbackSrcs && fallbackSrcs.some(u => u.endsWith('.mkv')))
+    dbg(`KARAR: mkv=${isMkv} proxy=${isProxyUrl} mobil=${IS_MOBILE} src=${src?.substring(0,60)}`)
+    if (canMkv && (!isProxyUrl || IS_MOBILE)) {
       setUseMediabunny(true)
-      dbg(`KARAR: Mediabunny KULLANILACAK`)
+      dbg(`KARAR: Mediabunny KULLANILACAK (proxy=${isProxyUrl} mobil=${IS_MOBILE})`)
     } else {
       setUseMediabunny(false)
-      dbg(`KARAR: native video/HLS proxy=${isProxyUrl} mkv=${isMkv}`)
+      dbg(`KARAR: native video/HLS`)
     }
   }, [src, fallbackSrcs])
 
