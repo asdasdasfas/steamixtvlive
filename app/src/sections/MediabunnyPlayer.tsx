@@ -205,6 +205,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
             const offset = offsets[audioRetryCount.current - 1]
             const retryPos = Math.max(0, curPos + offset)
             dbg(`Audio retry #${audioRetryCount.current} offset=${offset >= 0 ? '+' : ''}${offset}s at ${retryPos.toFixed(2)}s`)
+            for (const node of pp.queuedNodes) { try { node.stop() } catch {} }; pp.queuedNodes.clear()
             pp.playbackTimeAtStart = retryPos
             pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
             pp.asyncId++
@@ -219,6 +220,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
             const curPos = getPlaybackTime()
             audioRetryCount.current = 0
             dbg(`Audio ended — restart at ${curPos.toFixed(2)}s`)
+            for (const node of pp.queuedNodes) { try { node.stop() } catch {} }; pp.queuedNodes.clear()
             pp.playbackTimeAtStart = curPos
             pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
             pp.asyncId++
