@@ -299,9 +299,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           const pt = getPlaybackTime()
           dbg(`Audio buf#${bufCount} ts=${timestamp.toFixed(2)} ctx=${p.audioContext.currentTime.toFixed(2)} playTime=${pt.toFixed(2)}`)
         }
-        if (p.queuedNodes.size > 64) {
+        if (p.queuedNodes.size > 256) {
           await new Promise<void>(resolve => {
-            const check = () => { if (!playerRef.current || playerRef.current.queuedNodes.size < 32 || playerRef.current.asyncId !== asyncId) resolve(); else setTimeout(check, 50) }
+            const check = () => { if (!playerRef.current || playerRef.current.queuedNodes.size < 128 || playerRef.current.asyncId !== asyncId) resolve(); else setTimeout(check, 50) }
             check()
           })
         }
@@ -715,22 +715,11 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         if (playing && playbackTime < pp.endTimestamp) {
           const now = Date.now()
           if (pp.queuedNodes.size === 0 && (pp.lastScheduledEnd ?? 0) > 0 && playbackTime > (pp.lastScheduledEnd ?? 0) + 0.5) {
-            dbg(`Audio queue empty at ${playbackTime.toFixed(2)}s — restarting`)
-            for (const node of pp.queuedNodes) { try { node.stop() } catch {} }; pp.queuedNodes.clear()
-            pp.lastScheduledEnd = 0; pp.lastBufferTime = 0
-            recreateCount.current = 0
-            pp.playbackTimeAtStart = playbackTime; pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
-            pp.asyncId++; const newId = pp.asyncId
-            try { pp.audioIterator = pp.audioSink?.buffers(playbackTime) ?? null } catch (e) { dbg(`Restart error: ${e}`); pp.audioIterator = null }
-            if (pp.audioIterator) runAudioIterator(newId)
+            dbg(`Audio queue empty at ${playbackTime.toFixed(2)}s — recreating`)
+            recreateSession()
           } else if ((pp.lastBufferTime ?? 0) > 0 && now - (pp.lastBufferTime ?? 0) > 10000) {
-            dbg(`No buffer for 10s at ${playbackTime.toFixed(2)}s — restarting`)
-            for (const node of pp.queuedNodes) { try { node.stop() } catch {} }; pp.queuedNodes.clear()
-            pp.lastScheduledEnd = 0; pp.lastBufferTime = 0
-            pp.playbackTimeAtStart = playbackTime; pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
-            pp.asyncId++; const newId = pp.asyncId
-            try { pp.audioIterator = pp.audioSink?.buffers(playbackTime) ?? null } catch (e) { dbg(`Restart error: ${e}`); pp.audioIterator = null }
-            if (pp.audioIterator) runAudioIterator(newId)
+            dbg(`No buffer for 10s at ${playbackTime.toFixed(2)}s — recreating`)
+            recreateSession()
           }
         }
 
@@ -761,7 +750,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       cancelAnimationFrame(p.rafId)
       clearInterval(p.intervalId)
     }
-  }, [playing, getPlaybackTime, stop, onEnded, updateNextFrame, runAudioIterator])
+  }, [playing, getPlaybackTime, stop, onEnded, updateNextFrame, runAudioIterator, recreateSession])
 
   useEffect(() => {
     const onFs = () => setFullscreen(!!document.fullscreenElement)
