@@ -122,6 +122,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const pendingPlayRef = useRef(false)
   const firstPlayDoneRef = useRef(false)
   const seekTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [recreateKey, setRecreateKey] = useState(0)
+  const pendingPlayAfterRecreate = useRef(false)
+  const autoRefreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const runAudioIterator = useCallback(async (asyncId: number) => {
     dbg(`Audio iterator started (id=${asyncId})`)
@@ -141,7 +144,16 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           it.return?.()
           break
         }
-        if (raced.done) { dbg('Audio ended'); break }
+        if (raced.done) {
+          if (audioBufCountRef.current === 0 && playerRef.current?.asyncId === asyncId) {
+            dbg('Audio iterator exhausted immediately, recreating player')
+            pendingPlayAfterRecreate.current = true
+            setRecreateKey(k => k + 1)
+          } else {
+            dbg('Audio ended')
+          }
+          break
+        }
         if (playerRef.current?.asyncId !== asyncId) break
         const { buffer, timestamp } = raced.value as { buffer: AudioBuffer; timestamp: number }
         scheduleAudioBuffer(buffer, timestamp)
@@ -216,7 +228,8 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
 
     if (!firstPlayDoneRef.current) {
       firstPlayDoneRef.current = true
-      setTimeout(() => {
+      autoRefreshTimeoutRef.current = setTimeout(() => {
+        autoRefreshTimeoutRef.current = null
         if (!isPlayingRef.current || !playerRef.current) return
         const jumpTo = getPlaybackTime() + 0.1
         if (jumpTo < (playerRef.current.endTimestamp ?? 0)) {
@@ -238,7 +251,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
             })
           }
           pp.audioIterator?.return()
+          const newAudioId = pp.asyncId
           pp.audioIterator = pp.audioSink?.buffers(jumpTo, undefined, { skipLiveWait: true }) ?? null
+          if (pp.audioIterator) runAudioIterator(newAudioId)
         }
       }, 800)
     }
@@ -248,6 +263,8 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     const p = playerRef.current
     if (!p) return
     dbg(`Stop at ${getPlaybackTime().toFixed(2)}s`)
+    if (autoRefreshTimeoutRef.current) { clearTimeout(autoRefreshTimeoutRef.current); autoRefreshTimeoutRef.current = null }
+    if (seekTimeoutRef.current) { clearTimeout(seekTimeoutRef.current); seekTimeoutRef.current = null }
     p.playbackTimeAtStart = getPlaybackTime()
     setPlaying(false)
     isPlayingRef.current = false
@@ -399,6 +416,11 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           dbg('Init complete, executing pending start')
           startPlayback()
         }
+        if (pendingPlayAfterRecreate.current) {
+          pendingPlayAfterRecreate.current = false
+          dbg('Init complete, executing pending start after recreate')
+          startPlayback()
+        }
       } catch (err: any) {
         if (!cancelled) setLoadError(err.message || 'Playback failed')
       }
@@ -406,6 +428,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     init()
     return () => {
       cancelled = true
+      if (autoRefreshTimeoutRef.current) { clearTimeout(autoRefreshTimeoutRef.current); autoRefreshTimeoutRef.current = null }
       const p = playerRef.current
       if (p) {
         cancelAnimationFrame(p.rafId)
@@ -415,7 +438,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         p.audioContext?.close()
       }
     }
-  }, [src])
+  }, [src, recreateKey])
 
   useEffect(() => {
     const p = playerRef.current
