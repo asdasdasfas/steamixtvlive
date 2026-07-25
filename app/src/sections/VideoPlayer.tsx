@@ -14,9 +14,9 @@ interface VideoPlayerProps {
 
 const isDirectFileUrl = (url: string) => {
   if (!url) return false
-  if (url.startsWith('/audio-fix/') || url.startsWith('/dyn/')) return false
+  if (url.startsWith('/audio-fix/') || url.startsWith('/dyn/') || url.startsWith('/p2095/')) return false
   const ext = url.split('?')[0].toLowerCase()
-  return ext.endsWith('.mkv') || ext.endsWith('.mp4') || ext.endsWith('.avi') || ext.endsWith('.mov') || ext.endsWith('.webm') || ext.endsWith('.flv')
+  return ext.endsWith('.mkv')
 }
 
 export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs, onToggleFullscreen }: VideoPlayerProps) {
