@@ -412,41 +412,21 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     let lastRestartTime = 0
     let audioRunning = false
     const fixBuf = (buf: AudioBuffer, ctx: AudioContext): AudioBuffer => {
-      const sameSr = buf.sampleRate === ctx.sampleRate
       const ch = buf.numberOfChannels
+      const sameSr = buf.sampleRate === ctx.sampleRate
       if (sameSr && ch <= 2) return buf
-      const outCh = Math.min(ch, 2)
+      const out = ctx.createBuffer(2, sameSr ? buf.length : Math.round(buf.length * ctx.sampleRate / buf.sampleRate), ctx.sampleRate)
       const ratio = buf.sampleRate / ctx.sampleRate
-      const outLen = sameSr ? buf.length : Math.round(buf.length / ratio)
-      const out = ctx.createBuffer(outCh, outLen, ctx.sampleRate)
-      if (ch <= 2) {
-        for (let oc = 0; oc < outCh; oc++) {
-          const d = out.getChannelData(oc)
-          const s = buf.getChannelData(oc)
-          if (sameSr) { d.set(s); continue }
-          for (let i = 0; i < outLen; i++) { const si = i * ratio; const i1 = Math.floor(si); const i2 = Math.min(i1 + 1, s.length - 1); d[i] = s[i1] + (s[i2] - s[i1]) * (si - i1) }
-        }
-      } else if (ch >= 6) {
-        const FL = buf.getChannelData(0), FR = buf.getChannelData(1), FC = buf.getChannelData(2)
-        const LFE = buf.getChannelData(3), BL = buf.getChannelData(4), BR = buf.getChannelData(5)
-        for (let oc = 0; oc < outCh; oc++) {
-          const d = out.getChannelData(oc)
-          if (sameSr) {
-            for (let i = 0; i < outLen; i++) {
-              const l = FL[i] + FC[i] + BL[i] * 0.5
-              const r = FR[i] + FC[i] + BR[i] * 0.5
-              d[i] = oc === 0 ? l : r
-            }
-          } else {
-            for (let i = 0; i < outLen; i++) {
-              const si = i * ratio; const i1 = Math.floor(si); const i2 = Math.min(i1 + 1, FL.length - 1); const f = si - i1
-              const fl = FL[i1] + (FL[i2] - FL[i1]) * f
-              const fr = FR[i1] + (FR[i2] - FR[i1]) * f
-              const fc = FC[i1] + (FC[i2] - FC[i1]) * f
-              const bl = BL[i1] + (BL[i2] - BL[i1]) * f
-              const br = BR[i1] + (BR[i2] - BR[i1]) * f
-              d[i] = oc === 0 ? fl + fc + bl * 0.5 : fr + fc + br * 0.5
-            }
+      for (let oc = 0; oc < 2; oc++) {
+        const d = out.getChannelData(oc)
+        if (sameSr) {
+          for (let i = 0; i < buf.length; i++) { let s = 0; for (let c = 0; c < ch; c++) s += buf.getChannelData(c)[i]; d[i] = s / ch }
+        } else {
+          for (let i = 0; i < out.length; i++) {
+            const si = i * ratio; const i1 = Math.floor(si); const i2 = Math.min(i1 + 1, buf.length - 1); const f = si - i1
+            let s1 = 0, s2 = 0
+            for (let c = 0; c < ch; c++) { s1 += buf.getChannelData(c)[i1]; s2 += buf.getChannelData(c)[i2] }
+            d[i] = (s1 + (s2 - s1) * f) / ch
           }
         }
       }
@@ -517,16 +497,17 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const initAudio = async () => {
       try {
         const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext
-        audioCtx = new AudioCtxClass()
-        gainNode = audioCtx.createGain()
-        gainNode.connect(audioCtx.destination)
         const input = new Input({ source: new UrlSource(currentSrc, { requestInit: { credentials: 'include' } }), formats: ALL_FORMATS })
         const audioTrack = await input.getPrimaryAudioTrack()
         if (!audioTrack) { dbg(`[AUDIOSYNC] No audio track`); return }
         const codec = await audioTrack.getCodec()
         if (!codec || !(await audioTrack.canDecode())) { dbg(`[AUDIOSYNC] Audio cannot decode`); return }
+        const sr = await audioTrack.getSampleRate()
+        audioCtx = sr ? new AudioCtxClass({ sampleRate: sr }) : new AudioCtxClass()
+        gainNode = audioCtx.createGain()
+        gainNode.connect(audioCtx.destination)
         audioSink = new AudioBufferSink(audioTrack)
-        dbg(`[AUDIOSYNC] Ready`)
+        dbg(`[AUDIOSYNC] Ready sr=${sr||audioCtx.sampleRate}`)
       } catch (e) { dbg(`[AUDIOSYNC] Init error: ${e}`) }
     }
     initAudio()
