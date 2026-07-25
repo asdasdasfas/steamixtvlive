@@ -184,23 +184,20 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       let bufCount = 0
       while (true) {
         if (playerRef.current?.asyncId !== asyncId) { dbg(`Audio exit: asyncId changed`); break }
-        // ILK buffer icin 5sn timeout (seek sonrasi decoder'in isinmasina izin ver)
-        // Sonraki buffer'lar icin timeout YOK (sonsuza dek bekler, skipLiveWait=false ile calisir)
-        const raced = bufCount === 0
-          ? await Promise.race([
-              it.next().then(r => ({ tag: 'next' as const, done: r.done, value: r.value })),
-              audioStallTimeout(2000),
-            ])
-          : { tag: 'next' as const, ...(await it.next()) }
+        const timeoutMs = bufCount === 0 ? 2000 : 30000
+        const raced = await Promise.race([
+          it.next().then(r => ({ tag: 'next' as const, done: r.done, value: r.value })),
+          audioStallTimeout(timeoutMs),
+        ])
         if (playerRef.current?.asyncId !== asyncId) { dbg(`Audio exit: asyncId changed`); break }
         if (raced === 'timeout' || raced.done) {
           const count = bufCount
           if (raced === 'timeout') dbg(`Audio TIMEOUT after ${count} buffers (id=${asyncId})`)
           it.return?.()
-            if (count === 0 && playerRef.current?.asyncId === asyncId && audioRetryCount.current < 12) {
-            const pp = playerRef.current
-            const curPos = getPlaybackTime()
+          const pp = playerRef.current
+          if (count === 0 && pp && pp.asyncId === asyncId && audioRetryCount.current < 12) {
             audioRetryCount.current++
+            const curPos = getPlaybackTime()
             const offsets = [2, -2, 5, -5, 10, -10, 30, -30, 60, -60, 120, -120]
             const offset = offsets[audioRetryCount.current - 1]
             const retryPos = Math.max(0, curPos + offset)
@@ -212,14 +209,10 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
             const newId = pp.asyncId
             pp.audioIterator = pp.audioSink?.buffers(retryPos) ?? null
             if (pp.audioIterator) runAudioIterator(newId)
-          } else if (count === 0) {
-            dbg(`Audio cannot start — all retries failed`)
-          } else if (typeof raced !== 'string' && raced.done && playerRef.current?.asyncId === asyncId) {
-            // Natural end — restart from current position for continuous playback
-            const pp = playerRef.current
-            const curPos = getPlaybackTime()
+          } else if (count > 0 && pp && pp.asyncId === asyncId) {
             audioRetryCount.current = 0
-            dbg(`Audio ended — restart at ${curPos.toFixed(2)}s`)
+            const curPos = getPlaybackTime()
+            dbg(`Audio stalled — restart at ${curPos.toFixed(2)}s`)
             for (const node of pp.queuedNodes) { try { node.stop() } catch {} }; pp.queuedNodes.clear()
             pp.playbackTimeAtStart = curPos
             pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
