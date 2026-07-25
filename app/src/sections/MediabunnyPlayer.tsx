@@ -58,6 +58,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     loaded: boolean
     lastScheduledEnd: number
     lastBufferTime: number
+    src: string
   } | null>(null)
 
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -222,21 +223,10 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
             try { pp.audioIterator = pp.audioSink?.buffers(retryPos) ?? null } catch (e) { dbg(`Retry error: ${e}`); pp.audioIterator = null }
             if (pp.audioIterator) runAudioIterator(newId)
           } else if (count === 0 && pp && pp.asyncId === asyncId) {
-            // Tüm offsetler bitti — 30sn bekle, sifirdan basla (sonsuz retry)
+            // Tüm offsetler bitti — Input'u yeniden olustur (nuclear)
             audioRetryCount.current = 0
-            dbg(`Retry cycle complete — waiting 30s then retry from current pos`)
-            setTimeout(() => {
-              const p2 = playerRef.current
-              if (!p2 || p2.asyncId !== asyncId) return
-              const curPos2 = getPlaybackTime()
-              for (const node of p2.queuedNodes) { try { node.stop() } catch {} }; p2.queuedNodes.clear()
-              p2.playbackTimeAtStart = curPos2
-              p2.audioContextStartTime = p2.audioContext?.currentTime ?? 0
-              p2.asyncId++
-              const newId2 = p2.asyncId
-              try { p2.audioIterator = p2.audioSink?.buffers(curPos2) ?? null } catch (e) { dbg(`Cycle retry error: ${e}`); p2.audioIterator = null }
-              if (p2.audioIterator) runAudioIterator(newId2)
-            }, 30000)
+            dbg(`Retry cycle complete — recreating Input`)
+            recreateSession()
           } else if (count > 0 && pp && pp.asyncId === asyncId) {
             audioRetryCount.current = 0
             const curPos = getPlaybackTime()
@@ -285,6 +275,74 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     if (playerRef.current?.audioIterator === it) playerRef.current.audioIterator = null
     dbg(`Audio iterator DONE (id=${asyncId})`)
   }, [getPlaybackTime, scheduleAudioBuffer])
+
+  const recreateSession = useCallback(async () => {
+    const p = playerRef.current
+    if (!p || !p.src) { dbg(`Recreate: no player`); return }
+    const pos = getPlaybackTime()
+    dbg(`Recreating Mediabunny session at ${pos.toFixed(2)}s`)
+    try {
+      const newInput = new Input({
+        source: new UrlSource(p.src, {
+          requestInit: { credentials: 'include' },
+        }),
+        formats: ALL_FORMATS,
+      })
+      let newVideoTrack = await newInput.getPrimaryVideoTrack()
+      let newAudioTrack = await newInput.getPrimaryAudioTrack()
+      if (newVideoTrack) {
+        const codec = await newVideoTrack.getCodec()
+        if (!codec || !(await newVideoTrack.canDecode())) newVideoTrack = null
+      }
+      if (newAudioTrack) {
+        const codec = await newAudioTrack.getCodec()
+        if (!codec || !(await newAudioTrack.canDecode())) newAudioTrack = null
+      }
+      if (!newVideoTrack && !newAudioTrack) { dbg(`Recreate: no tracks`); return }
+      const newVideoSink = newVideoTrack && new CanvasSink(newVideoTrack, { poolSize: 2, fit: 'contain' })
+      const newAudioSink = newAudioTrack && new AudioBufferSink(newAudioTrack)
+      if (newVideoTrack && canvasRef.current) {
+        canvasRef.current.width = await newVideoTrack.getDisplayWidth()
+        canvasRef.current.height = await newVideoTrack.getDisplayHeight()
+      }
+      const startPos = Math.min(pos, p.endTimestamp - 0.5)
+      p.input = newInput
+      p.videoSink = newVideoSink
+      p.audioSink = newAudioSink
+      p.videoIterator = newVideoSink ? newVideoSink.canvases(startPos) : null
+      p.audioIterator = null
+      p.nextFrame = null
+      p.playbackTimeAtStart = startPos
+      p.audioContextStartTime = p.audioContext?.currentTime ?? 0
+      p.asyncId++
+      const newId = p.asyncId
+      for (const node of p.queuedNodes) { try { node.stop() } catch {} }; p.queuedNodes.clear()
+      p.lastScheduledEnd = 0
+      p.lastBufferTime = 0
+      audioRetryCount.current = 0
+      if (newAudioSink) {
+        try { p.audioIterator = newAudioSink.buffers(startPos) } catch (e) { dbg(`Recreate buffers() error: ${e}`) }
+        if (p.audioIterator) runAudioIterator(newId)
+      }
+      if (newVideoSink && p.videoIterator) {
+        ;(async () => {
+          const first = await p.videoIterator!.next()
+          if (first.done || !first.value || playerRef.current?.asyncId !== newId) return
+          const second = await p.videoIterator!.next()
+          if (playerRef.current?.asyncId !== newId) return
+          p.nextFrame = (second.done ? null : second.value) as WrappedCanvas | null
+          const ctx = canvasRef.current?.getContext('2d')
+          if (ctx) {
+            ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height)
+            ctx.drawImage(first.value.canvas, 0, 0)
+          }
+        })()
+      }
+      dbg(`Recreate done at ${startPos.toFixed(2)}s`)
+    } catch (e) {
+      dbg(`Recreate failed: ${e}`)
+    }
+  }, [getPlaybackTime, runAudioIterator])
 
   const startPlayback = useCallback(async (seconds?: number) => {
     const p = playerRef.current
@@ -520,6 +578,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           playbackTimeAtStart: firstTs,
           firstTimestamp: firstTs,
           endTimestamp: endTs,
+          src,
           queuedNodes: new Set(),
           rafId: 0,
           intervalId: 0,
