@@ -2,8 +2,9 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import Hls from 'hls.js'
 import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForward } from 'lucide-react'
 import MediabunnyPlayer from './MediabunnyPlayer'
-import MkvWasmPlayer from './MkvWasmPlayer'
-import { Input, ALL_FORMATS, UrlSource, AudioBufferSink } from 'mediabunny'
+
+
+const mkvToAudioFix = (url: string) => url.startsWith('/dyn/') && url.endsWith('.mkv') ? url.replace('/dyn/', '/audio-fix/') : url
 
 const debugBuffer: string[] = []
 const MAX_DEBUG = 500
@@ -53,39 +54,24 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const lastProgressRef = useRef(0)
   const retryCountRef = useRef(0)
   const [useMediabunny, setUseMediabunny] = useState<boolean | null>(null)
-  const [useMkvWasm, setUseMkvWasm] = useState(false)
-  const [useAudioSync, setUseAudioSync] = useState(false)
-  const audioSyncRef = useRef(false)
-  const [audioSyncKey, setAudioSyncKey] = useState(0)
 
   // Detect which player to use for this source
   useEffect(() => {
-    const isProxy = (u: string) => PROXY_PREFIXES.some(p => u.startsWith(p))
     const isMkv = src.endsWith('.mkv')
-    const isProxyUrl = isProxy(src)
-    const canMkv = isMkv
-    dbg(`KARAR: mkv=${isMkv} proxy=${isProxyUrl} mobil=${IS_MOBILE} src=${src?.substring(0,60)}`)
-    if (canMkv && !IS_MOBILE) {
+    dbg(`KARAR: mkv=${isMkv} mobil=${IS_MOBILE} src=${src?.substring(0,60)}`)
+    if (isMkv && !IS_MOBILE) {
       setUseMediabunny(true)
-      setUseMkvWasm(false)
-      setUseAudioSync(false)
-      dbg(`KARAR: Mediabunny KULLANILACAK (sadece PC)`)
-    } else if (IS_MOBILE && isMkv) {
-      setUseMediabunny(false)
-      setUseMkvWasm(true)
-      setUseAudioSync(false)
-      dbg(`KARAR: mobil MKV -> ffmpeg-wasm-mkv (WASM remux)`)
+      dbg(`KARAR: Mediabunny (PC)`)
     } else {
       setUseMediabunny(false)
-      setUseMkvWasm(false)
-      setUseAudioSync(false)
       dbg(`KARAR: native video/HLS`)
     }
   }, [src, fallbackSrcs])
 
-  // Build full URL list
+  // Build full URL list — mobile MKV'leri /audio-fix/ ile degistir
   useEffect(() => {
-    const urls = [src, ...(fallbackSrcs || [])]
+    const rewrite = (u: string) => IS_MOBILE && u.endsWith('.mkv') ? mkvToAudioFix(u) : u
+    const urls = [rewrite(src), ...(fallbackSrcs || []).map(rewrite)]
     const filtered = urls.filter(Boolean)
     allUrlsRef.current = filtered
     urlIndexRef.current = 0
@@ -138,8 +124,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const urlIdx = urlIndexRef.current
     const total = allUrlsRef.current.length
     const currentSrc = allUrlsRef.current[urlIdx] || ''
-    const maxStuck = currentSrc.endsWith('.mkv') ? 15 : 5
-    if (currentSrc.endsWith('.mkv')) dbg(`WATCHDOG: MKV native -> AC3 sesi yok!`)
+    const maxStuck = currentSrc.startsWith('/audio-fix/') ? 20 : (currentSrc.endsWith('.mkv') ? 15 : 5)
     watchdogRef.current = setInterval(() => {
       if (!video || video.seeking) return
       if (video.readyState >= 2 && video.currentTime > lastProgressRef.current) {
@@ -151,13 +136,6 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       stuckCount++
       console.log(`[WATCHDOG] Takildi! #${urlIdx}/${total} stuck:${stuckCount}/${maxStuck} readyState:${video.readyState} currentTime:${video.currentTime.toFixed(2)}s lastProgress:${lastProgressRef.current.toFixed(2)}s buffered:${video.buffered?.length||0}`)
       if (stuckCount >= maxStuck) {
-        // Ses-sync modunda MKV'yi atlama — beklemeye devam et
-        // Audio-sync modu: video calismissa bekle, calismadiysa (currentTime=0) gec
-        if (audioSyncRef.current && currentSrc.endsWith('.mkv') && lastProgressRef.current > 0) {
-          stuckCount = Math.floor(maxStuck * 0.7)
-          console.log(`[WATCHDOG] Audio-sync MKV bekleniyor (stuck=${stuckCount})`)
-          return
-        }
         console.log(`%c[WATCHDOG] ${maxStuck} kez takildi -> SONRAKI URL`, 'color:red')
         clearInterval(watchdogRef.current)
         if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null }
@@ -165,7 +143,6 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         video.src = ''
         video.load()
         urlIndexRef.current++
-        if (audioSyncRef.current) setAudioSyncKey(k => k + 1)
         if (urlIndexRef.current < allUrlsRef.current.length) {
           tryUrl(video)
         } else {
@@ -408,153 +385,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     return () => document.removeEventListener('fullscreenchange', onFs)
   }, [])
 
-  // Mediabunny audio-only sync with native video element
-  useEffect(() => {
-    if (!useAudioSync) return
-    const video = videoRef.current
-    if (!video) return
-    const currentSrc = allUrlsRef.current[urlIndexRef.current]
-    if (!currentSrc) return
-    let cancelled = false
-    let audioCtx: AudioContext | null = null
-    let gainNode: GainNode | null = null
-    let asyncId = 0
-    let audioIterator: AsyncGenerator<any, void, unknown> | null = null
-    let audioSink: AudioBufferSink | null = null
-    const queuedNodes = new Set<AudioBufferSourceNode>()
-    let lastScheduledEnd = 0
-    let lastAudioPos = -10
-    let lastRestartTime = 0
-    let audioRunning = false
-    const fixBuf = (buf: AudioBuffer, ctx: AudioContext): AudioBuffer => {
-      const ch = buf.numberOfChannels
-      const sameSr = buf.sampleRate === ctx.sampleRate
-      if (sameSr && ch <= 2) return buf
-      const out = ctx.createBuffer(2, sameSr ? buf.length : Math.round(buf.length * ctx.sampleRate / buf.sampleRate), ctx.sampleRate)
-      const ratio = buf.sampleRate / ctx.sampleRate
-      for (let oc = 0; oc < 2; oc++) {
-        const d = out.getChannelData(oc)
-        if (sameSr) {
-          for (let i = 0; i < buf.length; i++) { let s = 0; for (let c = 0; c < ch; c++) s += buf.getChannelData(c)[i]; d[i] = s / ch }
-        } else {
-          for (let i = 0; i < out.length; i++) {
-            const si = i * ratio; const i1 = Math.floor(si); const i2 = Math.min(i1 + 1, buf.length - 1); const f = si - i1
-            let s1 = 0, s2 = 0
-            for (let c = 0; c < ch; c++) { s1 += buf.getChannelData(c)[i1]; s2 += buf.getChannelData(c)[i2] }
-            d[i] = (s1 + (s2 - s1) * f) / ch
-          }
-        }
-      }
-      return out
-    }
-    const schedBuf = (buffer: AudioBuffer, timestamp: number, playTimeAtStart: number, ctxStart: number) => {
-      if (!audioCtx || !gainNode) return
-      const node = audioCtx.createBufferSource()
-      node.buffer = fixBuf(buffer, audioCtx)
-      node.connect(gainNode)
-      const startTime = ctxStart + timestamp - playTimeAtStart
-      if (startTime >= audioCtx.currentTime) { node.start(startTime) } else { node.start(audioCtx.currentTime, audioCtx.currentTime - startTime) }
-      queuedNodes.add(node)
-      node.onended = () => { queuedNodes.delete(node) }
-      const bufEnd = startTime + node.buffer.duration
-      if (bufEnd > lastScheduledEnd) lastScheduledEnd = bufEnd
-    }
-    const runAudioIt = async (id: number, it: AsyncGenerator<any, void, unknown>, pos: number, ctxStart: number, playStart: number) => {
-      let bufCount = 0
-      try {
-        while (true) {
-          if (cancelled || asyncId !== id) break
-          const result = await Promise.race([
-            it.next().then(r => ({ tag: 'next' as const, done: r.done, value: r.value })),
-            new Promise<'timeout'>(r => setTimeout(() => r('timeout'), bufCount === 0 ? 10000 : 60000)),
-          ])
-          if (cancelled || asyncId !== id) break
-          if (result === 'timeout' || result.done) {
-            it.return?.()
-            break
-          }
-          const { buffer, timestamp } = result.value as { buffer: AudioBuffer; timestamp: number }
-          schedBuf(buffer, timestamp, playStart, ctxStart)
-          bufCount++
-          if (bufCount === 1) dbg(`[AUDIOSYNC] First buf ts=${timestamp.toFixed(2)}`)
-          if (queuedNodes.size > 256) {
-            await new Promise<void>(r => { const chk = () => { if (cancelled || asyncId !== id || queuedNodes.size < 128) r(); else setTimeout(chk, 50) }; chk() })
-          }
-        }
-      } catch (e) { dbg(`[AUDIOSYNC] Error: ${e}`) }
-      try { it.return() } catch {}
-      audioRunning = false
-      // Iterator oldu — otomatik restart (video event'i bekleme)
-      if (!cancelled && asyncId === id && audioSink && audioCtx && !video.paused) {
-        const curPos = video.currentTime
-        dbg(`[AUDIOSYNC] Auto-restart at ${curPos.toFixed(1)}s`)
-        startAudio(curPos)
-      }
-    }
-    const stopAudio = () => {
-      asyncId++
-      for (const n of queuedNodes) { try { n.stop() } catch {} }
-      queuedNodes.clear()
-      audioRunning = false
-    }
-    const startAudio = (pos: number) => {
-      if (!audioSink || !audioCtx) return
-      const now = Date.now()
-      if (now - lastRestartTime < 3000 && Math.abs(pos - lastAudioPos) < 5) { dbg(`[AUDIOSYNC] Skip restart (too soon) pos=${pos.toFixed(1)}`); return }
-      lastRestartTime = now
-      lastAudioPos = pos
-      stopAudio()
-      const ctxStart = audioCtx.currentTime
-      const id = ++asyncId
-      try { audioIterator = audioSink.buffers(pos) } catch (e) { dbg(`[AUDIOSYNC] buffers() error: ${e}`); return }
-      if (audioIterator) { audioRunning = true; runAudioIt(id, audioIterator, pos, ctxStart, pos) }
-    }
-    const initAudio = async () => {
-      try {
-        const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext
-        const input = new Input({ source: new UrlSource(currentSrc, { requestInit: { credentials: 'include' } }), formats: ALL_FORMATS })
-        const audioTrack = await input.getPrimaryAudioTrack()
-        if (!audioTrack) { dbg(`[AUDIOSYNC] No audio track`); return }
-        const codec = await audioTrack.getCodec()
-        if (!codec || !(await audioTrack.canDecode())) { dbg(`[AUDIOSYNC] Audio cannot decode`); return }
-        const sr = await audioTrack.getSampleRate()
-        audioCtx = sr ? new AudioCtxClass({ sampleRate: sr }) : new AudioCtxClass()
-        gainNode = audioCtx.createGain()
-        gainNode.connect(audioCtx.destination)
-        audioSink = new AudioBufferSink(audioTrack)
-        dbg(`[AUDIOSYNC] Ready sr=${sr||audioCtx.sampleRate}`)
-      } catch (e) { dbg(`[AUDIOSYNC] Init error: ${e}`) }
-    }
-    initAudio()
-    // Video goruntusu gelene kadar sesi beklet
-    const onSyncTime = () => {
-      if (!audioRunning && audioSink && audioCtx && video.currentTime > 0) {
-        video.removeEventListener('timeupdate', onSyncTime)
-        dbg(`[AUDIOSYNC] Sync start at video=${video.currentTime.toFixed(2)}s`)
-        startAudio(video.currentTime)
-      }
-    }
-    video.addEventListener('timeupdate', onSyncTime)
-    const onPlay = () => {
-      if (audioCtx?.state === 'suspended') audioCtx.resume()
-      if (!audioRunning && video.currentTime > 0) startAudio(video.currentTime)
-    }
-    const onPause = () => stopAudio()
-    const onSeek = () => { if (!video.paused && !audioRunning && video.currentTime > 0) startAudio(video.currentTime) }
-    video.addEventListener('play', onPlay)
-    video.addEventListener('pause', onPause)
-    video.addEventListener('seeked', onSeek)
-    video.muted = true
-    return () => {
-      cancelled = true
-      video.removeEventListener('timeupdate', onSyncTime)
-      video.removeEventListener('play', onPlay)
-      video.removeEventListener('pause', onPause)
-      video.removeEventListener('seeked', onSeek)
-      stopAudio()
-      audioCtx?.close()
-    }
-  }, [useAudioSync, audioSyncKey])
+
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
   const bufferedPct = duration > 0 ? (buffered / duration) * 100 : 0
@@ -562,19 +393,6 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   if (useMediabunny && src) {
     return (
       <MediabunnyPlayer
-        key={src}
-        src={src}
-        poster={poster}
-        title={title}
-        onEnded={onEnded}
-        onToggleFullscreen={onToggleFullscreen}
-      />
-    )
-  }
-
-  if (useMkvWasm && src) {
-    return (
-      <MkvWasmPlayer
         key={src}
         src={src}
         poster={poster}
