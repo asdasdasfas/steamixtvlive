@@ -21,20 +21,13 @@ interface VideoPlayerProps {
 }
 
 const IS_MOBILE = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-const PROXY_PREFIXES = ['/audio-fix/', '/dyn/', '/p2095/', '/p8080/']
+const PROXY_PREFIXES = ['/dyn/', '/p2095/', '/p8080/']
 
 const isDirectFileUrl = (url: string) => {
   if (!url) return false
   if (!IS_MOBILE && PROXY_PREFIXES.some(p => url.startsWith(p))) return false
   const ext = url.split('?')[0].toLowerCase()
   return ext.endsWith('.mkv')
-}
-
-// Mobilde sadece MKV'yi /audio-fix/ uzerinden server-side ffmpeg ile MP4+ AAC'e cevir
-const mkvToAudioFix = (url: string) => {
-  if (!url.startsWith('/dyn/')) return url
-  if (!url.endsWith('.mkv')) return url
-  return url.replace('/dyn/', '/audio-fix/')
 }
 
 export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs, onToggleFullscreen }: VideoPlayerProps) {
@@ -66,15 +59,12 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const isProxyUrl = isProxy(src)
     const canMkv = isMkv
     dbg(`KARAR: mkv=${isMkv} proxy=${isProxyUrl} mobil=${IS_MOBILE} src=${src?.substring(0,60)}`)
-    if (canMkv && !isProxyUrl) {
+    if (canMkv && (!isProxyUrl || IS_MOBILE)) {
       setUseMediabunny(true)
-      dbg(`KARAR: Mediabunny KULLANILACAK`)
+      dbg(`KARAR: Mediabunny KULLANILACAK (proxy=${isProxyUrl} mobil=${IS_MOBILE})`)
     } else {
-      // Mobilde Mediabunny KULLANMA — MKV'yi /audio-fix/ ile server-side cevir
-      if (IS_MOBILE && isMkv && isProxyUrl) {
-        dbg(`KARAR: mobil MKV → /audio-fix/ transcoding ile native player`)
-      }
       setUseMediabunny(false)
+      dbg(`KARAR: native video/HLS`)
     }
   }, [src, fallbackSrcs])
 
@@ -82,13 +72,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   useEffect(() => {
     const urls = [src, ...(fallbackSrcs || [])]
     const filtered = urls.filter(Boolean)
-    // Mobilde sadece MKV URL'lerini /audio-fix/ ile server-side transcoding'e yonlendir
-    if (IS_MOBILE) {
-      allUrlsRef.current = filtered.map(u => mkvToAudioFix(u))
-      dbg(`MOBIL URL'ler: ${allUrlsRef.current.map((u,i)=>`#${i}: ${u?.substring(0,100)}`).join(' | ')}`)
-    } else {
-      allUrlsRef.current = filtered
-    }
+    allUrlsRef.current = filtered
     urlIndexRef.current = 0
     setLoadError('')
     console.log(`%c[VIDEO] URL list (${allUrlsRef.current.length})`, 'color:cyan', allUrlsRef.current.map((u,i)=>`#${i}: ${u?.substring(0,130)}`))
@@ -139,11 +123,8 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const urlIdx = urlIndexRef.current
     const total = allUrlsRef.current.length
     const currentSrc = allUrlsRef.current[urlIdx] || ''
-    // MKV needs extra time. /audio-fix/ (ffmpeg transcoding) needs even more.
-    const maxStuck = currentSrc.startsWith('/audio-fix/') ? 40 : (currentSrc.endsWith('.mkv') ? 15 : 5)
-    console.log(`%c[WATCHDOG] Basladi URL#${urlIdx}/${total} maxStuck=${maxStuck}`, 'color:yellow')
-    if (currentSrc.startsWith('/audio-fix/')) dbg(`WATCHDOG: /audio-fix/ ffmpeg transcoding -> bekleniyor`)
-    else if (currentSrc.endsWith('.mkv')) dbg(`WATCHDOG: MKV native -> AC3 sesi yok!`)
+    const maxStuck = currentSrc.endsWith('.mkv') ? 15 : 5
+    if (currentSrc.endsWith('.mkv')) dbg(`WATCHDOG: MKV native -> AC3 sesi yok!`)
     watchdogRef.current = setInterval(() => {
       if (!video || video.seeking) return
       if (video.readyState >= 2 && video.currentTime > lastProgressRef.current) {
@@ -157,8 +138,8 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       if (stuckCount >= maxStuck) {
         console.log(`%c[WATCHDOG] ${maxStuck} kez takildi -> SONRAKI URL`, 'color:red')
         clearInterval(watchdogRef.current)
-    if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null }
-    if (videoRef.current) videoRef.current.onerror = null
+        if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null }
+        if (videoRef.current) videoRef.current.onerror = null
         video.src = ''
         video.load()
         urlIndexRef.current++
@@ -185,15 +166,12 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     console.log(`[TRYURL] Protokol: ${currentSrc?.startsWith('https') ? 'HTTPS' : currentSrc?.startsWith('http') ? 'HTTP' : currentSrc?.startsWith('/api') ? 'API_PROXY' : 'OTHER'}`)
     console.log(`[TRYURL] Sayfa: ${window.location.protocol}//${window.location.host}`)
 
-    // Skip fetch test for audio-fix URLs (ffmpeg is slow, abort kills the process)
-    if (!currentSrc.startsWith('/audio-fix/')) {
-      const ctrl = new AbortController()
-      fetch(currentSrc, { signal: ctrl.signal }).then(r => {
-        const ct = r.headers.get('content-type') || ''
-        console.log(`[TRYURL] FETCH test: status=${r.status} ct=${ct}`)
-        ctrl.abort()
-      }).catch(() => {})
-    }
+    const ctrl = new AbortController()
+    fetch(currentSrc, { signal: ctrl.signal }).then(r => {
+      const ct = r.headers.get('content-type') || ''
+      console.log(`[TRYURL] FETCH test: status=${r.status} ct=${ct}`)
+      ctrl.abort()
+    }).catch(() => {})
 
     // Destroy previous HLS and reset video element fully
     if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null }
@@ -207,8 +185,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const isHls = srcNoQuery.endsWith('.m3u8')
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
     console.log(`[TRYURL] isHLS:${isHls} HLS.destek:${Hls.isSupported()} Safari:${isSafari}`)
-    if (currentSrc.endsWith('.mkv') && !currentSrc.startsWith('/audio-fix/')) dbg(`MKV native -> AC3 ses OLMAZ!`)
-    else if (currentSrc.startsWith('/audio-fix/')) dbg(`/audio-fix/ ffmpeg transcoding ile ses var`)
+    if (currentSrc.endsWith('.mkv')) dbg(`MKV native -> AC3 ses OLMAZ!`)
 
     if (isHls && Hls.isSupported() && !isSafari) {
       const isVirtualHls = currentSrc.startsWith('/v/')
