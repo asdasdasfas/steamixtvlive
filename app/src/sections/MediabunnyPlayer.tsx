@@ -30,6 +30,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const [fullscreen, setFullscreen] = useState(false)
   const [volume, setVolume] = useState(1)
   const [muted, setMuted] = useState(false)
+  const debugLogs = useRef<string[]>([])
+  const [debugTxt, setDebugTxt] = useState('')
+  const dbg = (msg: string) => { debugLogs.current.push(`[${new Date().toISOString().slice(11,19)}] ${msg}`); console.log('[MB]', msg) }
 
   const playerRef = useRef<{
     input: Input
@@ -111,16 +114,26 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     node.onended = () => { p.queuedNodes.delete(node) }
   }, [])
 
+  const audioBufCountRef = useRef(0)
+  const audioSilenceStartRef = useRef(0)
+
   const runAudioIterator = useCallback(async () => {
+    dbg('Audio iterator started')
+    let restartCount = 0
     while (true) {
       const p = playerRef.current
-      if (!p || !p.audioSink || !p.audioIterator || p.asyncId !== playerRef.current?.asyncId) break
-      if (!p.audioContext || !p.gainNode) break
+      if (!p || !p.audioSink || !p.audioIterator || p.asyncId !== playerRef.current?.asyncId) { dbg('Audio iterator exit: no player/audioSink/asyncId changed'); break }
+      if (!p.audioContext || !p.gainNode) { dbg('Audio iterator exit: no audioContext/gainNode'); break }
       try {
+        audioBufCountRef.current = 0
         for await (const { buffer, timestamp } of p.audioIterator) {
-          if (playerRef.current?.asyncId !== p.asyncId) break
-          if (!playerRef.current?.audioContext || !playerRef.current?.gainNode) break
+          if (playerRef.current?.asyncId !== p.asyncId) { dbg(`Audio loop break: asyncId changed (${p.asyncId} != ${playerRef.current?.asyncId})`); break }
+          if (!playerRef.current?.audioContext || !playerRef.current?.gainNode) { dbg('Audio loop break: context/gain lost'); break }
           scheduleAudioBuffer(buffer, timestamp)
+          audioBufCountRef.current++
+          if (audioBufCountRef.current % 30 === 0) {
+            dbg(`Audio scheduled ${audioBufCountRef.current} buffers, ts=${timestamp.toFixed(2)}, ctxTime=${p.audioContext.currentTime.toFixed(2)}`)
+          }
           if (timestamp - getPlaybackTime() >= 1) {
             await new Promise<void>(resolve => {
               const id = setInterval(() => {
@@ -133,18 +146,22 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           }
         }
       } catch (err) {
-        console.warn('[Mediabunny] Audio iterator error, restarting:', err)
+        dbg(`Audio iterator ERROR: ${err}`)
       }
+      restartCount++
       const pp = playerRef.current
-      if (!pp || !pp.audioSink || !pp.loaded || !isPlayingRef.current) break
+      if (!pp || !pp.audioSink || !pp.loaded || !isPlayingRef.current) { dbg(`Audio restart exit: loaded=${pp?.loaded} playing=${isPlayingRef.current}`); break }
+      dbg(`Audio restart #${restartCount} from ${getPlaybackTime().toFixed(2)}s`)
       pp.audioIterator = pp.audioSink.buffers(getPlaybackTime())
     }
+    dbg('Audio iterator DONE')
   }, [getPlaybackTime, scheduleAudioBuffer])
 
   const play = useCallback(async () => {
     const p = playerRef.current
-    if (!p || !p.audioContext) return
-    if (p.audioContext.state === 'suspended') await p.audioContext.resume()
+    if (!p || !p.audioContext) { dbg('Play: no player/audioContext'); return }
+    if (p.audioContext.state === 'suspended') { dbg('Audio context resumed from suspended'); await p.audioContext.resume() }
+    dbg(`Play: pos=${getPlaybackTime().toFixed(2)} endTs=${p.endTimestamp.toFixed(2)} audioCtxState=${p.audioContext.state}`)
     if (getPlaybackTime() >= p.endTimestamp) {
       p.playbackTimeAtStart = p.firstTimestamp
       p.nextFrame = null
@@ -166,6 +183,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     setPlaying(true)
     isPlayingRef.current = true
     if (p.audioSink) {
+      dbg(`Creating audio iterator from ${getPlaybackTime().toFixed(2)}s`)
       p.audioIterator = p.audioSink.buffers(getPlaybackTime())
       runAudioIterator()
     }
@@ -174,13 +192,16 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const pause = useCallback(() => {
     const p = playerRef.current
     if (!p) return
+    dbg(`Pause at ${getPlaybackTime().toFixed(2)}s`)
     p.playbackTimeAtStart = getPlaybackTime()
     setPlaying(false)
     isPlayingRef.current = false
     p.audioIterator?.return()
     p.audioIterator = null
+    const count = p.queuedNodes.size
     for (const node of p.queuedNodes) node.stop()
     p.queuedNodes.clear()
+    dbg(`Paused, stopped ${count} audio nodes`)
   }, [getPlaybackTime])
 
   const togglePlay = useCallback(() => {
@@ -223,6 +244,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         const gain = audioCtx.createGain()
         gain.connect(audioCtx.destination)
 
+        dbg(`Init: ${src.substring(0,120)}`)
         const input = new Input({
           source: new UrlSource(src, {
             requestInit: { credentials: 'include' },
@@ -232,6 +254,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
 
         let videoTrack = await input.getPrimaryVideoTrack()
         let audioTrack = await input.getPrimaryAudioTrack()
+        dbg(`Tracks: video=${!!videoTrack} audio=${!!audioTrack}`)
 
         const tracks = [videoTrack, audioTrack].filter(t => t !== null) as NonNullable<typeof videoTrack>[]
         const firstTs = Math.max(await input.getFirstTimestamp(tracks), 0)
@@ -254,6 +277,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         }
 
         if (!videoTrack && !audioTrack) throw new Error('No playable audio or video track found')
+        dbg(`FirstTs=${firstTs.toFixed(2)} EndTs=${endTs.toFixed(2)}`)
 
         const videoSink = videoTrack && new CanvasSink(videoTrack, { poolSize: 2, fit: 'contain' })
         const audioSink = audioTrack && new AudioBufferSink(audioTrack)
@@ -424,6 +448,8 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           </div>
         </div>
       )}
+      <button onClick={e => { e.stopPropagation(); const logs=debugLogs.current.slice(-200).join('\n'); navigator.clipboard.writeText(logs).then(()=>setDebugTxt('Kopyalandi!')).catch(()=>setDebugTxt('Hata!')); setTimeout(()=>setDebugTxt(''),3000) }}
+        className="absolute top-2 right-2 z-30 w-7 h-7 rounded-full bg-yellow-500/80 flex items-center justify-center text-[10px] font-bold text-black">{debugTxt || 'L'}</button>
       <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-16 pb-3 px-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div className="w-full h-1.5 bg-white/20 rounded-full cursor-pointer mb-3 group/progress hover:h-2.5 transition-all" onClick={e => { e.stopPropagation(); const rect = e.currentTarget.getBoundingClientRect(); const pct = (e.clientX - rect.left) / rect.width; seekTo(pct * duration) }}>
           <div className="h-full bg-[#0099ff]/40 rounded-full" style={{ width: `${progress}%` }}>
