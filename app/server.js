@@ -436,6 +436,23 @@ http.createServer((req, res) => {
     res.writeHead(502); res.end('Invalid audio-fix path'); return
   }
 
+  // Virtual M3U8 for VOD (MKV/MP4) — wraps direct video URL as HLS playlist
+  // StreamVault opens this via intent with type=application/x-mpegurl
+  if (req.url.startsWith('/m3u/')) {
+    const encoded = req.url.slice('/m3u/'.length)
+    try {
+      const decoded = Buffer.from(encoded.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString()
+      if (decoded.startsWith('http://') || decoded.startsWith('https://')) {
+        const playlist = `#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:86400\n#EXT-X-MEDIA-SEQUENCE:0\n#EXTINF:86400,\n${decoded}\n`
+        res.setHeader('Content-Type', 'application/vnd.apple.mpegurl')
+        res.setHeader('Access-Control-Allow-Origin', '*')
+        res.end(playlist)
+        return
+      }
+    } catch {}
+    res.writeHead(502); res.end('Invalid m3u path'); return
+  }
+
   // FFmpeg diagnostic endpoint
   if (req.url === '/__ffmpeg') {
     const info = { path: ffmpegPath, exists: false, type: typeof ffmpegPath }

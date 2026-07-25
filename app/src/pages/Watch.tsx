@@ -58,7 +58,8 @@ export default function Watch() {
             if (isMobile && nativeUrl) {
               const fullUrl = window.location.origin + nativeUrl
               setNativePlayerUrl(fullUrl)
-              setGenericIntentUrl('intent://' + fullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=video/*;scheme=https;end')
+              const m3uFullUrl = window.location.origin + '/m3u/' + btoa(fullUrl).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
+              setGenericIntentUrl('intent://' + m3uFullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=application/x-mpegurl;scheme=https;end')
               setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1))
             } else {
               setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1))
@@ -95,8 +96,9 @@ export default function Watch() {
                 const nativeUrl = allUrls[mkvAt]
                 const audioFixUrl = '/audio-fix/' + nativeUrl.slice('/dyn/'.length)
                 const fullUrl = window.location.origin + nativeUrl
+                const m3uFullUrl = window.location.origin + '/m3u/' + btoa(fullUrl).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
                 setNativePlayerUrl(fullUrl)
-                setGenericIntentUrl('intent://' + fullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=video/*;scheme=https;end')
+                setGenericIntentUrl('intent://' + m3uFullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=application/x-mpegurl;scheme=https;end')
                 setUrl(audioFixUrl); setFallbackUrls(allUrls)
               } else {
                 setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1))
