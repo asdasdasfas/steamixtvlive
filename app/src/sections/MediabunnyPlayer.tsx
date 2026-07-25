@@ -115,24 +115,36 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   }, [])
 
   const audioBufCountRef = useRef(0)
-  const audioSilenceStartRef = useRef(0)
+  const audioStallTimeout = (ms: number) => new Promise<'timeout'>(resolve => setTimeout(() => resolve('timeout'), ms))
 
   const runAudioIterator = useCallback(async () => {
     dbg('Audio iterator started')
     let restartCount = 0
     while (true) {
       const p = playerRef.current
-      if (!p || !p.audioSink || !p.audioIterator || p.asyncId !== playerRef.current?.asyncId) { dbg('Audio iterator exit: no player/audioSink/asyncId changed'); break }
-      if (!p.audioContext || !p.gainNode) { dbg('Audio iterator exit: no audioContext/gainNode'); break }
+      if (!p || !p.audioSink || !p.audioContext || !p.gainNode || p.asyncId !== playerRef.current?.asyncId) { dbg('Audio iterator exit: player/ctx changed'); break }
       try {
         audioBufCountRef.current = 0
-        for await (const { buffer, timestamp } of p.audioIterator) {
-          if (playerRef.current?.asyncId !== p.asyncId) { dbg(`Audio loop break: asyncId changed (${p.asyncId} != ${playerRef.current?.asyncId})`); break }
-          if (!playerRef.current?.audioContext || !playerRef.current?.gainNode) { dbg('Audio loop break: context/gain lost'); break }
+        const it = p.audioIterator
+        if (!it) { dbg('Audio no iterator'); break }
+        while (true) {
+          const raced = await Promise.race([
+            it.next().then(r => ({ tag: 'next' as const, done: r.done, value: r.value })),
+            audioStallTimeout(3000),
+          ])
+          if (raced === 'timeout') {
+            dbg(`Audio TIMEOUT after ${audioBufCountRef.current} buffers`)
+            it.return?.()
+            break
+          }
+          if (raced.done) { dbg('Audio iterator ended naturally'); break }
+          const { buffer, timestamp } = raced.value as { buffer: AudioBuffer; timestamp: number }
+          if (playerRef.current?.asyncId !== p.asyncId) { dbg('Audio asyncId changed'); break }
+          if (!playerRef.current?.audioContext) { dbg('Audio context lost'); break }
           scheduleAudioBuffer(buffer, timestamp)
           audioBufCountRef.current++
-          if (audioBufCountRef.current % 30 === 0) {
-            dbg(`Audio scheduled ${audioBufCountRef.current} buffers, ts=${timestamp.toFixed(2)}, ctxTime=${p.audioContext.currentTime.toFixed(2)}`)
+          if (audioBufCountRef.current === 1 || audioBufCountRef.current % 30 === 0) {
+            dbg(`Audio buf#${audioBufCountRef.current} ts=${timestamp.toFixed(2)} ctx=${p.audioContext.currentTime.toFixed(2)}`)
           }
           if (timestamp - getPlaybackTime() >= 1) {
             await new Promise<void>(resolve => {
