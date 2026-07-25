@@ -30,6 +30,12 @@ const isDirectFileUrl = (url: string) => {
   return ext.endsWith('.mkv')
 }
 
+// Mobilde MKV'yi /audio-fix/ uzerinden server-side ffmpeg ile MP4+ AAC'e cevir
+const mkvToAudioFix = (url: string) => {
+  if (!url.startsWith('/dyn/')) return url
+  return url.replace('/dyn/', '/audio-fix/')
+}
+
 export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs, onToggleFullscreen }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -59,19 +65,29 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const isProxyUrl = isProxy(src)
     const canMkv = isMkv
     dbg(`KARAR: mkv=${isMkv} proxy=${isProxyUrl} mobil=${IS_MOBILE} src=${src?.substring(0,60)}`)
-    if (canMkv && (!isProxyUrl || IS_MOBILE)) {
+    if (canMkv && !isProxyUrl) {
       setUseMediabunny(true)
-      dbg(`KARAR: Mediabunny KULLANILACAK (proxy=${isProxyUrl} mobil=${IS_MOBILE})`)
+      dbg(`KARAR: Mediabunny KULLANILACAK`)
     } else {
+      // Mobilde Mediabunny KULLANMA — MKV'yi /audio-fix/ ile server-side cevir
+      if (IS_MOBILE && isMkv && isProxyUrl) {
+        dbg(`KARAR: mobil MKV → /audio-fix/ transcoding ile native player`)
+      }
       setUseMediabunny(false)
-      dbg(`KARAR: native video/HLS`)
     }
   }, [src, fallbackSrcs])
 
   // Build full URL list
   useEffect(() => {
     const urls = [src, ...(fallbackSrcs || [])]
-    allUrlsRef.current = urls.filter(Boolean)
+    const filtered = urls.filter(Boolean)
+    // Mobilde MKV URL'lerini /audio-fix/ ile server-side transcoding'e yonlendir
+    if (IS_MOBILE) {
+      allUrlsRef.current = filtered.map(u => mkvToAudioFix(u))
+      dbg(`MOBIL URL'ler: ${allUrlsRef.current.map((u,i)=>`#${i}: ${u?.substring(0,100)}`).join(' | ')}`)
+    } else {
+      allUrlsRef.current = filtered
+    }
     urlIndexRef.current = 0
     setLoadError('')
     console.log(`%c[VIDEO] URL list (${allUrlsRef.current.length})`, 'color:cyan', allUrlsRef.current.map((u,i)=>`#${i}: ${u?.substring(0,130)}`))

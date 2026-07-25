@@ -206,7 +206,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     try {
       while (true) {
         if (playerRef.current?.asyncId !== asyncId) { dbg(`Audio exit: asyncId changed`); break }
-        const timeoutMs = bufCount === 0 ? 2000 : 30000
+        const timeoutMs = bufCount === 0 ? (recreateCount.current > 0 ? 8000 : 2000) : 30000
         const raced = await Promise.race([
           it.next().then(r => ({ tag: 'next' as const, done: r.done, value: r.value })),
           audioStallTimeout(timeoutMs),
@@ -306,8 +306,6 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         canvasRef.current.width = await newVideoTrack.getDisplayWidth()
         canvasRef.current.height = await newVideoTrack.getDisplayHeight()
       }
-      // ESKI Input'u dispose et (decoder'lari kapat, WASM belleği boşalt)
-      try { p.input?.dispose() } catch (e) { dbg(`Dispose old input error: ${e}`) }
       const startPos = Math.min(pos, p.endTimestamp - 0.5)
       p.input = newInput
       p.videoSink = newVideoSink
