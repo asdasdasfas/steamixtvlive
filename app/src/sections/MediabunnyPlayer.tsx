@@ -100,23 +100,25 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const scheduleAudioBuffer = useCallback((buffer: AudioBuffer, timestamp: number) => {
     const p = playerRef.current
     if (!p || !p.audioContext || !p.gainNode) return
+    const now = p.audioContext.currentTime
+    const playbackTime = getPlaybackTime()
+    const delay = timestamp - playbackTime
     const node = p.audioContext.createBufferSource()
     node.buffer = buffer
     node.connect(p.gainNode)
-    let startTime = (p.audioContextStartTime ?? 0) + timestamp - p.playbackTimeAtStart
-    startTime = Math.round(p.audioContext.sampleRate * startTime) / p.audioContext.sampleRate
-    if (startTime >= p.audioContext.currentTime) {
-      node.start(startTime)
+    if (delay >= 0) {
+      node.start(now + delay)
     } else {
-      node.start(p.audioContext.currentTime, p.audioContext.currentTime - startTime)
+      node.start(now, -delay)
     }
     p.queuedNodes.add(node)
     node.onended = () => { p.queuedNodes.delete(node) }
-  }, [])
+  }, [getPlaybackTime])
 
   const audioBufCountRef = useRef(0)
   const audioStallTimeout = (ms: number) => new Promise<'timeout'>(resolve => setTimeout(() => resolve('timeout'), ms))
   const iteratorRunningRef = useRef(false)
+  const pendingPlayRef = useRef(false)
 
   const runAudioIterator = useCallback(async () => {
     if (iteratorRunningRef.current) { dbg('Audio iterator already running, skipping'); return }
@@ -165,7 +167,15 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       }
       restartCount++
       const pp = playerRef.current
-      if (!pp || !pp.audioSink || !pp.loaded || !isPlayingRef.current) { dbg(`Audio restart exit: loaded=${pp?.loaded} playing=${isPlayingRef.current}`); break }
+      if (!pp || !pp.audioSink || !isPlayingRef.current) { dbg(`Audio restart exit: playing=${isPlayingRef.current}`); break }
+      if (!pp.loaded) {
+        dbg(`Audio waiting for loaded (restart #${restartCount})...`)
+        for (let i = 0; i < 100; i++) {
+          await new Promise(r => setTimeout(r, 100))
+          if (playerRef.current?.loaded) break
+        }
+        if (!playerRef.current?.loaded) { dbg('Audio restart exit: loaded timeout'); break }
+      }
       dbg(`Audio restart #${restartCount} from ${getPlaybackTime().toFixed(2)}s`)
       pp.audioIterator = pp.audioSink.buffers(getPlaybackTime())
     }
@@ -199,9 +209,14 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     setPlaying(true)
     isPlayingRef.current = true
     if (p.audioSink) {
-      dbg(`Creating audio iterator from ${getPlaybackTime().toFixed(2)}s`)
-      p.audioIterator = p.audioSink.buffers(getPlaybackTime())
-      runAudioIterator()
+      if (!p.loaded) {
+        dbg('Play: audio waiting for init...')
+        pendingPlayRef.current = true
+      } else {
+        dbg(`Creating audio iterator from ${getPlaybackTime().toFixed(2)}s`)
+        p.audioIterator = p.audioSink.buffers(getPlaybackTime())
+        runAudioIterator()
+      }
     }
   }, [getPlaybackTime, runAudioIterator])
 
@@ -229,6 +244,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const seekTo = useCallback(async (seconds: number) => {
     const p = playerRef.current
     if (!p) return
+    dbg(`Seek to ${seconds.toFixed(2)} (wasPlaying=${playing})`)
     const wasPlaying = playing
     if (wasPlaying) pause()
     p.playbackTimeAtStart = seconds
@@ -351,6 +367,11 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         }
 
         playerRef.current.loaded = true
+        if (pendingPlayRef.current) {
+          pendingPlayRef.current = false
+          dbg('Init complete, starting pending play')
+          play()
+        }
       } catch (err: any) {
         if (!cancelled) setLoadError(err.message || 'Playback failed')
       }
