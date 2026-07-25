@@ -189,10 +189,14 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       audioBufCountRef.current = 0
       while (true) {
         if (playerRef.current?.asyncId !== asyncId) { dbg(`Audio exit: asyncId changed`); break }
-        const raced = await Promise.race([
-          it.next().then(r => ({ tag: 'next' as const, done: r.done, value: r.value })),
-          audioStallTimeout(1500),
-        ])
+        // Sadece ILK buffer icin timeout (0 buffer -> keyframe sorunu)
+        // Buffer gelmeye basladiysa timeout YOK, sonsuza dek bekler
+        const raced = audioBufCountRef.current === 0
+          ? await Promise.race([
+              it.next().then(r => ({ tag: 'next' as const, done: r.done, value: r.value })),
+              audioStallTimeout(1500),
+            ])
+          : { tag: 'next' as const, ...(await it.next()) }
         if (raced === 'timeout') {
           const count = audioBufCountRef.current
           dbg(`Audio TIMEOUT after ${count} buffers (id=${asyncId})`)
@@ -252,16 +256,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           const pt = getPlaybackTime()
           dbg(`Audio buf#${audioBufCountRef.current} ts=${timestamp.toFixed(2)} ctx=${p.audioContext.currentTime.toFixed(2)} playTime=${pt.toFixed(2)}`)
         }
-        if (timestamp - getPlaybackTime() >= 1) {
-          await new Promise<void>(resolve => {
-            const id = setInterval(() => {
-              if (timestamp - getPlaybackTime() < 1 || playerRef.current?.asyncId !== asyncId) {
-                clearInterval(id)
-                resolve()
-              }
-            }, 100)
-          })
-        }
+        // Bekleme YOK -> decoder'a back-pressure uygulama
       }
     } catch (err) {
       dbg(`Audio iterator ERROR: ${err}`)
