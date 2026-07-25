@@ -35,6 +35,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const [muted, setMuted] = useState(false)
   const debugLogs = useRef<string[]>([])
   const [debugTxt, setDebugTxt] = useState('')
+  const playStopRef = useRef<() => void>(() => {})
   const dbg = (msg: string) => { debugLogs.current.push(`[${new Date().toISOString().slice(11,19)}] ${msg}`); console.log('[MB]', msg) }
 
   const playerRef = useRef<{
@@ -69,13 +70,13 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     const p = playerRef.current
     if (!p) return 0
     if (p.loaded && p.audioContext) {
-      if (playing) {
+      if (isPlayingRef.current) {
         return p.audioContext.currentTime - (p.audioContextStartTime ?? 0) + p.playbackTimeAtStart
       }
       return p.playbackTimeAtStart
     }
     return 0
-  }, [playing])
+  }, [])
 
   const updateNextFrame = useCallback(async () => {
     const p = playerRef.current
@@ -329,7 +330,8 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   }, [getPlaybackTime])
 
   const handlePlayStop = useCallback(() => {
-    if (playing) stop('hps')
+    const isPlaying = isPlayingRef.current
+    if (isPlaying) stop('hps')
     else {
       if (IS_MOBILE) {
         const p = playerRef.current
@@ -343,7 +345,10 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       }
       startPlayback()
     }
-  }, [playing, stop, startPlayback])
+  }, [stop, startPlayback, IS_MOBILE])
+
+  // Keep ref in sync so button callback is stable
+  playStopRef.current = handlePlayStop
 
   const seekTo = useCallback(async (seconds: number) => {
     if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current)
@@ -351,8 +356,8 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       seekTimeoutRef.current = null
       const p = playerRef.current
       if (!p) return
-      dbg(`Seek to ${seconds.toFixed(2)} (wasPlaying=${playing})`)
-      const wasPlaying = playing
+      const wasPlaying = isPlayingRef.current
+      dbg(`Seek to ${seconds.toFixed(2)} (wasPlaying=${wasPlaying})`)
       if (wasPlaying) stop('seek')
       p.playbackTimeAtStart = seconds
       if (p.videoSink) {
@@ -369,7 +374,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       }
       if (wasPlaying && seconds < p.endTimestamp) startPlayback(seconds)
     }, 50)
-  }, [playing, stop, startPlayback])
+  }, [stop, startPlayback])
 
   useEffect(() => {
     let cancelled = false
@@ -603,7 +608,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         <div className="flex items-center justify-between text-white">
           <div className="flex items-center gap-1 sm:gap-3">
             <button onClick={e => { e.stopPropagation(); seekTo(Math.max(currentTime - 10, 0)) }} className="p-2 sm:p-0 hover:text-[#0099ff]"><SkipBack className="w-5 h-5 sm:w-5 sm:h-5" /></button>
-            <button onClick={e => { e.stopPropagation(); handlePlayStop() }} className="p-2 sm:p-0 hover:text-[#0099ff]">{playing ? <Pause className="w-7 h-7 sm:w-6 sm:h-6" /> : <Play className="w-7 h-7 sm:w-6 sm:h-6" />}</button>
+            <button onClick={e => { e.stopPropagation(); playStopRef.current() }} className="p-2 sm:p-0 hover:text-[#0099ff]">{playing ? <Pause className="w-7 h-7 sm:w-6 sm:h-6" /> : <Play className="w-7 h-7 sm:w-6 sm:h-6" />}</button>
             <button onClick={e => { e.stopPropagation(); seekTo(Math.min(currentTime + 10, duration)) }} className="p-2 sm:p-0 hover:text-[#0099ff]"><SkipForward className="w-5 h-5 sm:w-5 sm:h-5" /></button>
             <div className="flex items-center gap-1 sm:gap-2">
               <button onClick={e => { e.stopPropagation(); setMuted(!muted) }} className="p-2 sm:p-0 hover:text-[#0099ff]">{muted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}</button>
