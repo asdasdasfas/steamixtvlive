@@ -415,7 +415,7 @@ http.createServer((req, res) => {
     const pathOnly = qIdx >= 0 ? req.url.slice(0, qIdx) : req.url
     const query = qIdx >= 0 ? req.url.slice(qIdx + 1) : ''
     const params = new URLSearchParams(query)
-    const extraHeaders = params.has('dl') ? { 'content-disposition': 'attachment; filename="video.mkv"' } : null
+    const extraHeaders = params.has('dl') ? { 'content-disposition': 'attachment; filename="video.mkv"', 'content-type': 'application/octet-stream' } : null
     const afterDyn = pathOnly.slice(5)
     const slashIdx = afterDyn.indexOf('/')
     if (slashIdx > 0) {
