@@ -272,7 +272,9 @@ function transcodeStream(req, res, sourceUrl, hop) {
       const outFmt = isMp4 ? 'mp4' : 'mpegts'
       const outCt = isMp4 ? 'video/mp4' : 'video/mp2t'
       const extra = isMp4 ? ['-movflags', 'frag_keyframe+empty_moov'] : []
-      const ff = spawn(ffmpegPath, ['-nostats','-hide_banner','-i','pipe:0','-c:v','copy','-c:a','aac','-ar','44100','-ac','2','-b:a','128k',...extra,'-f',outFmt,'-y','pipe:1'])
+      if (!ffmpegPath) { console.log(`[FF] ffmpegPath null, proxy`); try { res.writeHead(502,{'Content-Type':'text/plain'}); res.end('FFmpeg not available') } catch {}; return }
+      let ff
+      try { ff = spawn(ffmpegPath, ['-nostats','-hide_banner','-i','pipe:0','-c:v','copy','-c:a','aac','-ar','44100','-ac','2','-b:a','128k',...extra,'-f',outFmt,'-y','pipe:1']) } catch(e) { console.log(`[FF] spawn error: ${e.message}`); try { res.writeHead(502); res.end('Spawn error') } catch {}; return }
       let hs = false
       ff.stdout.on('data', d => { if (!hs) { hs = true; try { res.writeHead(200,{'Content-Type':outCt,'access-control-allow-origin':'*'}) } catch {} }; try { res.write(d) } catch {} })
       ff.stderr.on('data', d => { console.log(`[FF] ${d.toString().trim()}`) })

@@ -30,9 +30,10 @@ const isDirectFileUrl = (url: string) => {
   return ext.endsWith('.mkv')
 }
 
-// Mobilde MKV'yi /audio-fix/ uzerinden server-side ffmpeg ile MP4+ AAC'e cevir
+// Mobilde sadece MKV'yi /audio-fix/ uzerinden server-side ffmpeg ile MP4+ AAC'e cevir
 const mkvToAudioFix = (url: string) => {
   if (!url.startsWith('/dyn/')) return url
+  if (!url.endsWith('.mkv')) return url
   return url.replace('/dyn/', '/audio-fix/')
 }
 
@@ -81,16 +82,9 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   useEffect(() => {
     const urls = [src, ...(fallbackSrcs || [])]
     const filtered = urls.filter(Boolean)
-    // Mobilde MKV URL'lerini /audio-fix/ ile server-side transcoding'e yonlendir
+    // Mobilde sadece MKV URL'lerini /audio-fix/ ile server-side transcoding'e yonlendir
     if (IS_MOBILE) {
       allUrlsRef.current = filtered.map(u => mkvToAudioFix(u))
-      // Raw MKV'leri sona at (once /audio-fix/ denensin, basarisizsa M3U8/MP4, en son raw MKV)
-      const audioFix = allUrlsRef.current.filter(u => u.startsWith('/audio-fix/'))
-      const nonMkvRaw = allUrlsRef.current.filter(u => !u.endsWith('.mkv'))
-      const rawMkv = allUrlsRef.current.filter(u => u.endsWith('.mkv') && !u.startsWith('/audio-fix/'))
-      allUrlsRef.current = [...audioFix, ...nonMkvRaw, ...rawMkv]
-      // Tekrarlari temizle
-      allUrlsRef.current = allUrlsRef.current.filter((u,i,a) => a.indexOf(u) === i)
       dbg(`MOBIL URL'ler: ${allUrlsRef.current.map((u,i)=>`#${i}: ${u?.substring(0,100)}`).join(' | ')}`)
     } else {
       allUrlsRef.current = filtered
