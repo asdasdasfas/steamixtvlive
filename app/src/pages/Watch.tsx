@@ -17,7 +17,7 @@ export default function Watch() {
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState('')
   const [nativePlayerUrl, setNativePlayerUrl] = useState('')
-  const [streamVaultUrl, setStreamVaultUrl] = useState('')
+  const [genericIntentUrl, setGenericIntentUrl] = useState('')
 
   const streamId = params.get('stream_id')
   const rotationId = params.get('rotation_id')
@@ -58,7 +58,7 @@ export default function Watch() {
             if (isMobile && nativeUrl) {
               const fullUrl = window.location.origin + nativeUrl
               setNativePlayerUrl(fullUrl)
-              setStreamVaultUrl('intent://' + fullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=video/*;scheme=https;package=com.streamvault.app;end')
+              setGenericIntentUrl('intent://' + fullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=video/*;scheme=https;end')
               setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1))
             } else {
               setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1))
@@ -96,7 +96,7 @@ export default function Watch() {
                 const audioFixUrl = '/audio-fix/' + nativeUrl.slice('/dyn/'.length)
                 const fullUrl = window.location.origin + nativeUrl
                 setNativePlayerUrl(fullUrl)
-                setStreamVaultUrl('intent://' + fullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=video/*;scheme=https;package=com.streamvault.app;end')
+                setGenericIntentUrl('intent://' + fullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=video/*;scheme=https;end')
                 setUrl(audioFixUrl); setFallbackUrls(allUrls)
               } else {
                 setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1))
@@ -176,9 +176,9 @@ export default function Watch() {
               İzle (AAC Ses)
             </button>
             <div className="h-px bg-white/5 my-4" />
-            <a href={streamVaultUrl}
+            <a href={genericIntentUrl}
               className="block w-full py-3 rounded-xl bg-white/10 text-gray-300 text-sm hover:bg-white/20 transition-all mb-2 text-center">
-              Stream Vault'da Aç
+              Player'da Aç (AC3)
             </a>
             <button onClick={() => window.location.href = nativePlayerUrl}
               className="w-full py-2.5 rounded-xl bg-white/5 text-gray-500 text-xs hover:text-white transition-all">
