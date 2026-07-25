@@ -16,6 +16,7 @@ export default function Watch() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState('')
+  const [nativePlayerUrl, setNativePlayerUrl] = useState('')
 
   const streamId = params.get('stream_id')
   const rotationId = params.get('rotation_id')
@@ -54,9 +55,8 @@ export default function Watch() {
           }
           if (!cancelled) { 
             if (isMobile && nativeUrl) {
-              const fullUrl = window.location.origin + nativeUrl
-              const androidIntent = 'intent://' + fullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=video/*;end'
-              setUrl(androidIntent); setFallbackUrls([fullUrl, ...finalUrls])
+              setNativePlayerUrl(window.location.origin + nativeUrl)
+              setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1))
             } else {
               setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1))
             }
@@ -90,9 +90,9 @@ export default function Watch() {
               const mkvAt = allUrls.findIndex(u => u.startsWith('/dyn/') && (u.endsWith('.mkv') || u.endsWith('.mp4')))
               if (mkvAt >= 0) {
                 const nativeUrl = allUrls[mkvAt]
-                const fullUrl = window.location.origin + nativeUrl
-                const androidIntent = 'intent://' + fullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=video/*;end'
-                setUrl(androidIntent); setFallbackUrls([fullUrl, ...allUrls])
+                const audioFixUrl = '/audio-fix/' + nativeUrl.slice('/dyn/'.length)
+                setNativePlayerUrl(window.location.origin + nativeUrl)
+                setUrl(audioFixUrl); setFallbackUrls(allUrls)
               } else {
                 setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1))
               }
@@ -161,22 +161,23 @@ export default function Watch() {
             <button onClick={() => navigate(-1)} className="px-5 py-2 rounded-lg bg-white/10 text-white text-sm">Geri Dön</button>
           </div>
         </div>
-      ) : /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && url?.startsWith('intent://') && !rotationId ? (
+      ) : /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && nativePlayerUrl && !rotationId ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-sm px-6">
             <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-[#0099ff]/20 to-purple-500/20 border border-[#0099ff]/30 flex items-center justify-center">
               <svg className="w-8 h-8 text-[#0099ff]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             </div>
             <p className="text-base text-white font-semibold mb-1">Telefonun Video Player'ında Aç</p>
-            <p className="text-xs text-gray-500 mb-6">Bu film telefonunuzun kendi video player'ında açılacaktır.</p>
-            <a href={url} className="block w-full py-3.5 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm hover:opacity-90 transition-all mb-3 shadow-lg shadow-[#0099ff]/20">
+            <p className="text-xs text-gray-500 mb-6">Uygulama seçicide video oynatıcınızı seçin (Galeri, VLC, MX Player).</p>
+            <button onClick={() => { navigator.share({ url: nativePlayerUrl }).catch(() => window.open(nativePlayerUrl, '_blank')) }}
+              className="block w-full py-3.5 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm hover:opacity-90 transition-all mb-3 shadow-lg shadow-[#0099ff]/20">
               Player'da Aç
-            </a>
-            <button onClick={() => { setUrl(fallbackUrls[0] || ''); setFallbackUrls(fallbackUrls.slice(1)) }}
-              className="w-full py-2.5 rounded-xl bg-white/10 text-gray-400 text-xs hover:text-white transition-all">
-              Tarayıcıda İzle
             </button>
-            <p className="text-[10px] text-gray-600 mt-3">Player açılmazsa "Tarayıcıda İzle" butonunu kullanın.</p>
+            <button onClick={() => { setNativePlayerUrl(''); setUrl(fallbackUrls[0] || ''); setFallbackUrls(fallbackUrls.slice(1)) }}
+              className="w-full py-2.5 rounded-xl bg-white/10 text-gray-400 text-xs hover:text-white transition-all">
+              Tarayıcıda İzle (AAC Ses)
+            </button>
+            <p className="text-[10px] text-gray-600 mt-3">Player açılmazsa "Tarayıcıda İzle" ile devam edin.</p>
           </div>
         </div>
       ) : url ? (
