@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Hls from 'hls.js'
 import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForward } from 'lucide-react'
+import MediabunnyPlayer from './MediabunnyPlayer'
 
 interface VideoPlayerProps {
   src: string
@@ -9,6 +10,13 @@ interface VideoPlayerProps {
   onEnded?: () => void
   fallbackSrcs?: string[]
   onToggleFullscreen?: () => void
+}
+
+const isDirectFileUrl = (url: string) => {
+  if (!url) return false
+  if (url.startsWith('/audio-fix/') || url.startsWith('/dyn/')) return false
+  const ext = url.split('?')[0].toLowerCase()
+  return ext.endsWith('.mkv') || ext.endsWith('.mp4') || ext.endsWith('.avi') || ext.endsWith('.mov') || ext.endsWith('.webm') || ext.endsWith('.flv')
 }
 
 export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs, onToggleFullscreen }: VideoPlayerProps) {
@@ -31,6 +39,16 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const watchdogRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
   const lastProgressRef = useRef(0)
   const retryCountRef = useRef(0)
+  const [useMediabunny, setUseMediabunny] = useState<boolean | null>(null)
+
+  // Detect if Mediabunny should be used for this source
+  useEffect(() => {
+    if (isDirectFileUrl(src) || (fallbackSrcs && fallbackSrcs.some(isDirectFileUrl))) {
+      setUseMediabunny(true)
+    } else {
+      setUseMediabunny(false)
+    }
+  }, [src, fallbackSrcs])
 
   // Build full URL list
   useEffect(() => {
@@ -352,6 +370,19 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
   const bufferedPct = duration > 0 ? (buffered / duration) * 100 : 0
+
+  if (useMediabunny === true) {
+    return (
+      <MediabunnyPlayer
+        key={src}
+        src={src}
+        poster={poster}
+        title={title}
+        onEnded={onEnded}
+        onToggleFullscreen={onToggleFullscreen}
+      />
+    )
+  }
 
   return (
     <div ref={containerRef} className="relative bg-black group cursor-pointer" onClick={togglePlay} onMouseMove={startHideTimer}>
