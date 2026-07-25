@@ -178,6 +178,8 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const [recreateKey, setRecreateKey] = useState(0)
   const pendingPlayAfterRecreate = useRef(false)
   const autoRefreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastHpsTime = useRef(0)
+  const audioRetryCount = useRef(0)
 
   const runAudioIterator = useCallback(async (asyncId: number) => {
     dbg(`Audio iterator started (id=${asyncId})`)
@@ -193,8 +195,20 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           audioStallTimeout(3000),
         ])
         if (raced === 'timeout') {
-          dbg(`Audio TIMEOUT after ${audioBufCountRef.current} buffers`)
+          const count = audioBufCountRef.current
+          dbg(`Audio TIMEOUT after ${count} buffers (id=${asyncId})`)
           it.return?.()
+          if (count === 0 && playerRef.current?.asyncId === asyncId && audioRetryCount.current < 5) {
+            const pp = playerRef.current
+            const curPos = getPlaybackTime()
+            const retryPos = curPos + 0.5
+            audioRetryCount.current++
+            dbg(`Audio retry #${audioRetryCount.current} at ${retryPos.toFixed(2)}s`)
+            pp.asyncId++
+            const newId = pp.asyncId
+            pp.audioIterator = pp.audioSink?.buffers(retryPos, undefined, { skipLiveWait: true }) ?? null
+            if (pp.audioIterator) runAudioIterator(newId)
+          }
           break
         }
         if (raced.done) {
@@ -255,6 +269,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     p.playbackTimeAtStart = pos
     p.audioContextStartTime = p.audioContext.currentTime
     p.audioIterator?.return()
+    audioRetryCount.current = 0
 
     // Ses ONCE baslasin (video frame'leri beklenmez)
     const audioSink = p.audioSink
@@ -342,6 +357,9 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   }, [getPlaybackTime])
 
   const handlePlayStop = useCallback(() => {
+    const now = Date.now()
+    if (now - lastHpsTime.current < 800) { dbg('hps debounced'); return }
+    lastHpsTime.current = now
     const isPlaying = isPlayingRef.current
     if (isPlaying) stop('hps')
     else {
