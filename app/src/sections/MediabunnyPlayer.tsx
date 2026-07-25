@@ -118,6 +118,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const audioBufCountRef = useRef(0)
   const audioStallTimeout = (ms: number) => new Promise<'timeout'>(resolve => setTimeout(() => resolve('timeout'), ms))
   const pendingPlayRef = useRef(false)
+  const firstPlayRef = useRef(false)
 
   const runAudioIterator = useCallback(async (asyncId: number) => {
     dbg(`Audio iterator started (id=${asyncId})`)
@@ -226,6 +227,21 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         const id = p.asyncId
         p.audioIterator = p.audioSink.buffers(audioPos + 0.01)
         runAudioIterator(id)
+        if (!firstPlayRef.current) {
+          firstPlayRef.current = true
+          setTimeout(() => {
+            const pp = playerRef.current
+            if (!pp || !isPlayingRef.current) return
+            dbg('Auto-refresh: seeking 1.5s to fix audio')
+            pp.asyncId++
+            pp.audioIterator = null
+            pp.playbackTimeAtStart = 1.5
+            pp.audioContextStartTime = pp.audioContext!.currentTime
+            pp.audioIterator = pp.audioSink!.buffers(1.5 + 0.01)
+            const newId = pp.asyncId
+            runAudioIterator(newId)
+          }, 400)
+        }
       }
     }
   }, [getPlaybackTime, runAudioIterator])
@@ -377,17 +393,11 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         }
 
         playerRef.current.loaded = true
-        dbg('Init complete, auto-starting')
-        play()
-        setTimeout(() => {
-          const pp = playerRef.current
-          if (!pp) return
-          dbg('Auto-seek 1s to refresh audio iterator')
-          const wasPlaying = isPlayingRef.current
-          if (wasPlaying) { pause(); pp.asyncId++; pp.audioIterator = null }
-          pp.playbackTimeAtStart = 1
-          if (wasPlaying) play()
-        }, 200)
+        if (pendingPlayRef.current) {
+          pendingPlayRef.current = false
+          dbg('Init complete, executing pending play')
+          play()
+        }
       } catch (err: any) {
         if (!cancelled) setLoadError(err.message || 'Playback failed')
       }
