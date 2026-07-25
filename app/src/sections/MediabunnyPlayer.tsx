@@ -56,6 +56,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     intervalId: number
     asyncId: number
     loaded: boolean
+    lastScheduledEnd: number
   } | null>(null)
 
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -165,6 +166,8 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
     }
     p.queuedNodes.add(node)
     node.onended = () => { p.queuedNodes.delete(node) }
+    const bufEnd = rounded + node.buffer.duration
+    if (bufEnd > (p.lastScheduledEnd ?? 0)) p.lastScheduledEnd = bufEnd
   }, [fixBuffer])
 
   const audioBufCountRef = useRef(0)
@@ -494,6 +497,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           intervalId: 0,
           asyncId: 0,
           loaded: false,
+          lastScheduledEnd: 0,
         }
 
         if (videoSink && playerRef.current.videoIterator) {
@@ -548,6 +552,18 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
         }
       }
 
+      if (playing && pp.queuedNodes.size === 0 && (pp.lastScheduledEnd ?? 0) > 0 && playbackTime > (pp.lastScheduledEnd ?? 0) + 0.5 && playbackTime < pp.endTimestamp) {
+        dbg(`Audio queue empty at ${playbackTime.toFixed(2)}s — restarting`)
+        for (const node of pp.queuedNodes) { try { node.stop() } catch {} }; pp.queuedNodes.clear()
+        pp.lastScheduledEnd = 0
+        pp.playbackTimeAtStart = playbackTime
+        pp.audioContextStartTime = pp.audioContext?.currentTime ?? 0
+        pp.asyncId++
+        const newId = pp.asyncId
+        pp.audioIterator = pp.audioSink?.buffers(playbackTime) ?? null
+        if (pp.audioIterator) runAudioIterator(newId)
+      }
+
       if (pp.nextFrame && pp.nextFrame.timestamp <= playbackTime) {
         const ctx = canvasRef.current?.getContext('2d')
         if (ctx && canvasRef.current) {
@@ -570,7 +586,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
       cancelAnimationFrame(p.rafId)
       clearInterval(p.intervalId)
     }
-  }, [playing, getPlaybackTime, stop, onEnded, updateNextFrame])
+  }, [playing, getPlaybackTime, stop, onEnded, updateNextFrame, runAudioIterator])
 
   useEffect(() => {
     const onFs = () => setFullscreen(!!document.fullscreenElement)
