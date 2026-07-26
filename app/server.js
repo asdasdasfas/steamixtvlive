@@ -539,23 +539,6 @@ http.createServer((req, res) => {
     res.writeHead(502); res.end('Invalid m3u path'); return
   }
 
-  // FFmpeg diagnostic endpoint
-  if (req.url === '/__ffmpeg') {
-    const info = { path: ffmpegPath, exists: false, type: typeof ffmpegPath }
-    if (ffmpegPath) { try { fs.accessSync(ffmpegPath); info.exists = true } catch {} }
-    res.setHeader('Content-Type', 'application/json')
-    res.end(JSON.stringify(info, null, 2))
-    return
-  }
-
-  // Console log view endpoint
-  if (req.url === '/__logs') {
-    res.setHeader('Content-Type', 'application/json')
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.end(JSON.stringify(consoleLogs.slice(-200), null, 2))
-    return
-  }
-
   // FFmpeg status check
   if (req.url === '/__ffmpeg') {
     let ffOk = false
@@ -569,6 +552,14 @@ http.createServer((req, res) => {
     res.setHeader('Content-Type', 'application/json')
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.end(JSON.stringify({ ffmpegPath, ffOk, ffVer, static: ffmpegPathStatic, node: process.version, platform: process.platform, arch: process.arch }))
+    return
+  }
+
+  // Console log view endpoint
+  if (req.url === '/__logs') {
+    res.setHeader('Content-Type', 'application/json')
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.end(JSON.stringify(consoleLogs.slice(-200), null, 2))
     return
   }
 
