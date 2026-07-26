@@ -153,7 +153,9 @@ export default function Detail() {
     const { base_url, xtream_user, xtream_pass } = server
     const epId = parseInt(String(ep.stream_id || ep.id))
     const epExt = ep.container_extension || ''
-    window.location.href = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, epId, epExt)
+    window.location.href = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, epId, epExt, {
+      type: 'series', season: ep.season || '1', episode: ep.episode_num || '1'
+    })
   }
 
   if (loading) {
