@@ -128,22 +128,27 @@ export default function Dashboard() {
   const loadFullCategory = useCallback(async (catId: string, type: 'movie' | 'series') => {
     if (!server) return
     try {
+      const matchCat = (item: any, id: string) => {
+        if (String(item.category_id) === id) return true
+        if (item.category_ids?.some((c: any) => String(c) === id)) return true
+        return false
+      }
       if (type === 'movie') {
         if (allVods) {
-          setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => String(i.category_id) === catId) }))
+          setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId)) }))
           return
         }
         const items = await fetchVods(server.base_url, server.xtream_user, server.xtream_pass)
         setAllVods(items || [])
-        setVodItems(prev => ({ ...prev, [catId]: (items || []).filter((i: any) => String(i.category_id) === catId) }))
+        setVodItems(prev => ({ ...prev, [catId]: (items || []).filter((i: any) => matchCat(i, catId)) }))
       } else {
         if (allSeries) {
-          setSeriesItems(prev => ({ ...prev, [catId]: allSeries.filter((i: any) => String(i.category_id) === catId) }))
+          setSeriesItems(prev => ({ ...prev, [catId]: allSeries.filter((i: any) => matchCat(i, catId)) }))
           return
         }
         const items = await fetchSeries(server.base_url, server.xtream_user, server.xtream_pass)
         setAllSeries(items || [])
-        setSeriesItems(prev => ({ ...prev, [catId]: (items || []).filter((i: any) => String(i.category_id) === catId) }))
+        setSeriesItems(prev => ({ ...prev, [catId]: (items || []).filter((i: any) => matchCat(i, catId)) }))
       }
     } catch {}
   }, [server, allVods, allSeries])
