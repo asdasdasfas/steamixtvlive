@@ -4,7 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawn, execSync } from 'node:child_process'
-import { createGunzip } from 'node:zlib'
+import { ungzipSync } from 'node:zlib'
 import ffmpegPathStatic from 'ffmpeg-static'
 
 // Find or download ffmpeg — blocks server start until done
@@ -22,23 +22,19 @@ async function initFfmpeg() {
   if (process.platform !== 'linux') { console.log('[FFMPEG] not linux, skip download'); return }
   const dest = '/tmp/ffmpeg'
   if (fs.existsSync(dest)) { ffmpegPath = dest; try { fs.chmodSync(dest, 0o755) } catch {}; return }
-  const tmp = dest + '.gz'
   const url = 'https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-linux-x64.gz'
   console.log(`[FFMPEG] downloading from ${url} ...`)
-  return new Promise((resolve) => {
-    https.get(url, (res) => {
-      if (res.statusCode !== 200) { console.log(`[FFMPEG] HTTP ${res.statusCode}`); resolve(); return }
-      const f = fs.createWriteStream(tmp)
-      res.pipe(createGunzip()).pipe(f)
-      f.on('finish', () => {
-        f.close()
-        fs.rename(tmp, dest, () => {})
-        try { fs.chmodSync(dest, 0o755); ffmpegPath = dest } catch {}
-        console.log(`[FFMPEG] downloaded to ${dest}`)
-        resolve()
-      })
-    }).on('error', (e) => { console.log(`[FFMPEG] download error: ${e.message}`); resolve() })
-  })
+  try {
+    const resp = await fetch(url)
+    if (!resp.ok) { console.log(`[FFMPEG] HTTP ${resp.status}`); return }
+    const arr = await resp.arrayBuffer()
+    const buf = Buffer.from(arr)
+    // Download is gzipped, ungzip it
+    const bin = ungzipSync(buf)
+    fs.writeFileSync(dest, bin)
+    try { fs.chmodSync(dest, 0o755); ffmpegPath = dest } catch(e) { console.log(`[FFMPEG] chmod error: ${e.message}`) }
+    console.log(`[FFMPEG] downloaded to ${dest} (${bin.length} bytes)`)
+  } catch(e) { console.log(`[FFMPEG] download error: ${e.message}`) }
 }
 await initFfmpeg()
 console.log(`[FFMPEG] path=${ffmpegPath}`)
