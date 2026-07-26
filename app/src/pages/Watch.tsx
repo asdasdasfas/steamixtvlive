@@ -88,6 +88,7 @@ export default function Watch() {
   const [mxIntentUrl, setMxIntentUrl] = useState('')
   const [vlcIntentUrl, setVlcIntentUrl] = useState('')
   const [steamixIntentUrl, setSteamixIntentUrl] = useState('')
+  const [apkDownloadUrl] = useState('https://www.dropbox.com/s/xxxxx/SteamixPlayer-v1.0.apk?dl=1') // KULLANICI DOLDURACAK
 
   const streamId = params.get('stream_id')
   const rotationId = params.get('rotation_id')
@@ -249,24 +250,31 @@ export default function Watch() {
             ) : (
               <>
                 <VideoPlayer key={url} src={url} fallbackSrcs={fallbackUrls} title={title} onEnded={() => navigate(-1)} />
-                {isMobile && (mxIntentUrl || vlcIntentUrl || steamixIntentUrl) && (
-                  <div className="flex items-center justify-center gap-3 px-4 py-3 bg-black/60">
-                    <span className="text-[10px] text-gray-500 uppercase tracking-wider">Ses yok mu?</span>
-                    {steamixIntentUrl && (
-                      <a href={steamixIntentUrl} className="px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold transition">
-                        Steamix Player'da Aç
+                {isMobile && (steamixIntentUrl || mxIntentUrl || vlcIntentUrl) && (
+                  <div className="flex flex-col items-center gap-2 px-4 py-3 bg-black/60">
+                    <div className="flex items-center justify-center gap-3 flex-wrap">
+                      {steamixIntentUrl && (
+                        <a href={steamixIntentUrl} className="px-5 py-2.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-sm font-bold transition shadow-lg shadow-orange-600/30">
+                          Steamix Player'da İzle
+                        </a>
+                      )}
+                      <a href={apkDownloadUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-gray-500 hover:text-gray-300 underline">
+                        APK yüklü değil mi? İndir
                       </a>
-                    )}
-                    {mxIntentUrl && (
-                      <a href={mxIntentUrl} className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs transition">
-                        MX Player'da Aç
-                      </a>
-                    )}
-                    {vlcIntentUrl && (
-                      <a href={vlcIntentUrl} className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs transition">
-                        VLC'de Aç
-                      </a>
-                    )}
+                    </div>
+                    <div className="flex items-center justify-center gap-3">
+                      <span className="text-[10px] text-gray-500 uppercase tracking-wider">Alternatif:</span>
+                      {mxIntentUrl && (
+                        <a href={mxIntentUrl} className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs transition">
+                          MX Player
+                        </a>
+                      )}
+                      {vlcIntentUrl && (
+                        <a href={vlcIntentUrl} className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs transition">
+                          VLC
+                        </a>
+                      )}
+                    </div>
                   </div>
                 )}
               </>
