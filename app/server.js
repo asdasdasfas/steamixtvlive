@@ -4,7 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawn, execSync } from 'node:child_process'
-import { ungzipSync } from 'node:zlib'
+import { gunzipSync } from 'node:zlib'
 import ffmpegPathStatic from 'ffmpeg-static'
 
 // Find or download ffmpeg — blocks server start until done
@@ -30,7 +30,7 @@ async function initFfmpeg() {
     const arr = await resp.arrayBuffer()
     const buf = Buffer.from(arr)
     // Download is gzipped, ungzip it
-    const bin = ungzipSync(buf)
+    const bin = gunzipSync(buf)
     fs.writeFileSync(dest, bin)
     try { fs.chmodSync(dest, 0o755); ffmpegPath = dest } catch(e) { console.log(`[FFMPEG] chmod error: ${e.message}`) }
     console.log(`[FFMPEG] downloaded to ${dest} (${bin.length} bytes)`)
