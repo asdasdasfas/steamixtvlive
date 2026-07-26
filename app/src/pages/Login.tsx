@@ -176,7 +176,10 @@ export default function Login() {
             <div className="mt-6 pt-5 border-t border-white/5">
               <p className="text-xs text-gray-500 font-semibold mb-3 tracking-wider text-center">UYUMLU CİHAZLAR</p>
               <div className="space-y-3">
-                <p className="text-[11px] text-gray-600 font-semibold tracking-wider">✅ AC3 DESTEKLEYEN CİHAZLAR</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1 h-4 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
+                  <p className="text-[11px] text-gray-300 font-semibold tracking-wider">AC3 DESTEKLEYEN CİHAZLAR</p>
+                </div>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-xs text-gray-400">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
@@ -191,7 +194,10 @@ export default function Login() {
                     Android TV + APK yükleme — AC3 dahil uyumlu
                   </div>
                 </div>
-                <p className="text-[11px] text-gray-600 font-semibold tracking-wider pt-2">❌ AC3 DESTEKLEMEYEN CİHAZLAR</p>
+                <div className="flex items-center gap-2 mb-2 mt-4">
+                  <div className="w-1 h-4 bg-gradient-to-b from-red-400 to-red-600 rounded-full" />
+                  <p className="text-[11px] text-gray-300 font-semibold tracking-wider">AC3 DESTEKLEMEYEN CİHAZLAR</p>
+                </div>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-xs text-gray-400">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
