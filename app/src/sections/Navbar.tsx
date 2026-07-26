@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useLang } from '@/lib/language'
 import { useAuth } from '@/hooks/use-auth'
-import { Home, Tv, Film, Clapperboard, Search, Settings, LogOut, Globe, ChevronDown, Heart } from 'lucide-react'
+import { Home, Tv, Film, Clapperboard, Settings, LogOut, Globe, ChevronDown, Heart } from 'lucide-react'
 import { useState } from 'react'
 
 const allTabs = [
@@ -48,10 +48,7 @@ export default function Navbar() {
               ))}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => navigate('/dashboard?tab=search')} className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all" title={t('nav.search')}>
-              <Search className="w-4 h-4" />
-            </button>
+          <div className="flex items-center gap-2">            
             <div className="relative">
               <button onClick={() => setLangOpen(!langOpen)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all">
                 <Globe className="w-4 h-4" /><span className="hidden sm:inline">{langNames[lang]}</span><ChevronDown className={`w-3 h-3 transition-transform ${langOpen ? 'rotate-180' : ''}`} />

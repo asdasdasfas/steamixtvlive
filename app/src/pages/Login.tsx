@@ -171,6 +171,29 @@ export default function Login() {
                 {loading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />{t('login.loading')}</> : t('login.button')}
               </button>
             </form>
+
+            {/* Uyumlu Cihazlar */}
+            <div className="mt-6 pt-5 border-t border-white/5">
+              <p className="text-xs text-gray-500 font-semibold mb-3 tracking-wider text-center">UYUMLU CİHAZLAR</p>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                  Windows / macOS / Linux — Chrome, Edge, Firefox, Safari (Tam uyumlu)
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                  Android — Tarayıcı + Steamix Player APK ile tam uyumlu (AC3 dahil)
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                  Android TV / Smart TV — Tarayıcı veya APK yükleme ile
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                  iPhone / iPad (iOS / iPadOS) — APK kurulamaz, AC3 içerikler izlenemez
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
