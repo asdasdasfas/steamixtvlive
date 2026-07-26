@@ -12,10 +12,13 @@ const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|i
 const reorderUrls = (urls: string[]) => {
   if (!isMobile) return urls
   return [...urls].sort((a, b) => {
-    const aMkv = a.endsWith('.mkv'), bMkv = b.endsWith('.mkv')
-    if (aMkv && !bMkv) return 1   // MKV'yi sona at (mobilde AC3 ses yok)
-    if (!aMkv && bMkv) return -1  // HLS/MP4 önce dene (AAC ses var)
-    return 0
+    const score = (u: string) => {
+      if (u.endsWith('.mp4')) return 0   // MP4 en önce (AAC ses garantili)
+      if (u.endsWith('.m3u8')) return 1  // HLS ikinci (genelde AAC)
+      if (u.endsWith('.mkv')) return 3   // MKV en son (AC3 sessiz olabilir)
+      return 2
+    }
+    return score(a) - score(b)
   })
 }
 
