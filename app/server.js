@@ -305,26 +305,40 @@ function transcodeStream(req, res, sourceUrl, hop) {
   })
 }
 
-// Direct file transcode (MKV/MP4) — ffmpeg reads source URL directly, fallback to proxy if fails
+// Direct file transcode (MKV/MP4) — proxy source through server to ffmpeg stdin (preserves auth headers)
 function transcodeDirect(req, res, sourceUrl) {
-  // Capture req body upfront (for fallback proxy which needs req.on('end'))
   const bodyChunks = []
   req.on('data', c => bodyChunks.push(c))
   req.on('end', () => {
     const reqBody = bodyChunks.length > 0 ? Buffer.concat(bodyChunks) : undefined
     const opts = makeHttpOpts(sourceUrl, req.method, req.headers)
-    if (!ffmpegPath) { console.log(`[FFDIR] ffmpegPath null, proxy`); return doRequest(req.headers, opts, reqBody, 0, res) }
-    try { fs.accessSync(ffmpegPath) } catch(e) { console.log(`[FFDIR] ffmpeg not found: ${e.message}, proxy`); return doRequest(req.headers, opts, reqBody, 0, res) }
-    const outFmt = 'mp4'; const outCt = 'video/mp4'
+    if (!ffmpegPath) { res.writeHead(502,{'Content-Type':'text/plain'}); res.end('FFmpeg not available'); return }
+    const outCt = 'video/mp4'
     const extra = ['-movflags', 'frag_keyframe+empty_moov']
-    const ff = spawn(ffmpegPath, ['-nostats','-hide_banner','-probesize','2M','-analyzeduration','2M','-i',sourceUrl,'-c:v','copy','-c:a','aac','-ar','44100','-ac','2','-b:a','128k',...extra,'-f',outFmt,'-y','pipe:1'])
-    let hs = false
-    let timer = setTimeout(() => { if (!hs) { console.log(`[FFDIR] timeout 120s`); ff.kill(); doRequest(req.headers, opts, reqBody, 0, res) } }, 120000)
-    ff.stdout.on('data', d => { if (!hs) { hs = true; clearTimeout(timer); try { res.writeHead(200,{'Content-Type':outCt,'access-control-allow-origin':'*'}) } catch {} }; try { res.write(d) } catch {} })
-    ff.stderr.on('data', d => { console.log(`[FFDIR] ${d.toString().trim().substring(0,200)}`) })
-    ff.on('exit', (code, sig) => { clearTimeout(timer); console.log(`[FFDIR] exit code=${code} hs=${hs}`); if (hs) { try { res.end() } catch {} } else { doRequest(req.headers, opts, reqBody, 0, res) } })
-    ff.on('error', (e) => { clearTimeout(timer); console.log(`[FFDIR] spawn error: ${e.message}`); if (!hs) { doRequest(req.headers, opts, reqBody, 0, res) } })
-    req.on('close', () => { clearTimeout(timer); if (!hs) ff.kill() })
+    let done = false
+    const proxyReq = httpModule(opts).request(opts, proxyRes => {
+      if (done) return; done = true
+      const sc = proxyRes.statusCode || 200
+      if (sc >= 301 && sc <= 308 && proxyRes.headers.location) {
+        let loc = proxyRes.headers.location
+        if (!loc.startsWith('http://') && !loc.startsWith('https://')) {
+          const u = new URL(sourceUrl); loc = u.protocol + '//' + u.host + (u.port ? ':' + u.port : '') + (loc.startsWith('/') ? loc : '/' + loc)
+        }
+        proxyReq.destroy(); return transcodeDirect(req, res, loc)
+      }
+      if (sc >= 300) { res.writeHead(502,{'Content-Type':'text/plain'}); res.end(`Source HTTP ${sc}`); return }
+      console.log(`[FFDIR] source connected, spawning ffmpeg`)
+      const ff = spawn(ffmpegPath, ['-nostats','-hide_banner','-probesize','2M','-analyzeduration','2M','-i','pipe:0','-c:v','copy','-c:a','aac','-ar','44100','-ac','2','-b:a','128k',...extra,'-f','mp4','-y','pipe:1'])
+      let hs = false
+      let timer = setTimeout(() => { if (!hs) { console.log(`[FFDIR] timeout 120s`); ff.kill(); try { res.writeHead(504); res.end('Transcode timeout') } catch {} } }, 120000)
+      ff.stdout.on('data', d => { if (!hs) { hs = true; clearTimeout(timer); try { res.writeHead(200,{'Content-Type':outCt,'access-control-allow-origin':'*'}) } catch {} }; try { res.write(d) } catch {} })
+      ff.stderr.on('data', d => { console.log(`[FFDIR] ${d.toString().trim().substring(0,200)}`) })
+      ff.on('exit', (code, sig) => { clearTimeout(timer); console.log(`[FFDIR] exit code=${code} hs=${hs}`); if (hs) { try { res.end() } catch {} } else { try { res.writeHead(502); res.end(`FF exit ${code}`) } catch {} } })
+      ff.on('error', (e) => { clearTimeout(timer); console.log(`[FFDIR] error: ${e.message}`); if (!hs) { try { res.writeHead(502); res.end('Transcode error') } catch {} } })
+      proxyRes.pipe(ff.stdin); proxyRes.on('error', () => ff.kill()); req.on('close', () => ff.kill())
+    })
+    proxyReq.on('error', () => { if (done) return; done = true; try { res.writeHead(502); res.end('Proxy Error') } catch {} })
+    if (reqBody) proxyReq.write(reqBody); proxyReq.end()
   })
 }
 
