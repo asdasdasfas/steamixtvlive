@@ -3,8 +3,9 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { fetchVodInfo, fetchSeriesInfo, fetchVods, fetchSeries } from '@/lib/supabase'
 import DetailView from '@/sections/DetailView'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Download } from 'lucide-react'
 import { isFavorite, toggleFavorite } from '@/lib/favorites'
+import { buildSteamixIntentUrl, APK_DOWNLOAD_URL } from '@/lib/player-intents'
 
 export default function Detail() {
   const [params] = useSearchParams()
@@ -19,6 +20,7 @@ export default function Detail() {
   const [similar, setSimilar] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [isFav, setIsFav] = useState(isFavorite(parseInt(id || '0'), type as 'movie' | 'series'))
+  const [showApkPrompt, setShowApkPrompt] = useState(false)
 
   useEffect(() => {
     if (!id || !server) return
@@ -116,6 +118,54 @@ export default function Detail() {
     setIsFav(nowFav)
   }
 
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  const handlePlay = () => {
+    if (isMobile && (type === 'movie' || type === 'series') && server) {
+      const { base_url, xtream_user, xtream_pass } = server
+      const sid = parseInt(id || '0')
+      const url = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, sid, ext)
+      setShowApkPrompt(false)
+      const iframe = document.createElement('iframe')
+      iframe.style.display = 'none'
+      iframe.src = url
+      document.body.appendChild(iframe)
+      let fallback = setTimeout(() => {
+        document.body.removeChild(iframe)
+        setShowApkPrompt(true)
+      }, 1500)
+      const onVis = () => {
+        if (document.hidden) {
+          clearTimeout(fallback)
+          if (document.body.contains(iframe)) document.body.removeChild(iframe)
+        }
+      }
+      document.addEventListener('visibilitychange', onVis, { once: true })
+      return
+    }
+    if (type === 'series') {
+      const firstSeason = Object.keys(data.episodes || {})[0] || '1'
+      const firstEp = data.episodes?.[firstSeason]?.[0]
+      if (firstEp) {
+        const sp = new URLSearchParams({ stream_id: String(firstEp.id || firstEp.stream_id), type: 'series', season: firstSeason, episode: firstEp.episode_num })
+        if (firstEp.container_extension) sp.set('ext', firstEp.container_extension)
+        if (data.stream_icon) sp.set('icon', data.stream_icon)
+        sp.set('series_id', String(data.id))
+        navigate(`/watch?${sp}`)
+      } else {
+        const sp = new URLSearchParams({ stream_id: id!, type: 'series', season: '1', episode: '1' })
+        if (ext) sp.set('ext', ext)
+        if (data.stream_icon) sp.set('icon', data.stream_icon)
+        sp.set('series_id', String(data.id))
+        navigate(`/watch?${sp}`)
+      }
+    } else {
+      const sp = new URLSearchParams({ stream_id: id!, type })
+      if (ext) sp.set('ext', ext)
+      if (data.stream_icon) sp.set('icon', data.stream_icon)
+      navigate(`/watch?${sp}`)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
@@ -133,36 +183,30 @@ export default function Detail() {
   }
 
   return (
-    <DetailView
-      data={data}
-      similarItems={similar}
-      onSimilarClick={handleSimilarClick}
-      isFav={isFav}
-      onToggleFav={handleToggleFav}
-      onPlay={() => {
-        if (type === 'series') {
-          const firstSeason = Object.keys(data.episodes || {})[0] || '1'
-          const firstEp = data.episodes?.[firstSeason]?.[0]
-          if (firstEp) {
-            const sp = new URLSearchParams({ stream_id: String(firstEp.id || firstEp.stream_id), type: 'series', season: firstSeason, episode: firstEp.episode_num })
-            if (firstEp.container_extension) sp.set('ext', firstEp.container_extension)
-            if (data.stream_icon) sp.set('icon', data.stream_icon)
-            sp.set('series_id', String(data.id))
-            navigate(`/watch?${sp}`)
-          } else {
-            const sp = new URLSearchParams({ stream_id: id!, type: 'series', season: '1', episode: '1' })
-            if (ext) sp.set('ext', ext)
-            if (data.stream_icon) sp.set('icon', data.stream_icon)
-            sp.set('series_id', String(data.id))
-            navigate(`/watch?${sp}`)
-          }
-        } else {
-          const sp = new URLSearchParams({ stream_id: id!, type })
-          if (ext) sp.set('ext', ext)
-          if (data.stream_icon) sp.set('icon', data.stream_icon)
-          navigate(`/watch?${sp}`)
-        }
-      }}
-    />
+    <>
+      <DetailView
+        data={data}
+        similarItems={similar}
+        onSimilarClick={handleSimilarClick}
+        isFav={isFav}
+        onToggleFav={handleToggleFav}
+        onPlay={handlePlay}
+      />
+      {showApkPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-[#1e293b] rounded-2xl p-6 max-w-sm w-full shadow-xl">
+            <h3 className="text-white font-semibold text-lg mb-2">Steamix Player Gerekli</h3>
+            <p className="text-gray-400 text-sm mb-5">Bu içeriği izlemek için Steamix Player uygulamasını yüklemeniz gerekiyor.</p>
+            <a href={APK_DOWNLOAD_URL}
+              className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl bg-[#0099ff] text-white font-semibold text-sm hover:bg-[#0088ee] transition-all mb-3">
+              <Download className="w-4 h-4" />APK'yı İndir (2.8 MB)
+            </a>
+            <p className="text-xs text-gray-500 text-center">Kurulumdan sonra geri gelip tekrar <span className="text-[#0099ff]">İzle</span>'ye tıklayın.</p>
+            <button onClick={() => setShowApkPrompt(false)}
+              className="w-full mt-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">Kapat</button>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
