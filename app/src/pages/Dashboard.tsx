@@ -630,7 +630,7 @@ function MovieCategoryGrid({ selectedCat, categoryName }: any) {
     }, { rootMargin: '200px' })
     obs.observe(sentinelRef.current)
     return () => obs.disconnect()
-  }, [hasMore])
+  }, [hasMore, offset])
 
   const handleDetail = (item: any) => {
     const sp = new URLSearchParams({ id: String(item.stream_id), type: 'movie', cat: selectedCat })
@@ -697,7 +697,7 @@ function SeriesCategoryGrid({ selectedCat, categoryName }: any) {
     }, { rootMargin: '200px' })
     obs.observe(sentinelRef.current)
     return () => obs.disconnect()
-  }, [hasMore])
+  }, [hasMore, offset])
 
   const navigate = useNavigate()
   const handleDetail = (item: any) => {
