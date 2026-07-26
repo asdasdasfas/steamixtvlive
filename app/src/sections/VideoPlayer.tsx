@@ -31,9 +31,10 @@ const decodeProxyUrl = (url: string): string | null => {
 const openExternalPlayer = (url: string) => {
   const directUrl = decodeProxyUrl(url) || url
   const fullUrl = directUrl.startsWith('http') ? directUrl : window.location.origin + directUrl
+  const scheme = fullUrl.startsWith('https') ? 'https' : 'http'
   const hostPath = fullUrl.replace(/^https?:\/\//, '')
   const encUrl = encodeURIComponent(fullUrl)
-  const intentUrl = `intent://${hostPath}#Intent;package=com.mxtech.videoplayer.ad;action=android.intent.action.VIEW;type=video/*;S.browser_fallback_url=${encUrl};end`
+  const intentUrl = `intent://${hostPath}#Intent;package=com.mxtech.videoplayer.ad;action=android.intent.action.VIEW;type=video/*;scheme=${scheme};S.browser_fallback_url=${encUrl};end`
   window.location.href = intentUrl
 }
 

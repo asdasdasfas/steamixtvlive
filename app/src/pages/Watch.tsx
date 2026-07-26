@@ -60,11 +60,12 @@ function decodeProxyDirect(proxyPath: string): string | null {
 function buildPlayerIntents(proxyPath: string): { mx: string; vlc: string; raw: string } | null {
   const directUrl = decodeProxyDirect(proxyPath)
   if (!directUrl) return null
+  const scheme = directUrl.startsWith('https') ? 'https' : 'http'
   const hostPath = directUrl.replace(/^https?:\/\//, '')
   const encUrl = encodeURIComponent(directUrl)
   return {
-    mx: `intent://${hostPath}#Intent;package=com.mxtech.videoplayer.ad;action=android.intent.action.VIEW;type=video/*;S.browser_fallback_url=${encUrl};end`,
-    vlc: `intent://${hostPath}#Intent;package=org.videolan.vlc;action=android.intent.action.VIEW;type=video/*;S.browser_fallback_url=${encUrl};end`,
+    mx: `intent://${hostPath}#Intent;package=com.mxtech.videoplayer.ad;action=android.intent.action.VIEW;type=video/*;scheme=${scheme};S.browser_fallback_url=${encUrl};end`,
+    vlc: `intent://${hostPath}#Intent;package=org.videolan.vlc;action=android.intent.action.VIEW;type=video/*;scheme=${scheme};S.browser_fallback_url=${encUrl};end`,
     raw: directUrl,
   }
 }
