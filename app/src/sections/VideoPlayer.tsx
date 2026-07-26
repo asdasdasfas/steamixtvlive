@@ -91,18 +91,13 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
 
   // Detect which player to use for this source
   useEffect(() => {
-    const directMkv = isDirectMkv(src)
-    const isProxy = PROXY_PREFIXES.some(p => src.startsWith(p))
-    dbg(`KARAR: directMkv=${directMkv} mobil=${IS_MOBILE} proxy=${isProxy} src=${src?.substring(0,60)}`)
-    if (directMkv && !IS_MOBILE) {
+    if (IS_MOBILE) {
       setUseMediabunny(true)
-      dbg(`KARAR: Mediabunny (PC direct MKV)`)
-    } else if (IS_MOBILE && isProxy) {
-      setUseMediabunny(true)
-      dbg(`KARAR: Mediabunny (mobile proxy — AC3 decoder)`)
+      dbg(`KARAR: Mediabunny (mobile — AC3 decoder)`)
     } else {
-      setUseMediabunny(false)
-      dbg(`KARAR: native video/HLS`)
+      const directMkv = !!isDirectMkv(src)
+      dbg(`KARAR: PC directMkv=${directMkv}`)
+      setUseMediabunny(directMkv)
     }
   }, [src, fallbackSrcs])
 
