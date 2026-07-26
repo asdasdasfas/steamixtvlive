@@ -1,5 +1,4 @@
-import { useEffect, useRef, createElement } from 'react'
-import 'movi-player'
+import { useEffect, useRef, useState } from 'react'
 
 interface Props {
   src: string
@@ -9,32 +8,47 @@ interface Props {
 }
 
 export default function MoviPlayerWrapper({ src, poster, title, onEnded }: Props) {
-  const ref = useRef<any>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const playerRef = useRef<any>(null)
+  const [error, setError] = useState('')
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    if (onEnded) {
-      el.addEventListener('ended', onEnded)
-      return () => el.removeEventListener('ended', onEnded)
+    let cancelled = false
+    async function init() {
+      try {
+        const { MoviPlayer } = await import('movi-player/player')
+        if (cancelled || !canvasRef.current) return
+        const player = new MoviPlayer({
+          source: { type: 'url', url: src },
+          canvas: canvasRef.current,
+        })
+        playerRef.current = player
+        player.on('error', (e: any) => { if (!cancelled) setError(e?.message || 'Playback error') })
+        player.on('ended', () => onEnded?.())
+        await player.load()
+        if (!cancelled) { setLoaded(true); player.play() }
+      } catch (e: any) {
+        if (!cancelled) setError(e?.message || 'Failed to initialize player')
+      }
     }
-  }, [onEnded])
-
-  useEffect(() => {
-    if (ref.current) ref.current.src = src
+    init()
+    return () => { cancelled = true; playerRef.current?.destroy(); playerRef.current = null }
   }, [src])
 
-  return createElement('movi-player', {
-    ref,
-    src,
-    poster,
-    title,
-    controls: true,
-    autoplay: true,
-    muted: true,
-    playsinline: true,
-    theme: 'dark',
-    themecolor: '#0099ff',
-    style: { width: '100%', height: '100%', display: 'block' },
-  })
+  return (
+    <div className="w-full aspect-video bg-black relative">
+      <canvas ref={canvasRef} className="w-full h-full" />
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
+          <p className="text-sm text-red-400 max-w-xs text-center px-4">{error}</p>
+        </div>
+      )}
+      {!loaded && !error && (
+        <div className="absolute inset-0 flex items-center justify-center z-10">
+          <div className="w-8 h-8 border-2 border-[#0099ff] border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
+    </div>
+  )
 }

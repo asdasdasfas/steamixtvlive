@@ -406,7 +406,10 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
   const bufferedPct = duration > 0 ? (buffered / duration) * 100 : 0
 
-  if (IS_MOBILE && src) {
+  // Mobile: use MoviPlayer for non-HLS VOD, native/hls.js for HLS (live TV)
+  const srcNoQuery = (src || '').split('?')[0]
+  const isHls = srcNoQuery.endsWith('.m3u8')
+  if (IS_MOBILE && src && !isHls) {
     return (
       <MoviPlayerWrapper
         key={src}
