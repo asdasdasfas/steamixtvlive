@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import Hls from 'hls.js'
 import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForward } from 'lucide-react'
 import MediabunnyPlayer from './MediabunnyPlayer'
+import MoviPlayerWrapper from '@/components/MoviPlayerWrapper'
 
 
 const decodeProxyUrl = (url: string): string | null => {
@@ -85,22 +86,9 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     setUseMediabunny(!IS_MOBILE && directMkv)
   }, [src, fallbackSrcs])
 
-  // Build full URL list — mobile: AC3→AAC transcode via /audio-fix/, PC: Mediabunny
+  // Build full URL list — mobile: MoviPlayer (WASM/AC3), PC: Mediabunny
   useEffect(() => {
-    const rewrite = IS_MOBILE ? (u: string) => {
-      if (!u) return u
-      if (u.startsWith('/dyn/')) return '/audio-fix/' + u.slice(5)
-      if (u.startsWith('/p/')) return '/audio-fix/' + u.slice(3)
-      if (u.startsWith('/p2095/')) {
-        const b64 = btoa('http://dzcvip1.xyz:2095').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
-        return '/audio-fix/' + b64 + u.slice(7)
-      }
-      if (u.startsWith('/p8080/')) {
-        const b64 = btoa('http://ctn34.xyz:8080').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
-        return '/audio-fix/' + b64 + u.slice(7)
-      }
-      return u
-    } : (u: string) => u
+    const rewrite = (u: string) => u
     const urls = [rewrite(src), ...(fallbackSrcs || []).map(rewrite)]
     const filtered = urls.filter(Boolean)
     allUrlsRef.current = filtered
@@ -417,6 +405,18 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
   const bufferedPct = duration > 0 ? (buffered / duration) * 100 : 0
+
+  if (IS_MOBILE && src) {
+    return (
+      <MoviPlayerWrapper
+        key={src}
+        src={src}
+        poster={poster}
+        title={title}
+        onEnded={onEnded}
+      />
+    )
+  }
 
   if (useMediabunny && src) {
     return (

@@ -53,6 +53,7 @@
     "input-otp": "^1.4.2",
     "lucide-react": "^0.562.0",
     "mediabunny": "^1.51.0",
+    "movi-player": "^0.3.5",
     "mux.js": "^6.3.0",
     "next-themes": "^0.4.6",
     "react": "^19.2.0",

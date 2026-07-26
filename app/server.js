@@ -3,12 +3,9 @@ import https from 'node:https'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { spawn, execSync } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import { gunzipSync } from 'node:zlib'
-import ffmpegPath from 'ffmpeg-static'
-if (!ffmpegPath || !fs.existsSync(ffmpegPath)) {
-  try { const r = execSync('which ffmpeg 2>/dev/null || where ffmpeg 2>nul', { encoding: 'utf8' }); if (r.trim()) ffmpegPath = r.trim() } catch {}
-}
+let ffmpegPath = null
 
 const PORT = process.env.PORT || 5173
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
