@@ -88,7 +88,7 @@ export default function Watch() {
   const [mxIntentUrl, setMxIntentUrl] = useState('')
   const [vlcIntentUrl, setVlcIntentUrl] = useState('')
   const [steamixIntentUrl, setSteamixIntentUrl] = useState('')
-  const [apkDownloadUrl] = useState('https://www.dropbox.com/s/xxxxx/SteamixPlayer-v1.0.apk?dl=1') // KULLANICI DOLDURACAK
+  const [apkDownloadUrl] = useState('https://www.dropbox.com/scl/fi/dycgacn48jyb55zcv7u7m/app-arm64-v8a-release.apk?rlkey=gqccyxlnezl5u2if30n4pzmhz&st=1x4v2kl2&dl=1')
 
   const streamId = params.get('stream_id')
   const rotationId = params.get('rotation_id')
