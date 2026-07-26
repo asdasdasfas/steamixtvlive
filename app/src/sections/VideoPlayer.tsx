@@ -85,9 +85,22 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     setUseMediabunny(!IS_MOBILE && directMkv)
   }, [src, fallbackSrcs])
 
-  // Build full URL list — mobile: direkt native (sessiz), PC: Mediabunny
+  // Build full URL list — mobile: AC3→AAC transcode via /audio-fix/, PC: Mediabunny
   useEffect(() => {
-    const rewrite = (u: string) => u
+    const rewrite = IS_MOBILE ? (u: string) => {
+      if (!u) return u
+      if (u.startsWith('/dyn/')) return '/audio-fix/' + u.slice(5)
+      if (u.startsWith('/p/')) return '/audio-fix/' + u.slice(3)
+      if (u.startsWith('/p2095/')) {
+        const b64 = btoa('http://dzcvip1.xyz:2095').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
+        return '/audio-fix/' + b64 + u.slice(7)
+      }
+      if (u.startsWith('/p8080/')) {
+        const b64 = btoa('http://ctn34.xyz:8080').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
+        return '/audio-fix/' + b64 + u.slice(7)
+      }
+      return u
+    } : (u: string) => u
     const urls = [rewrite(src), ...(fallbackSrcs || []).map(rewrite)]
     const filtered = urls.filter(Boolean)
     allUrlsRef.current = filtered
