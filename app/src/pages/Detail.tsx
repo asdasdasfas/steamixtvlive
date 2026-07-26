@@ -5,7 +5,6 @@ import { fetchVodInfo, fetchSeriesInfo, fetchVods, fetchSeries } from '@/lib/sup
 import DetailView from '@/sections/DetailView'
 import { Loader2 } from 'lucide-react'
 import { isFavorite, toggleFavorite } from '@/lib/favorites'
-import { buildSteamixIntentUrl, APK_DOWNLOAD_URL, INSTALL_FLAG_KEY } from '@/lib/player-intents'
 
 export default function Detail() {
   const [params] = useSearchParams()
@@ -117,45 +116,6 @@ export default function Detail() {
     setIsFav(nowFav)
   }
 
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-  const handlePlay = () => {
-    if (isMobile && (type === 'movie' || type === 'series') && server && localStorage.getItem(INSTALL_FLAG_KEY)) {
-      const { base_url, xtream_user, xtream_pass } = server
-      window.location.href = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(id || '0'), ext)
-      return
-    }
-    if (type === 'series') {
-      const firstSeason = Object.keys(data.episodes || {})[0] || '1'
-      const firstEp = data.episodes?.[firstSeason]?.[0]
-      if (firstEp) {
-        const sp = new URLSearchParams({ stream_id: String(firstEp.id || firstEp.stream_id), type: 'series', season: firstSeason, episode: firstEp.episode_num })
-        if (firstEp.container_extension) sp.set('ext', firstEp.container_extension)
-        if (data.stream_icon) sp.set('icon', data.stream_icon)
-        sp.set('series_id', String(data.id))
-        navigate(`/watch?${sp}`)
-      } else {
-        const sp = new URLSearchParams({ stream_id: id!, type: 'series', season: '1', episode: '1' })
-        if (ext) sp.set('ext', ext)
-        if (data.stream_icon) sp.set('icon', data.stream_icon)
-        sp.set('series_id', String(data.id))
-        navigate(`/watch?${sp}`)
-      }
-    } else {
-      const sp = new URLSearchParams({ stream_id: id!, type })
-      if (ext) sp.set('ext', ext)
-      if (data.stream_icon) sp.set('icon', data.stream_icon)
-      navigate(`/watch?${sp}`)
-    }
-  }
-
-  const handleMobileEpisodePlay = (ep: any) => {
-    if (!server) return
-    const { base_url, xtream_user, xtream_pass } = server
-    const epId = parseInt(String(ep.stream_id || ep.id))
-    const epExt = ep.container_extension || ''
-    window.location.href = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, epId, epExt, { type: 'series' })
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
@@ -179,12 +139,30 @@ export default function Detail() {
       onSimilarClick={handleSimilarClick}
       isFav={isFav}
       onToggleFav={handleToggleFav}
-      onPlay={handlePlay}
-      isMobile={isMobile}
-      server={server}
-      streamId={parseInt(id || '0')}
-      ext={ext}
-      onMobileEpisodePlay={isMobile ? handleMobileEpisodePlay : undefined}
+      onPlay={() => {
+        if (type === 'series') {
+          const firstSeason = Object.keys(data.episodes || {})[0] || '1'
+          const firstEp = data.episodes?.[firstSeason]?.[0]
+          if (firstEp) {
+            const sp = new URLSearchParams({ stream_id: String(firstEp.id || firstEp.stream_id), type: 'series', season: firstSeason, episode: firstEp.episode_num })
+            if (firstEp.container_extension) sp.set('ext', firstEp.container_extension)
+            if (data.stream_icon) sp.set('icon', data.stream_icon)
+            sp.set('series_id', String(data.id))
+            navigate(`/watch?${sp}`)
+          } else {
+            const sp = new URLSearchParams({ stream_id: id!, type: 'series', season: '1', episode: '1' })
+            if (ext) sp.set('ext', ext)
+            if (data.stream_icon) sp.set('icon', data.stream_icon)
+            sp.set('series_id', String(data.id))
+            navigate(`/watch?${sp}`)
+          }
+        } else {
+          const sp = new URLSearchParams({ stream_id: id!, type })
+          if (ext) sp.set('ext', ext)
+          if (data.stream_icon) sp.set('icon', data.stream_icon)
+          navigate(`/watch?${sp}`)
+        }
+      }}
     />
   )
 }

@@ -171,49 +171,6 @@ export default function Login() {
                 {loading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />{t('login.loading')}</> : t('login.button')}
               </button>
             </form>
-
-            {/* Uyumlu Cihazlar */}
-            <div className="mt-6 pt-5 border-t border-white/5">
-              <p className="text-xs text-gray-500 font-semibold mb-3 tracking-wider text-center">UYUMLU CİHAZLAR</p>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-1 h-4 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
-                  <p className="text-[11px] text-gray-300 font-semibold tracking-wider">AC3 DESTEKLEYEN CİHAZLAR</p>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                    Windows (Chrome, Edge) — AC3 dahil tam uyumlu
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                    Android + Steamix Player APK — AC3 dahil tam uyumlu
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                    Android TV + APK yükleme — AC3 dahil uyumlu
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 mb-2 mt-4">
-                  <div className="w-1 h-4 bg-gradient-to-b from-red-400 to-red-600 rounded-full" />
-                  <p className="text-[11px] text-gray-300 font-semibold tracking-wider">AC3 DESTEKLEMEYEN CİHAZLAR</p>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                    macOS / Linux — Tarayıcı ile izlenebilir (AC3 hariç)
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                    Smart TV (LG webOS, Samsung Tizen) — Tarayıcı ile izlenebilir (AC3 hariç)
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                    iPhone / iPad (iOS / iPadOS) — AC3 içerikler izlenemez
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

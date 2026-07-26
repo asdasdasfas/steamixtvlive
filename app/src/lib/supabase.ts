@@ -79,13 +79,14 @@ export interface XtreamLiveStream {
 
 export interface XtreamVod {
   num: number; name: string; stream_type: string; stream_id: number
-  stream_icon: string; rating: string; rating_5based: number; added: string
+  stream_icon: string; cover_big?: string; rating: string; rating_5based: number; added: string
   category_id: string; category_ids: number[]; container_extension: string
 }
 
 export interface XtreamSeries {
   num: number; name: string; stream_type: string; series_id: number
-  stream_icon: string; rating: string; rating_5based: number; added: string
+  stream_icon: string; cover?: string; cover_big?: string; movie_image?: string; thumbnail?: string
+  rating: string; rating_5based: number; added: string
   category_id: string; category_ids: number[]
 }
 

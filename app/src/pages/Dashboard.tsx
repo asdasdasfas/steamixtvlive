@@ -30,6 +30,8 @@ export default function Dashboard() {
   const [seriesCats, setSeriesCats] = useState<any[]>([])
   const [vodItems, setVodItems] = useState<Record<string, any[]>>({})
   const [seriesItems, setSeriesItems] = useState<Record<string, any[]>>({})
+  const [allVods, setAllVods] = useState<any[] | null>(null)
+  const [allSeries, setAllSeries] = useState<any[] | null>(null)
   const scrollContainers = useRef<Record<string, HTMLDivElement | null>>({})
 
   const selectedCat = params.get('cat') || ''
@@ -126,12 +128,25 @@ export default function Dashboard() {
   const loadFullCategory = useCallback(async (catId: string, type: 'movie' | 'series') => {
     if (!server) return
     try {
-      const fetcher = type === 'movie' ? fetchVods : fetchSeries
-      const items = await fetcher(server.base_url, server.xtream_user, server.xtream_pass, catId)
-      const setter = type === 'movie' ? setVodItems : setSeriesItems
-      setter(prev => ({ ...prev, [catId]: items || [] }))
+      if (type === 'movie') {
+        if (allVods) {
+          setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => String(i.category_id) === catId) }))
+          return
+        }
+        const items = await fetchVods(server.base_url, server.xtream_user, server.xtream_pass)
+        setAllVods(items || [])
+        setVodItems(prev => ({ ...prev, [catId]: (items || []).filter((i: any) => String(i.category_id) === catId) }))
+      } else {
+        if (allSeries) {
+          setSeriesItems(prev => ({ ...prev, [catId]: allSeries.filter((i: any) => String(i.category_id) === catId) }))
+          return
+        }
+        const items = await fetchSeries(server.base_url, server.xtream_user, server.xtream_pass)
+        setAllSeries(items || [])
+        setSeriesItems(prev => ({ ...prev, [catId]: (items || []).filter((i: any) => String(i.category_id) === catId) }))
+      }
     } catch {}
-  }, [server])
+  }, [server, allVods, allSeries])
 
   // Kategorilere tıklandığında grid açılsın
   const setTab = (t: string) => {
@@ -376,7 +391,7 @@ export default function Dashboard() {
 
   // --- Lightweight card ---
   const renderCard = (item: any, type: string, onClick: (item: any) => void, sizeClass = 'w-36') => {
-    const posterSrc = type === 'series' ? (item.cover || item.thumbnail) : item.stream_icon
+    const posterSrc = type === 'series' ? (item.cover_big || item.movie_image || item.cover || item.thumbnail) : (item.cover_big || item.stream_icon)
     const cleanName = (item.name || '').replace(/[✓✔☑✗✘]/g, '')
     return (
       <button key={type === 'series' ? item.series_id : item.stream_id} onClick={() => onClick(item)}
@@ -434,7 +449,7 @@ export default function Dashboard() {
                         zIndex: i === currentSlide % heroItems.length ? 1 : 0,
                         transform: `scale(${i === currentSlide % heroItems.length ? 1 : 1.05})`,
                       }}>
-                      <Poster src={item.stream_icon} type="movie" className="object-top" />
+                      <Poster src={item.cover_big || item.stream_icon} type="movie" className="object-top" />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/60 to-transparent" />
                       <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
                         <p className="text-white font-bold text-xl md:text-3xl mb-2 drop-shadow-xl">{item.name}</p>
@@ -544,7 +559,7 @@ export default function Dashboard() {
             {/* Sağ panel - içerik */}
             <div className="flex-1 overflow-y-auto scrollbar-hide">
               {showMovieCategory && activeMovieCat ? (
-                <MovieCategoryGrid selectedCat={activeMovieCat} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} />
+                <MovieCategoryGrid items={vodItems[activeMovieCat]} loading={!allVods && !vodItems[activeMovieCat]} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
               )}
@@ -575,7 +590,7 @@ export default function Dashboard() {
             {/* Sağ panel - içerik */}
             <div className="flex-1 overflow-y-auto scrollbar-hide">
               {showSeriesCategory && activeSeriesCat ? (
-                <SeriesCategoryGrid selectedCat={activeSeriesCat} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} />
+                <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
               )}
@@ -603,94 +618,52 @@ export default function Dashboard() {
   )
 }
 
-function MovieCategoryGrid({ selectedCat, categoryName }: any) {
-  const { server } = useAuth()
+function MovieCategoryGrid({ items, loading, categoryName }: any) {
   const navigate = useNavigate()
-  const [allItems, setAllItems] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [visibleStart, setVisibleStart] = useState(0)
-  const [page, setPage] = useState(0)
-  const ITEMS_PER_PAGE = 150
-
-  useEffect(() => {
-    if (!server) return
-    setLoading(true)
-    setPage(0)
-    fetchVods(server.base_url, server.xtream_user, server.xtream_pass, selectedCat)
-      .then(data => setAllItems(data || []))
-      .catch(() => setAllItems([]))
-      .finally(() => setLoading(false))
-  }, [server, selectedCat])
 
   const handleDetail = (item: any) => {
-    const sp = new URLSearchParams({ id: String(item.stream_id), type: 'movie', cat: selectedCat })
-    if (item.stream_icon) sp.set('icon', item.stream_icon)
+    const sp = new URLSearchParams({ id: String(item.stream_id), type: 'movie', cat: item.category_id || '' })
+    if (item.cover_big || item.stream_icon) sp.set('icon', item.cover_big || item.stream_icon)
     if (item.container_extension) sp.set('ext', item.container_extension)
     navigate(`/detail?${sp}`)
   }
 
-  const totalPages = Math.ceil(allItems.length / ITEMS_PER_PAGE)
-  const visible = allItems.slice(0, (page + 1) * ITEMS_PER_PAGE)
-
   return (
     <div className="px-4 md:px-6 pt-3">
-      <h2 className="text-base font-bold text-white mb-1" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-        {categoryName} <span className="text-xs text-gray-500 font-normal">({allItems.length})</span>
+      <h2 className="text-base font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+        {categoryName} <span className="text-xs text-gray-500 font-normal">({items?.length || 0})</span>
       </h2>
       {loading ? (
         <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-[#0099ff] animate-spin" /></div>
       ) : (
-        <div ref={containerRef} className="overflow-y-auto scrollbar-hide" style={{ height: 'calc(100vh - 210px)' }}>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
-            {visible.map((s: any) => (
-              <div key={s.stream_id} className="group">
-                <button onClick={() => handleDetail(s)} className="w-full">
-                  <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
-                    <Poster src={s.stream_icon} type="movie" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
-                      <div className="w-14 h-14 rounded-full bg-[#0099ff] flex items-center justify-center shadow-[0_0_20px_rgba(0,153,255,0.6)] backdrop-blur-sm">
-                        <Play className="w-6 h-6 text-white ml-1 fill-white" />
-                      </div>
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
+          {(items || []).map((s: any) => (
+            <div key={s.stream_id} className="group" style={{ contentVisibility: 'auto' }}>
+              <button onClick={() => handleDetail(s)} className="w-full">
+                <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
+                  <Poster src={s.cover_big || s.stream_icon} type="movie" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
+                    <div className="w-14 h-14 rounded-full bg-[#0099ff] flex items-center justify-center shadow-[0_0_20px_rgba(0,153,255,0.6)] backdrop-blur-sm">
+                      <Play className="w-6 h-6 text-white ml-1 fill-white" />
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
-                </button>
-              </div>
-            ))}
-          </div>
-          {page + 1 < totalPages && (
-            <div className="flex justify-center py-6">
-              <button onClick={() => setPage(p => p + 1)} className="px-8 py-3 rounded-xl bg-[#0099ff]/20 text-[#0099ff] text-sm font-semibold hover:bg-[#0099ff]/30 transition-all">
-                Daha Fazla Göster ({(page + 1) * ITEMS_PER_PAGE}/{allItems.length})
+                </div>
+                <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
               </button>
             </div>
-          )}
+          ))}
         </div>
       )}
     </div>
   )
 }
 
-function SeriesCategoryGrid({ selectedCat, categoryName }: any) {
-  const { server } = useAuth()
-  const [allItems, setAllItems] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (!server) return
-    setLoading(true)
-    fetchSeries(server.base_url, server.xtream_user, server.xtream_pass, selectedCat)
-      .then(data => setAllItems(data || []))
-      .catch(() => setAllItems([]))
-      .finally(() => setLoading(false))
-  }, [server, selectedCat])
-
+function SeriesCategoryGrid({ items, loading, categoryName }: any) {
   const navigate = useNavigate()
   const handleDetail = (item: any) => {
-    const sp = new URLSearchParams({ id: String(item.series_id), type: 'series', cat: selectedCat })
-    if (item.cover || item.thumbnail) sp.set('icon', item.cover || item.thumbnail)
+    const sp = new URLSearchParams({ id: String(item.series_id), type: 'series', cat: item.category_id || '' })
+    if (item.cover_big || item.movie_image || item.cover || item.thumbnail) sp.set('icon', item.cover_big || item.movie_image || item.cover || item.thumbnail)
     navigate(`/detail?${sp}`)
   }
 
@@ -703,19 +676,21 @@ function SeriesCategoryGrid({ selectedCat, categoryName }: any) {
         <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-[#0099ff] animate-spin" /></div>
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
-          {allItems.map((s: any) => (
-            <button key={s.series_id} onClick={() => handleDetail(s)} className="group">
-              <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-2 group-hover:ring-[#14b8a6]/40">
-                <Poster src={s.cover || s.thumbnail} type="series" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
-                  <div className="w-14 h-14 rounded-full bg-[#14b8a6] flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.6)] backdrop-blur-sm">
-                    <Play className="w-6 h-6 text-white ml-1 fill-white" />
+          {(items || []).map((s: any) => (
+            <div key={s.series_id} className="group" style={{ contentVisibility: 'auto' }}>
+              <button onClick={() => handleDetail(s)} className="w-full">
+                <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-2 group-hover:ring-[#14b8a6]/40">
+                  <Poster src={s.cover_big || s.movie_image || s.cover || s.thumbnail} type="series" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
+                    <div className="w-14 h-14 rounded-full bg-[#14b8a6] flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.6)] backdrop-blur-sm">
+                      <Play className="w-6 h-6 text-white ml-1 fill-white" />
+                    </div>
                   </div>
                 </div>
-              </div>
-              <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
-            </button>
+                <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
+              </button>
+            </div>
           ))}
         </div>
       )}
