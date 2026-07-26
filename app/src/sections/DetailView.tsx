@@ -126,7 +126,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
             </div>
 
             {/* Steamix Player Download Section (mobile only) */}
-            {isMobile && data.stream_type === 'movie' && server && (
+            {isMobile && (data.stream_type === 'movie' || data.stream_type === 'series') && server && (
               <div className="mb-6 p-4 rounded-xl bg-[#0099ff]/5 border border-[#0099ff]/10">
                 <p className="text-xs text-gray-400 mb-3 leading-relaxed">
                   Bu içerik <span className="text-[#0099ff] font-medium">AC3</span> ses formatı kullandığı için tarayıcınızda oynatılamaz. 
@@ -136,13 +136,15 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
                   className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl bg-[#0099ff] text-white font-semibold text-sm hover:bg-[#0088ee] transition-all mb-2">
                   <Download className="w-4 h-4" />Steamix Player İndir (2.8 MB)
                 </a>
-                <button onClick={() => {
-                  localStorage.setItem(INSTALL_FLAG_KEY, '1')
-                  window.location.href = buildSteamixIntentUrl(server.base_url, server.xtream_user, server.xtream_pass, streamId || 0, ext || '')
-                }}
-                  className="w-full px-5 py-2.5 rounded-xl bg-white/5 text-gray-300 font-medium text-xs hover:bg-white/10 hover:text-white transition-all">
-                  APK Kuruldu, İzle
-                </button>
+                {data.stream_type === 'movie' && (
+                  <button onClick={() => {
+                    localStorage.setItem(INSTALL_FLAG_KEY, '1')
+                    window.location.href = buildSteamixIntentUrl(server.base_url, server.xtream_user, server.xtream_pass, streamId || 0, ext || '')
+                  }}
+                    className="w-full px-5 py-2.5 rounded-xl bg-white/5 text-gray-300 font-medium text-xs hover:bg-white/10 hover:text-white transition-all">
+                    APK Kuruldu, İzle
+                  </button>
+                )}
               </div>
             )}
 
