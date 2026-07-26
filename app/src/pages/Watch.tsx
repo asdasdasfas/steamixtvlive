@@ -62,7 +62,8 @@ function decodeProxyDirect(proxyPath: string): string | null {
 // Build MX Player / VLC Android Intent URL from a proxy path
 function buildPlayerIntents(proxyPath: string): { mx: string; vlc: string; raw: string } | null {
   if (!proxyPath) return null
-  const absUrl = proxyPath.startsWith('http') ? proxyPath : window.location.origin + proxyPath
+  const directUrl = decodeProxyDirect(proxyPath) || proxyPath
+  const absUrl = directUrl.startsWith('http') ? directUrl : window.location.origin + directUrl
   const encUrl = encodeURIComponent(absUrl)
   return {
     mx: `intent:${absUrl}#Intent;package=com.mxtech.videoplayer.ad;action=android.intent.action.VIEW;type=video/*;S.browser_fallback_url=${encUrl};end`,
