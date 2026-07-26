@@ -22,9 +22,10 @@ interface Props {
   server?: { base_url: string; xtream_user: string; xtream_pass: string } | null
   streamId?: number
   ext?: string
+  onMobileEpisodePlay?: (ep: any) => void
 }
 
-export default function DetailView({ data, onPlay, similarItems, onSimilarClick, isFav, onToggleFav, isMobile, server, streamId, ext }: Props) {
+export default function DetailView({ data, onPlay, similarItems, onSimilarClick, isFav, onToggleFav, isMobile, server, streamId, ext, onMobileEpisodePlay }: Props) {
   const navigate = useNavigate()
   const [selectedSeason, setSelectedSeason] = useState('1')
   const similarRef = useRef<HTMLDivElement>(null)
@@ -178,11 +179,15 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
                   ) : (
                     episodes.map((ep: any) => (
                       <button key={ep.id} onClick={() => {
-                        const sp = new URLSearchParams({ stream_id: String(ep.stream_id || ep.id), type: 'series', season: selectedSeason, episode: ep.episode_num })
-                        if (ep.container_extension) sp.set('ext', ep.container_extension)
-                        if (data.stream_icon) sp.set('icon', data.stream_icon)
-                        sp.set('series_id', String(data.id))
-                        navigate(`/watch?${sp}`)
+                        if (isMobile && onMobileEpisodePlay) {
+                          onMobileEpisodePlay(ep)
+                        } else {
+                          const sp = new URLSearchParams({ stream_id: String(ep.stream_id || ep.id), type: 'series', season: selectedSeason, episode: ep.episode_num })
+                          if (ep.container_extension) sp.set('ext', ep.container_extension)
+                          if (data.stream_icon) sp.set('icon', data.stream_icon)
+                          sp.set('series_id', String(data.id))
+                          navigate(`/watch?${sp}`)
+                        }
                       }}
                         className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] hover:bg-white/10 transition-colors text-left border border-white/[0.03] hover:border-white/10">
                         <div className="w-9 h-9 rounded-lg bg-[#0099ff]/15 flex items-center justify-center shrink-0">

@@ -148,6 +148,14 @@ export default function Detail() {
     }
   }
 
+  const handleMobileEpisodePlay = (ep: any) => {
+    if (!server) return
+    const { base_url, xtream_user, xtream_pass } = server
+    const epId = parseInt(String(ep.stream_id || ep.id))
+    const epExt = ep.container_extension || ''
+    window.location.href = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, epId, epExt)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
@@ -176,6 +184,7 @@ export default function Detail() {
       server={server}
       streamId={parseInt(id || '0')}
       ext={ext}
+      onMobileEpisodePlay={isMobile ? handleMobileEpisodePlay : undefined}
     />
   )
 }
