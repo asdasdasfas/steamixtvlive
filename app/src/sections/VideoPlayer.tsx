@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import Hls from 'hls.js'
 import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForward } from 'lucide-react'
 import MediabunnyPlayer from './MediabunnyPlayer'
+import MoviPlayerCustom from '@/components/MoviPlayerCustom'
 
 
 
@@ -405,6 +406,21 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
   const bufferedPct = duration > 0 ? (buffered / duration) * 100 : 0
+
+  // Mobile VOD: MoviPlayer with WASM (AC3/EAC3 audio support)
+  const srcNoQuery = (src || '').split('?')[0]
+  const isHls = srcNoQuery.endsWith('.m3u8')
+  if (IS_MOBILE && src && !isHls) {
+    return (
+      <MoviPlayerCustom
+        key={src}
+        src={src}
+        poster={poster}
+        title={title}
+        onEnded={onEnded}
+      />
+    )
+  }
 
   if (useMediabunny && src) {
     return (
