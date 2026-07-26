@@ -130,73 +130,22 @@ function normalizeIcon(base: string, icon: string | undefined | null, _id?: numb
   return ''
 }
 
-function nonNull<T>(x: T | null): x is T { return x != null }
-
-const ITEMS_PER_PAGE = 500
-const MAX_PAGES = 50
-
-async function paginatedFetch<T>(url: string, itemsPerPage = ITEMS_PER_PAGE): Promise<T[]> {
-  const pagedUrl = `${url}&page=1&items_per_page=${itemsPerPage}`
-  const res = await fetch(pagedUrl)
-  if (!res.ok) throw new Error('Fetch failed')
-  const text = await res.text()
-  if (!text || text === '[]' || text === '{}') return []
-
-  let first: any
-  try { first = JSON.parse(text) } catch { return [] }
-
-  // Case: object with "data" array (pagination metadata)
-  if (first && typeof first === 'object' && !Array.isArray(first) && Array.isArray(first.data)) {
-    const total = first.total || first.data.length
-    const allItems: T[] = first.data.filter((i: any) => i != null)
-    const totalPages = Math.ceil(total / itemsPerPage)
-    if (totalPages <= 1) return allItems
-
-    const pages: Promise<T[]>[] = []
-    const pageCount = Math.min(totalPages - 1, MAX_PAGES - 1)
-    for (let p = 2; p <= pageCount + 1; p++) {
-      const pu = `${url}&page=${p}&items_per_page=${itemsPerPage}`
-      pages.push(
-        fetch(pu).then(r => r.ok ? r.text().then(t => {
-          try { const d = JSON.parse(t); return (d.data || []).filter((i: any) => i != null) }
-          catch { return [] as T[] }
-        }) : [] as T[]).catch(() => [] as T[])
-      )
-    }
-    const rest = await Promise.all(pages)
-    return allItems.concat(...rest)
-  }
-
-  // Case: plain array
-  if (Array.isArray(first)) {
-    if (first.length < itemsPerPage) return first.filter((i: any) => i != null)
-    const allItems: T[] = first.filter((i: any) => i != null)
-    for (let p = 2; p <= MAX_PAGES; p++) {
-      try {
-        const r = await fetch(`${url}&page=${p}&items_per_page=${itemsPerPage}`)
-        if (!r.ok) break
-        const txt = await r.text()
-        if (!txt) break
-        const d = JSON.parse(txt)
-        if (!Array.isArray(d) || d.length === 0) break
-        allItems.push(...d.filter((i: any) => i != null))
-        if (d.length < itemsPerPage) break
-      } catch { break }
-    }
-    return allItems
-  }
-
-  return []
-}
-
 export async function fetchAllVods(base: string, user: string, pass: string) {
   const u = `${xtUrl(base, user, pass)}&action=get_vod_streams`
-  return paginatedFetch<XtreamVod>(u)
+  const res = await fetch(u)
+  if (!res.ok) throw new Error('Failed to fetch all VODs')
+  const data = await res.json()
+  if (data && typeof data === 'object' && !Array.isArray(data) && Array.isArray(data.data)) return data.data as XtreamVod[]
+  return (data || []) as XtreamVod[]
 }
 
 export async function fetchAllSeries(base: string, user: string, pass: string) {
   const u = `${xtUrl(base, user, pass)}&action=get_series`
-  return paginatedFetch<XtreamSeries>(u)
+  const res = await fetch(u)
+  if (!res.ok) throw new Error('Failed to fetch all series')
+  const data = await res.json()
+  if (data && typeof data === 'object' && !Array.isArray(data) && Array.isArray(data.data)) return data.data as XtreamSeries[]
+  return (data || []) as XtreamSeries[]
 }
 
 export async function fetchVods(base: string, user: string, pass: string, catId?: string) {
