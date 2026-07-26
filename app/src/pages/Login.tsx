@@ -175,30 +175,36 @@ export default function Login() {
             {/* Uyumlu Cihazlar */}
             <div className="mt-6 pt-5 border-t border-white/5">
               <p className="text-xs text-gray-500 font-semibold mb-3 tracking-wider text-center">UYUMLU CİHAZLAR</p>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                  Windows — Chrome, Edge ile tam uyumlu (AC3 dahil)
+              <div className="space-y-3">
+                <p className="text-[11px] text-gray-600 font-semibold tracking-wider">✅ AC3 DESTEKLEYEN CİHAZLAR</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                    Windows (Chrome, Edge) — AC3 dahil tam uyumlu
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                    Android + Steamix Player APK — AC3 dahil tam uyumlu
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                    Android TV + APK yükleme — AC3 dahil uyumlu
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                  macOS / Linux — Chrome, Safari, Firefox ile izlenebilir (AC3 hariç)
-                </div>
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                  Android — Tarayıcı + Steamix Player APK ile tam uyumlu (AC3 dahil)
-                </div>
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                  Android TV — APK yükleme ile uyumlu
-                </div>
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                  Smart TV (LG webOS, Samsung Tizen) — Dahili tarayıcı ile izlenebilir (AC3 hariç)
-                </div>
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                  iPhone / iPad (iOS / iPadOS) — APK kurulamaz, AC3 içerikler izlenemez
+                <p className="text-[11px] text-gray-600 font-semibold tracking-wider pt-2">❌ AC3 DESTEKLEMEYEN CİHAZLAR</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                    macOS / Linux — Tarayıcı ile izlenebilir (AC3 hariç)
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                    Smart TV (LG webOS, Samsung Tizen) — Tarayıcı ile izlenebilir (AC3 hariç)
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                    iPhone / iPad (iOS / iPadOS) — AC3 içerikler izlenemez
+                  </div>
                 </div>
               </div>
             </div>
