@@ -15,11 +15,10 @@ const decodeProxyUrl = (url: string): string | null => {
 }
 
 const openExternalPlayer = (url: string) => {
-  const directUrl = decodeProxyUrl(url)
-  if (!directUrl) return
-  const hostPath = directUrl.replace(/^https?:\/\//, '')
-  const encUrl = encodeURIComponent(directUrl)
-  const intentUrl = `intent://${hostPath}#Intent;scheme=http;action=android.intent.action.VIEW;type=video%2F*;package=com.hdr.videoplayer;S.browser_fallback_url=${encUrl};end`
+  const fullUrl = url.startsWith('http') ? url : window.location.origin + url
+  const hostPath = fullUrl.replace(/^https?:\/\//, '')
+  const encUrl = encodeURIComponent(fullUrl)
+  const intentUrl = `intent://${hostPath}#Intent;package=com.mxtech.videoplayer.ad;action=android.intent.action.VIEW;type=video/*;S.browser_fallback_url=${encUrl};end`
   window.location.href = intentUrl
 }
 

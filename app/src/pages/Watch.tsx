@@ -19,21 +19,17 @@ const reorderUrls = (urls: string[]) => {
   })
 }
 
-// Convert any VOD proxy URL to its /audio-fix/ equivalent for AC3→AAC transcoding on mobile
-function toAudioFixUrl(url: string): string | null {
-  if (url.startsWith('/audio-fix/')) return null
-  const enc = (s: string) => btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
-  if (url.startsWith('/dyn/')) return '/audio-fix/' + url.slice('/dyn/'.length)
-  if (url.startsWith('/p/')) return '/audio-fix/' + url.slice('/p/'.length)
-  if (url.startsWith('/p2095/')) return '/audio-fix/' + enc('http://dzcvip1.xyz:2095') + url.slice('/p2095'.length)
-  if (url.startsWith('/p8080/')) return '/audio-fix/' + enc('http://dzcvip1.xyz:8080') + url.slice('/p8080'.length)
-  if (url.startsWith('/xtream-api/')) return '/audio-fix/' + enc('http://ctn34.xyz:8080') + url.slice('/xtream-api'.length)
-  if (url.startsWith('/xtream/')) return '/audio-fix/' + enc('http://dzcvip1.xyz:2095') + url.slice('/xtream'.length)
-  if (url.startsWith('/v/')) return '/audio-fix/' + url.slice('/v/'.length)
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    try { const u = new URL(url); const base = u.protocol + '//' + u.hostname + (u.port ? ':' + u.port : ''); const p = u.pathname + u.search; return '/audio-fix/' + enc(base) + p } catch {}
+// Build MX Player / VLC Android Intent URL from a proxy path
+function buildPlayerIntents(proxyPath: string): { mx: string; vlc: string; raw: string } | null {
+  if (!proxyPath || proxyPath.startsWith('http')) return null
+  const fullUrl = window.location.origin + proxyPath
+  const hostPath = fullUrl.replace(/^https?:\/\//, '')
+  const encUrl = encodeURIComponent(fullUrl)
+  return {
+    mx: `intent://${hostPath}#Intent;package=com.mxtech.videoplayer.ad;action=android.intent.action.VIEW;type=video/*;S.browser_fallback_url=${encUrl};end`,
+    vlc: `intent://${hostPath}#Intent;package=org.videolan.vlc;action=android.intent.action.VIEW;type=video/*;S.browser_fallback_url=${encUrl};end`,
+    raw: fullUrl,
   }
-  return null
 }
 
 export default function Watch() {
@@ -46,7 +42,8 @@ export default function Watch() {
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState('')
   const [nativePlayerUrl, setNativePlayerUrl] = useState('')
-  const [genericIntentUrl, setGenericIntentUrl] = useState('')
+  const [mxIntentUrl, setMxIntentUrl] = useState('')
+  const [vlcIntentUrl, setVlcIntentUrl] = useState('')
 
   const streamId = params.get('stream_id')
   const rotationId = params.get('rotation_id')
@@ -114,10 +111,9 @@ export default function Watch() {
               const mkvAt = ordered.findIndex(u => u.startsWith('/dyn/') && (u.endsWith('.mkv') || u.endsWith('.mp4')))
               if (mkvAt >= 0) {
                 const nativeUrl = ordered[mkvAt]
-                const fullUrl = window.location.origin + nativeUrl
-                const m3uFullUrl = window.location.origin + '/m3u/' + btoa(fullUrl).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
-                setNativePlayerUrl(fullUrl)
-                setGenericIntentUrl('intent://' + m3uFullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=application/x-mpegurl;scheme=https;end')
+                const intents = buildPlayerIntents(nativeUrl)
+                setNativePlayerUrl(intents?.raw || '')
+                if (intents) { setMxIntentUrl(intents.mx); setVlcIntentUrl(intents.vlc) }
                 setUrl(audioFixUrls[0]); setFallbackUrls(audioFixUrls.slice(1))
               } else {
                 setUrl(audioFixUrls[0]); setFallbackUrls(audioFixUrls.slice(1))
@@ -190,20 +186,24 @@ export default function Watch() {
       ) : isMobile && nativePlayerUrl && !rotationId ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-sm px-6">
-            <p className="text-base text-white font-semibold mb-1">Film / Dizi</p>
-            <p className="text-xs text-gray-500 mb-4">Ses codec uyumu için AAC'ye dönüştürülüyor. İlk açılışta 30-60sn sürebilir.</p>
-            <button onClick={() => { setNativePlayerUrl(''); setUrl(fallbackUrls[0] || ''); setFallbackUrls(fallbackUrls.slice(1)) }}
-              className="block w-full py-3.5 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-[#0099ff]/20">
-              İzle (AAC Ses)
+            <p className="text-base text-white font-semibold mb-2">{title || 'Film / Dizi'}</p>
+            <p className="text-xs text-gray-500 mb-5">Bu yayın AC3 ses codec'i kullanıyor. Harici oynatıcı ile açmanız önerilir.</p>
+            <button onClick={() => { window.location.href = mxIntentUrl }}
+              className="block w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-orange-500/20 mb-3">
+              MX Player'da Aç (Önerilen)
+            </button>
+            <button onClick={() => { window.location.href = vlcIntentUrl }}
+              className="block w-full py-3.5 rounded-xl bg-white/10 text-gray-300 text-sm hover:bg-white/20 transition-all mb-2">
+              VLC'de Aç
             </button>
             <div className="h-px bg-white/5 my-4" />
-            <button onClick={() => { window.location.href = genericIntentUrl }}
-              className="block w-full py-3 rounded-xl bg-white/10 text-gray-300 text-sm hover:bg-white/20 transition-all mb-2">
-              Player'da Aç (AC3)
+            <button onClick={() => { setNativePlayerUrl(''); setUrl(fallbackUrls[0] || ''); setFallbackUrls(fallbackUrls.slice(1)) }}
+              className="block w-full py-3 rounded-xl bg-white/5 text-gray-500 text-xs hover:text-white transition-all mb-2">
+              Tarayıcıda İzle (Ses Olmayabilir)
             </button>
             <button onClick={() => { navigator.share({ url: nativePlayerUrl }).catch(() => window.location.href = nativePlayerUrl) }}
-              className="w-full py-2.5 rounded-xl bg-white/5 text-gray-500 text-xs hover:text-white transition-all">
-              Paylaşarak Aç
+              className="w-full py-2 rounded-xl bg-white/5 text-gray-500 text-xs hover:text-white transition-all">
+              Paylaş
             </button>
           </div>
         </div>
