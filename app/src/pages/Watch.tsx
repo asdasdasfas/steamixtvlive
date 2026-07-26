@@ -119,7 +119,12 @@ export default function Watch() {
             const mkvAt = allUrls.findIndex(u => u.startsWith('/dyn/') && u.endsWith('.mkv'))
             const mp4At = mkvAt < 0 ? allUrls.findIndex(u => u.startsWith('/dyn/') && u.endsWith('.mp4')) : -1
             const found = mkvAt >= 0 ? mkvAt : mp4At
-            if (found >= 0) nativeUrl = allUrls[found]
+            if (found >= 0) {
+              // Extract path after base64 and prepend base_url directly (no decode roundtrip)
+              const proxyPath = allUrls[found]
+              const pathPart = proxyPath.substring(proxyPath.indexOf('/', 6))
+              nativeUrl = base_url.replace(/\/+$/, '') + pathPart
+            }
           }
           if (nativeUrl) {
             const intents = buildPlayerIntents(nativeUrl)
@@ -159,7 +164,9 @@ export default function Watch() {
               const mp4At = mkvAt < 0 ? ordered.findIndex(u => u.startsWith('/dyn/') && u.endsWith('.mp4')) : -1
               const found = mkvAt >= 0 ? mkvAt : mp4At
               if (found >= 0) {
-                const nativeUrl = ordered[found]
+                const proxyPath = ordered[found]
+                const pathPart = proxyPath.substring(proxyPath.indexOf('/', 6))
+                const nativeUrl = base_url.replace(/\/+$/, '') + pathPart
                 const intents = buildPlayerIntents(nativeUrl)
                 setNativePlayerUrl(intents?.raw || '')
                 if (intents) { setMxIntentUrl(intents.mx); setVlcIntentUrl(intents.vlc) }
