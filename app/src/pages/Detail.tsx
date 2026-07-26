@@ -123,12 +123,21 @@ export default function Detail() {
     if (isMobile && (type === 'movie' || type === 'series') && server) {
       const { base_url, xtream_user, xtream_pass } = server
       const url = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(id || '0'), ext)
-      window.location.href = url
+      setShowApkPrompt(false)
+      const iframe = document.createElement('iframe')
+      iframe.style.display = 'none'
+      iframe.src = url
+      document.body.appendChild(iframe)
       if (!localStorage.getItem(INSTALL_FLAG_KEY)) {
-        setShowApkPrompt(false)
-        let fallback = setTimeout(() => setShowApkPrompt(true), 1500)
+        let fallback = setTimeout(() => {
+          if (document.body.contains(iframe)) document.body.removeChild(iframe)
+          setShowApkPrompt(true)
+        }, 1500)
         const onVis = () => { if (document.hidden) clearTimeout(fallback) }
         document.addEventListener('visibilitychange', onVis, { once: true })
+      } else {
+        // Flag var ama APK hala yoksa iframe'i temizle (5sn sonra)
+        setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe) }, 5000)
       }
       return
     }
