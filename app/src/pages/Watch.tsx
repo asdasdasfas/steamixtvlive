@@ -242,30 +242,6 @@ export default function Watch() {
             <button onClick={() => navigate(-1)} className="px-5 py-2 rounded-lg bg-white/10 text-white text-sm">Geri Dön</button>
           </div>
         </div>
-      ) : isMobile && nativePlayerUrl && !rotationId ? (
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center max-w-sm px-6">
-            <p className="text-base text-white font-semibold mb-2">{title || 'Film / Dizi'}</p>
-            <p className="text-xs text-gray-500 mb-5">Bu yayın AC3 ses codec'i kullanıyor. Harici oynatıcı ile açmanız önerilir.</p>
-            <button onClick={() => { window.location.href = mxIntentUrl }}
-              className="block w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-orange-500/20 mb-3">
-              MX Player'da Aç (Önerilen)
-            </button>
-            <button onClick={() => { window.location.href = vlcIntentUrl }}
-              className="block w-full py-3.5 rounded-xl bg-white/10 text-gray-300 text-sm hover:bg-white/20 transition-all mb-2">
-              VLC'de Aç
-            </button>
-            <div className="h-px bg-white/5 my-4" />
-            <button onClick={() => { setNativePlayerUrl(''); setUrl(fallbackUrls[0] || ''); setFallbackUrls(fallbackUrls.slice(1)) }}
-              className="block w-full py-3 rounded-xl bg-white/5 text-gray-500 text-xs hover:text-white transition-all mb-2">
-              Tarayıcıda İzle (Ses Olmayabilir)
-            </button>
-            <button onClick={() => { navigator.share({ url: nativePlayerUrl }).catch(() => window.location.href = nativePlayerUrl) }}
-              className="w-full py-2 rounded-xl bg-white/5 text-gray-500 text-xs hover:text-white transition-all">
-              Paylaş
-            </button>
-          </div>
-        </div>
       ) : url ? (
         <div className="flex-1 flex items-center justify-center bg-black">
           <div className="w-full max-w-full md:max-w-5xl">
