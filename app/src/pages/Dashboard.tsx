@@ -128,19 +128,24 @@ export default function Dashboard() {
   const loadFullCategory = useCallback(async (catId: string, type: 'movie' | 'series') => {
     if (!server) return
     try {
-      const primaryCatId = (item: any): string | null => {
+      const matchCat = (item: any, id: string) => {
         const cid = item.category_id
-        if (cid != null && String(cid).trim() !== '' && String(cid) !== '0') return String(cid)
-        const alt = item.category_ids?.find((c: any) => String(c).trim() !== '' && String(c) !== '0')
-        return alt != null ? String(alt) : null
+        if (cid != null && String(cid).trim() !== '' && String(cid) !== '0' && String(cid) === id) return true
+        return item.category_ids?.includes(Number(id))
       }
-      const matchCat = (item: any, id: string) => primaryCatId(item) === id
       if (type === 'movie') {
         if (allVods) {
           setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId)) }))
           return
         }
-        const items = await fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass)
+        let items = await fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass)
+        if (!items || items.length === 0) {
+          items = (await Promise.all(vodCats.map(c =>
+            fetchVods(server.base_url, server.xtream_user, server.xtream_pass, c.category_id).catch(() => [])
+          ))).flat()
+          const seen = new Set<number>()
+          items = items.filter((i: any) => { const k = Number(i.stream_id); if (seen.has(k)) return false; seen.add(k); return true })
+        }
         setAllVods(items || [])
         setVodItems(prev => ({ ...prev, [catId]: (items || []).filter((i: any) => matchCat(i, catId)) }))
       } else {
@@ -148,12 +153,19 @@ export default function Dashboard() {
           setSeriesItems(prev => ({ ...prev, [catId]: allSeries.filter((i: any) => matchCat(i, catId)) }))
           return
         }
-        const items = await fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass)
+        let items = await fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass)
+        if (!items || items.length === 0) {
+          items = (await Promise.all(seriesCats.map(c =>
+            fetchSeries(server.base_url, server.xtream_user, server.xtream_pass, c.category_id).catch(() => [])
+          ))).flat()
+          const seen = new Set<number>()
+          items = items.filter((i: any) => { const k = Number(i.series_id); if (seen.has(k)) return false; seen.add(k); return true })
+        }
         setAllSeries(items || [])
         setSeriesItems(prev => ({ ...prev, [catId]: (items || []).filter((i: any) => matchCat(i, catId)) }))
       }
     } catch {}
-  }, [server, allVods, allSeries])
+  }, [server, allVods, allSeries, vodCats, seriesCats])
 
   // Kategorilere tıklandığında grid açılsın
   const setTab = (t: string) => {

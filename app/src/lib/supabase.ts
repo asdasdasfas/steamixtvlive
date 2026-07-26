@@ -130,22 +130,32 @@ function normalizeIcon(base: string, icon: string | undefined | null, _id?: numb
   return ''
 }
 
-export async function fetchAllVods(base: string, user: string, pass: string) {
-  const u = `${xtUrl(base, user, pass)}&action=get_vod_streams`
-  const res = await fetch(u)
-  if (!res.ok) throw new Error('Failed to fetch all VODs')
-  const data = await res.json()
-  if (data && typeof data === 'object' && !Array.isArray(data) && Array.isArray(data.data)) return data.data as XtreamVod[]
-  return (data || []) as XtreamVod[]
+async function tryFetchAll<T>(url: string): Promise<T[] | null> {
+  try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 15000)
+    const res = await fetch(url, { signal: controller.signal })
+    clearTimeout(timeout)
+    if (!res.ok) return null
+    const text = await res.text()
+    if (!text || text === '[]' || text === '{}') return null
+    const data = JSON.parse(text)
+    if (data && typeof data === 'object' && !Array.isArray(data) && Array.isArray(data.data)) return data.data as T[]
+    if (Array.isArray(data)) return data as T[]
+    return null
+  } catch { return null }
 }
 
-export async function fetchAllSeries(base: string, user: string, pass: string) {
+export async function fetchAllVods(base: string, user: string, pass: string): Promise<XtreamVod[]> {
+  const u = `${xtUrl(base, user, pass)}&action=get_vod_streams`
+  const result = await tryFetchAll<XtreamVod>(u)
+  return result || []
+}
+
+export async function fetchAllSeries(base: string, user: string, pass: string): Promise<XtreamSeries[]> {
   const u = `${xtUrl(base, user, pass)}&action=get_series`
-  const res = await fetch(u)
-  if (!res.ok) throw new Error('Failed to fetch all series')
-  const data = await res.json()
-  if (data && typeof data === 'object' && !Array.isArray(data) && Array.isArray(data.data)) return data.data as XtreamSeries[]
-  return (data || []) as XtreamSeries[]
+  const result = await tryFetchAll<XtreamSeries>(u)
+  return result || []
 }
 
 export async function fetchVods(base: string, user: string, pass: string, catId?: string) {
