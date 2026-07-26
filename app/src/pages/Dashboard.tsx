@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
-import { fetchCategories, fetchVods, fetchSeries } from '@/lib/supabase'
+import { fetchCategories, fetchVods, fetchSeries, fetchAllVods, fetchAllSeries } from '@/lib/supabase'
 import { parseRotationData } from '@/lib/rotation'
 import { getFavorites, removeFavorite } from '@/lib/favorites'
 import type { FavoriteItem } from '@/lib/favorites'
@@ -140,7 +140,7 @@ export default function Dashboard() {
           setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId)) }))
           return
         }
-        const items = await fetchVods(server.base_url, server.xtream_user, server.xtream_pass)
+        const items = await fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass)
         setAllVods(items || [])
         setVodItems(prev => ({ ...prev, [catId]: (items || []).filter((i: any) => matchCat(i, catId)) }))
       } else {
@@ -148,7 +148,7 @@ export default function Dashboard() {
           setSeriesItems(prev => ({ ...prev, [catId]: allSeries.filter((i: any) => matchCat(i, catId)) }))
           return
         }
-        const items = await fetchSeries(server.base_url, server.xtream_user, server.xtream_pass)
+        const items = await fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass)
         setAllSeries(items || [])
         setSeriesItems(prev => ({ ...prev, [catId]: (items || []).filter((i: any) => matchCat(i, catId)) }))
       }
