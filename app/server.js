@@ -3,41 +3,9 @@ import https from 'node:https'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { spawn, execSync } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import { gunzipSync } from 'node:zlib'
-import ffmpegPathStatic from 'ffmpeg-static'
-
-// Find or download ffmpeg — blocks server start until done
 let ffmpegPath = null
-async function initFfmpeg() {
-  // 1) Check ffmpeg-static
-  if (ffmpegPathStatic) { try { fs.accessSync(ffmpegPathStatic); ffmpegPath = ffmpegPathStatic; return } catch {} }
-  // 2) Check system PATH
-  if (!ffmpegPath) { try { ffmpegPath = execSync('which ffmpeg 2>/dev/null || where ffmpeg 2>nul', {encoding:'utf8'}).trim().split('\n')[0] || null } catch {} }
-  if (ffmpegPath) { try { fs.accessSync(ffmpegPath); return } catch { ffmpegPath = null } }
-  // 3) Check common locations
-  const commonPaths = ['/usr/bin/ffmpeg', '/usr/local/bin/ffmpeg', '/opt/bin/ffmpeg']
-  for (const p of commonPaths) { try { fs.accessSync(p); ffmpegPath = p; return } catch {} }
-  // 4) Download ffmpeg-static binary for linux-x64
-  if (process.platform !== 'linux') { console.log('[FFMPEG] not linux, skip download'); return }
-  const dest = '/tmp/ffmpeg'
-  if (fs.existsSync(dest)) { ffmpegPath = dest; try { fs.chmodSync(dest, 0o755) } catch {}; return }
-  const url = 'https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-linux-x64.gz'
-  console.log(`[FFMPEG] downloading from ${url} ...`)
-  try {
-    const resp = await fetch(url)
-    if (!resp.ok) { console.log(`[FFMPEG] HTTP ${resp.status}`); return }
-    const arr = await resp.arrayBuffer()
-    const buf = Buffer.from(arr)
-    // Download is gzipped, ungzip it
-    const bin = gunzipSync(buf)
-    fs.writeFileSync(dest, bin)
-    try { fs.chmodSync(dest, 0o755); ffmpegPath = dest } catch(e) { console.log(`[FFMPEG] chmod error: ${e.message}`) }
-    console.log(`[FFMPEG] downloaded to ${dest} (${bin.length} bytes)`)
-  } catch(e) { console.log(`[FFMPEG] download error: ${e.message}`) }
-}
-await initFfmpeg()
-console.log(`[FFMPEG] path=${ffmpegPath}`)
 
 const PORT = process.env.PORT || 5173
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -535,22 +503,6 @@ http.createServer((req, res) => {
       }
     } catch {}
     res.writeHead(502); res.end('Invalid m3u path'); return
-  }
-
-  // FFmpeg status check
-  if (req.url === '/__ffmpeg') {
-    let ffOk = false
-    let ffVer = 'not found'
-    try {
-      if (ffmpegPath) { fs.accessSync(ffmpegPath); ffOk = true }
-    } catch {}
-    if (ffOk) {
-      try { ffVer = execSync(`"${ffmpegPath}" -version 2>&1 | head -1`, {encoding:'utf8', timeout:5000}).trim() } catch(e) { ffVer = `error: ${e.message}` }
-    }
-    res.setHeader('Content-Type', 'application/json')
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.end(JSON.stringify({ ffmpegPath, ffOk, ffVer, static: ffmpegPathStatic, node: process.version, platform: process.platform, arch: process.arch }))
-    return
   }
 
   // Console log view endpoint

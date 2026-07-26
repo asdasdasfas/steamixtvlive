@@ -21,10 +21,6 @@ const decodeProxyUrl = (url: string): string | null => {
   if (pm) { const d = b64d(pm[1]); if (d) return d.replace(/\/+$/,'') + pm[2] }
   const vm = url.match(/^\/v\/([A-Za-z0-9\-_]+)(\/.*)$/)
   if (vm) { const d = b64d(vm[1]); if (d) return d.replace(/\/+$/,'') + vm[2] }
-  const af = url.match(/^\/audio-fix\/([A-Za-z0-9\-_]+)(\/.*)$/)
-  if (af) { const d = b64d(af[1]); if (d) return d.replace(/\/+$/,'') + af[2] }
-  const afs = url.match(/^\/audio-fix\/s\/([A-Za-z0-9\-_]+)$/)
-  if (afs) { const d = b64d(afs[1]); if (d) return d }
   return null
 }
 
@@ -36,13 +32,6 @@ const openExternalPlayer = (url: string) => {
   const encUrl = encodeURIComponent(fullUrl)
   const intentUrl = `intent://${hostPath}#Intent;package=com.mxtech.videoplayer.ad;action=android.intent.action.VIEW;type=video/*;scheme=${scheme};S.browser_fallback_url=${encUrl};end`
   window.location.href = intentUrl
-}
-
-const toAudioFix = (url: string) => {
-  if (url.startsWith('/dyn/') && !url.includes('.m3u8')) return url.replace('/dyn/', '/audio-fix/')
-  if (url.startsWith('/p2095/') && !url.includes('.m3u8')) return url.replace('/p2095/', '/audio-fix/')
-  if (url.startsWith('/p8080/') && !url.includes('.m3u8')) return url.replace('/p8080/', '/audio-fix/')
-  return url
 }
 
 const debugBuffer: string[] = []
@@ -96,9 +85,9 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     setUseMediabunny(!IS_MOBILE && directMkv)
   }, [src, fallbackSrcs])
 
-  // Build full URL list — mobile MKV'leri /audio-fix/ ile degistir
+  // Build full URL list — mobile: direkt native (sessiz), PC: Mediabunny
   useEffect(() => {
-    const rewrite = (u: string) => IS_MOBILE ? toAudioFix(u) : u
+    const rewrite = (u: string) => u
     const urls = [rewrite(src), ...(fallbackSrcs || []).map(rewrite)]
     const filtered = urls.filter(Boolean)
     allUrlsRef.current = filtered
@@ -152,7 +141,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const urlIdx = urlIndexRef.current
     const total = allUrlsRef.current.length
     const currentSrc = allUrlsRef.current[urlIdx] || ''
-    const maxStuck = currentSrc.startsWith('/audio-fix/') ? 20 : (currentSrc.endsWith('.mkv') ? 15 : 5)
+    const maxStuck = currentSrc.endsWith('.mkv') ? 15 : 5
     watchdogRef.current = setInterval(() => {
       if (!video || video.seeking) return
       if (video.readyState >= 2 && video.currentTime > lastProgressRef.current) {
@@ -200,14 +189,6 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       console.log(`[TRYURL] FETCH test: status=${r.status} ct=${ct}`)
       ctrl.abort()
     }).catch(() => {})
-    // Check if ffmpeg is available on server (for /audio-fix/ URLs)
-    if (currentSrc.startsWith('/audio-fix/')) {
-      fetch('/__ffmpeg').then(r => r.json()).then(d => {
-        console.log(`[FFMPEG] path=${d.ffmpegPath} ok=${d.ffOk} ver=${(d.ffVer||'').substring(0,80)} static=${d.static}`)
-        if (!d.ffOk) dbg(`UYARI: Sunucuda ffmpeg bulunamadi! AC3->AAC donusumu yapilamayacak.`) 
-      }).catch(() => {})
-    }
-
     // Destroy previous HLS and reset video element fully
     if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null }
     video.pause()
@@ -220,7 +201,6 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const isHls = srcNoQuery.endsWith('.m3u8')
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
     console.log(`[TRYURL] isHLS:${isHls} HLS.destek:${Hls.isSupported()} Safari:${isSafari}`)
-    if (currentSrc.startsWith('/audio-fix/')) dbg(`/audio-fix/ -> AC3->AAC transcode bekleniyor`)
 
     if (isHls && Hls.isSupported() && !isSafari) {
       const isVirtualHls = currentSrc.startsWith('/v/')

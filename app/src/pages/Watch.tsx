@@ -71,22 +71,6 @@ function buildPlayerIntents(proxyPath: string): { mx: string; vlc: string; raw: 
 }
 
 // Convert proxy URLs for server-side AC3→AAC transcoding (fallback)
-function toAudioFixUrl(url: string): string | null {
-  if (url.startsWith('/audio-fix/')) return null
-  const enc = (s: string) => btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
-  if (url.startsWith('/dyn/')) return '/audio-fix/' + url.slice('/dyn/'.length)
-  if (url.startsWith('/p/')) return '/audio-fix/' + url.slice('/p/'.length)
-  if (url.startsWith('/p2095/')) return '/audio-fix/' + enc('http://dzcvip1.xyz:2095') + url.slice('/p2095'.length)
-  if (url.startsWith('/p8080/')) return '/audio-fix/' + enc('http://dzcvip1.xyz:8080') + url.slice('/p8080'.length)
-  if (url.startsWith('/xtream-api/')) return '/audio-fix/' + enc('http://ctn34.xyz:8080') + url.slice('/xtream-api'.length)
-  if (url.startsWith('/xtream/')) return '/audio-fix/' + enc('http://dzcvip1.xyz:2095') + url.slice('/xtream'.length)
-  if (url.startsWith('/v/')) return '/audio-fix/' + url.slice('/v/'.length)
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    try { const u = new URL(url); const base = u.protocol + '//' + u.hostname + (u.port ? ':' + u.port : ''); const p = u.pathname + u.search; return '/audio-fix/' + enc(base) + p } catch {}
-  }
-  return null
-}
-
 export default function Watch() {
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
@@ -128,7 +112,6 @@ export default function Watch() {
           let finalUrls = allUrls
           let nativeUrl = ''
           if (isMobile) {
-            finalUrls = allUrls.map(u => toAudioFixUrl(u) || u)
             const mkvAt = allUrls.findIndex(u => u.startsWith('/dyn/') && (u.endsWith('.mkv') || u.endsWith('.mp4')))
             if (mkvAt >= 0) nativeUrl = allUrls[mkvAt]
           }
@@ -166,16 +149,15 @@ export default function Watch() {
           if (!cancelled) {
             const ordered = reorderUrls(allUrls)
             if (isMobile) {
-              const audioFixUrls = ordered.map(u => toAudioFixUrl(u) || u)
               const mkvAt = ordered.findIndex(u => u.startsWith('/dyn/') && (u.endsWith('.mkv') || u.endsWith('.mp4')))
               if (mkvAt >= 0) {
                 const nativeUrl = ordered[mkvAt]
                 const intents = buildPlayerIntents(nativeUrl)
                 setNativePlayerUrl(intents?.raw || '')
                 if (intents) { setMxIntentUrl(intents.mx); setVlcIntentUrl(intents.vlc) }
-                setUrl(audioFixUrls[0]); setFallbackUrls(audioFixUrls.slice(1))
+                setUrl(ordered[0]); setFallbackUrls(ordered.slice(1))
               } else {
-                setUrl(audioFixUrls[0]); setFallbackUrls(audioFixUrls.slice(1))
+                setUrl(ordered[0]); setFallbackUrls(ordered.slice(1))
               }
             } else {
               setUrl(ordered[0]); setFallbackUrls(ordered.slice(1))
