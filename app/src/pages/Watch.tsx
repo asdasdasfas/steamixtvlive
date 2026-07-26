@@ -202,6 +202,15 @@ export default function Watch() {
 
   useEffect(() => { resolveStream() }, [resolveStream])
 
+  // Auto-trigger Steamix Player on mobile VOD after URLs resolve
+  useEffect(() => {
+    if (isMobile && (type === 'movie' || type === 'series') && steamixIntentUrl && !rotationId) {
+      // Small delay to let the page render, then try the intent
+      const t = setTimeout(() => { window.location.href = steamixIntentUrl }, 800)
+      return () => clearTimeout(t)
+    }
+  }, [steamixIntentUrl, type, rotationId])
+
   const handleChannelChange = (newId: string, newUrl: string, newTitle: string) => {
     setUrl(newUrl); setTitle(newTitle); setLoading(false); setError(null)
     const sp = new URLSearchParams(params)
@@ -247,36 +256,26 @@ export default function Watch() {
           <div className="w-full max-w-full md:max-w-5xl">
             {rotationId ? (
               <LivePlayer channelId={rotationId} title={title} src={url} onEnded={() => navigate(-1)} onChannelChange={handleChannelChange} />
+            ) : isMobile && steamixIntentUrl ? (
+              <div className="flex flex-col items-center justify-center min-h-[80vh] px-6 gap-6">
+                {title && <h1 className="text-lg text-white font-semibold text-center">{title}</h1>}
+                <div className="flex flex-col items-center gap-4">
+                  <a href={steamixIntentUrl}
+                     className="px-8 py-4 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-base font-bold transition shadow-xl shadow-orange-600/40">
+                    Steamix Player'da İzle
+                  </a>
+                  <a href={apkDownloadUrl} target="_blank" rel="noopener noreferrer"
+                     className="text-xs text-gray-500 hover:text-gray-300 underline">
+                    Steamix Player APK'yı İndir & Kur
+                  </a>
+                  <p className="text-[10px] text-gray-600 text-center max-w-xs">
+                    İlk seferde APK'yı indirip kurun, sonraki tıklamalarda direkt açılır.
+                  </p>
+                </div>
+              </div>
             ) : (
               <>
                 <VideoPlayer key={url} src={url} fallbackSrcs={fallbackUrls} title={title} onEnded={() => navigate(-1)} />
-                {isMobile && (steamixIntentUrl || mxIntentUrl || vlcIntentUrl) && (
-                  <div className="flex flex-col items-center gap-2 px-4 py-3 bg-black/60">
-                    <div className="flex items-center justify-center gap-3 flex-wrap">
-                      {steamixIntentUrl && (
-                        <a href={steamixIntentUrl} className="px-5 py-2.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-sm font-bold transition shadow-lg shadow-orange-600/30">
-                          Steamix Player'da İzle
-                        </a>
-                      )}
-                      <a href={apkDownloadUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-gray-500 hover:text-gray-300 underline">
-                        APK yüklü değil mi? İndir
-                      </a>
-                    </div>
-                    <div className="flex items-center justify-center gap-3">
-                      <span className="text-[10px] text-gray-500 uppercase tracking-wider">Alternatif:</span>
-                      {mxIntentUrl && (
-                        <a href={mxIntentUrl} className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs transition">
-                          MX Player
-                        </a>
-                      )}
-                      {vlcIntentUrl && (
-                        <a href={vlcIntentUrl} className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs transition">
-                          VLC
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                )}
               </>
             )}
           </div>
