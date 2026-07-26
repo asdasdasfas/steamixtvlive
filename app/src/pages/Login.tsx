@@ -186,7 +186,7 @@ export default function Login() {
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                  Android TV / Smart TV — Tarayıcı veya APK yükleme ile
+                  Android TV / Smart TV — Tarayıcı veya APK yükleme ile uyumlu
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
