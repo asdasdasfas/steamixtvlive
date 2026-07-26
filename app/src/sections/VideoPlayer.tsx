@@ -91,14 +91,9 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
 
   // Detect which player to use for this source
   useEffect(() => {
-    if (IS_MOBILE) {
-      setUseMediabunny(true)
-      dbg(`KARAR: Mediabunny (mobile — AC3 decoder)`)
-    } else {
-      const directMkv = !!isDirectMkv(src)
-      dbg(`KARAR: PC directMkv=${directMkv}`)
-      setUseMediabunny(directMkv)
-    }
+    const directMkv = !!isDirectMkv(src)
+    dbg(`KARAR: mobil=${IS_MOBILE} directMkv=${directMkv}`)
+    setUseMediabunny(!IS_MOBILE && directMkv)
   }, [src, fallbackSrcs])
 
   // Build full URL list — mobile MKV'leri /audio-fix/ ile degistir
