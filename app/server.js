@@ -511,9 +511,9 @@ http.createServer((req, res) => {
           const isDirect = pathLower.endsWith('.mkv')||pathLower.endsWith('.mp4')
           console.log(`[AFIX] fullUrl=${url.substring(0,120)} isM3u8=${isM3u8} isDirect=${isDirect}`)
           if (isM3u8) return handleM3u8Vod(req, res, url)
-          if (isDirect) { console.log(`[AFIX] direct file -> transcodeDirect`); return transcodeDirect(req, res, url) }
-          console.log(`[AFIX] other -> transcodeDirect`)
-          return transcodeDirect(req, res, url)
+          if (isDirect) { console.log(`[AFIX] direct file -> transcodeStream (proxy+pipe)`); return transcodeStream(req, res, url) }
+          console.log(`[AFIX] other -> transcodeStream (proxy+pipe)`)
+          return transcodeStream(req, res, url)
         }
       } catch(e) { console.log(`[AFIX] decode error: ${e.message}`) }
     }
