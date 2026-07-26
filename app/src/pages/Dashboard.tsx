@@ -628,7 +628,7 @@ function MovieCategoryGrid({ selectedCat, categoryName }: any) {
   return (
     <div className="px-4 md:px-6 pt-3">
       <h2 className="text-base font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-        {categoryName}
+        {categoryName} <span className="text-xs text-gray-500 font-normal">(ID:{selectedCat} API:{allItems.length})</span>
       </h2>
       {loading ? (
         <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-[#0099ff] animate-spin" /></div>
