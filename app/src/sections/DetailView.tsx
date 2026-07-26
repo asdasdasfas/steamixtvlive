@@ -126,7 +126,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
             </div>
 
             {/* Steamix Player Download Section (mobile only) */}
-            {isMobile && (data.stream_type === 'movie' || data.stream_type === 'series') && server && (
+            {isMobile && data.stream_type === 'movie' && server && (
               <div className="mb-6 p-4 rounded-xl bg-[#0099ff]/5 border border-[#0099ff]/10">
                 <p className="text-xs text-gray-400 mb-3 leading-relaxed">
                   Bu içerik <span className="text-[#0099ff] font-medium">AC3</span> ses formatı kullandığı için tarayıcınızda oynatılamaz. 

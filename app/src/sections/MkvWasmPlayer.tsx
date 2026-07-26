@@ -11,12 +11,7 @@ const MUX_JS = '/assets/core/mux.min.js'
 const BUFFER_SIZE = 11.4
 const REFILL_THRESHOLD = 8
 
-const debugLogs: string[] = []
-function dbg(msg: string) {
-  debugLogs.push(`[${new Date().toISOString().slice(11,19)}] ${msg}`)
-  if (debugLogs.length > 500) debugLogs.splice(0, debugLogs.length - 500)
-  console.log('[WASM]', msg)
-}
+function dbg(..._args: any[]) {}
 
 interface MkvWasmPlayerProps {
   src: string
@@ -215,8 +210,6 @@ export default function MkvWasmPlayer({ src, poster, title, onEnded, onToggleFul
   return (
     <div ref={containerRef} className="relative bg-black group cursor-pointer" onClick={togglePlay} onMouseMove={startHideTimer}>
       <video ref={videoRef} className="w-full aspect-video object-contain" poster={poster} playsInline crossOrigin="anonymous" />
-      <button onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(debugLogs.join('\n')) }}
-        className="absolute top-2 right-2 z-30 w-7 h-7 rounded-full bg-yellow-500/80 flex items-center justify-center text-[10px] font-bold text-black">D</button>
       {title && <div className="absolute top-4 left-4 text-white text-sm font-medium drop-shadow-lg bg-black/40 px-3 py-1.5 rounded-lg">{title}</div>}
       {(loading || loadError) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
