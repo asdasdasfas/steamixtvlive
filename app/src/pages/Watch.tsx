@@ -11,13 +11,29 @@ const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|i
 
 const reorderUrls = (urls: string[]) => {
   if (!isMobile) return urls
-  // Mobile: MKV first (ffmpeg-wasm-mkv AC3→AAC remux icin), HLS/MP4 sonra
   return [...urls].sort((a, b) => {
     const aMkv = a.endsWith('.mkv'), bMkv = b.endsWith('.mkv')
-    if (aMkv && !bMkv) return -1  // MKV once
+    if (aMkv && !bMkv) return -1
     if (!aMkv && bMkv) return 1
     return 0
   })
+}
+
+// Convert any VOD proxy URL to its /audio-fix/ equivalent for AC3→AAC transcoding on mobile
+function toAudioFixUrl(url: string): string | null {
+  if (url.startsWith('/audio-fix/')) return null
+  const enc = (s: string) => btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
+  if (url.startsWith('/dyn/')) return '/audio-fix/' + url.slice('/dyn/'.length)
+  if (url.startsWith('/p/')) return '/audio-fix/' + url.slice('/p/'.length)
+  if (url.startsWith('/p2095/')) return '/audio-fix/' + enc('http://dzcvip1.xyz:2095') + url.slice('/p2095'.length)
+  if (url.startsWith('/p8080/')) return '/audio-fix/' + enc('http://dzcvip1.xyz:8080') + url.slice('/p8080'.length)
+  if (url.startsWith('/xtream-api/')) return '/audio-fix/' + enc('http://ctn34.xyz:8080') + url.slice('/xtream-api'.length)
+  if (url.startsWith('/xtream/')) return '/audio-fix/' + enc('http://dzcvip1.xyz:2095') + url.slice('/xtream'.length)
+  if (url.startsWith('/v/')) return '/audio-fix/' + url.slice('/v/'.length)
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    try { const u = new URL(url); const base = u.protocol + '//' + u.hostname + (u.port ? ':' + u.port : ''); const p = u.pathname + u.search; return '/audio-fix/' + enc(base) + p } catch {}
+  }
+  return null
 }
 
 export default function Watch() {
@@ -29,7 +45,8 @@ export default function Watch() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState('')
-
+  const [nativePlayerUrl, setNativePlayerUrl] = useState('')
+  const [genericIntentUrl, setGenericIntentUrl] = useState('')
 
   const streamId = params.get('stream_id')
   const rotationId = params.get('rotation_id')
@@ -56,8 +73,15 @@ export default function Watch() {
           const allUrls = reorderUrls(ext
             ? [vodUrlWithExt(base_url, xtream_user, xtream_pass, sid, ext), ...vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))]
             : vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid)))
+          let finalUrls = allUrls
+          let nativeUrl = ''
+          if (isMobile) {
+            finalUrls = allUrls.map(u => toAudioFixUrl(u) || u)
+            const mkvAt = allUrls.findIndex(u => u.startsWith('/dyn/') && (u.endsWith('.mkv') || u.endsWith('.mp4')))
+            if (mkvAt >= 0) nativeUrl = allUrls[mkvAt]
+          }
           if (!cancelled) { 
-            setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1))
+            setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1))
           }
           try {
             const info = await fetchVodInfo(base_url, xtream_user, xtream_pass, sid)
@@ -85,7 +109,22 @@ export default function Watch() {
           }
           if (!cancelled) {
             const ordered = reorderUrls(allUrls)
-            setUrl(ordered[0]); setFallbackUrls(ordered.slice(1))
+            if (isMobile) {
+              const audioFixUrls = ordered.map(u => toAudioFixUrl(u) || u)
+              const mkvAt = ordered.findIndex(u => u.startsWith('/dyn/') && (u.endsWith('.mkv') || u.endsWith('.mp4')))
+              if (mkvAt >= 0) {
+                const nativeUrl = ordered[mkvAt]
+                const fullUrl = window.location.origin + nativeUrl
+                const m3uFullUrl = window.location.origin + '/m3u/' + btoa(fullUrl).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
+                setNativePlayerUrl(fullUrl)
+                setGenericIntentUrl('intent://' + m3uFullUrl.replace(/^https?:\/\//, '') + '#Intent;action=android.intent.action.VIEW;type=application/x-mpegurl;scheme=https;end')
+                setUrl(audioFixUrls[0]); setFallbackUrls(audioFixUrls.slice(1))
+              } else {
+                setUrl(audioFixUrls[0]); setFallbackUrls(audioFixUrls.slice(1))
+              }
+            } else {
+              setUrl(ordered[0]); setFallbackUrls(ordered.slice(1))
+            }
           }
           try {
             const info = await fetchSeriesInfo(base_url, xtream_user, xtream_pass, sid)
@@ -146,6 +185,26 @@ export default function Watch() {
             <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-3" />
             <p className="text-sm text-red-400 mb-4">{error}</p>
             <button onClick={() => navigate(-1)} className="px-5 py-2 rounded-lg bg-white/10 text-white text-sm">Geri Dön</button>
+          </div>
+        </div>
+      ) : isMobile && nativePlayerUrl && !rotationId ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center max-w-sm px-6">
+            <p className="text-base text-white font-semibold mb-1">Film / Dizi</p>
+            <p className="text-xs text-gray-500 mb-4">Ses codec uyumu için AAC'ye dönüştürülüyor. İlk açılışta 30-60sn sürebilir.</p>
+            <button onClick={() => { setNativePlayerUrl(''); setUrl(fallbackUrls[0] || ''); setFallbackUrls(fallbackUrls.slice(1)) }}
+              className="block w-full py-3.5 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-[#0099ff]/20">
+              İzle (AAC Ses)
+            </button>
+            <div className="h-px bg-white/5 my-4" />
+            <button onClick={() => { window.location.href = genericIntentUrl }}
+              className="block w-full py-3 rounded-xl bg-white/10 text-gray-300 text-sm hover:bg-white/20 transition-all mb-2">
+              Player'da Aç (AC3)
+            </button>
+            <button onClick={() => { navigator.share({ url: nativePlayerUrl }).catch(() => window.location.href = nativePlayerUrl) }}
+              className="w-full py-2.5 rounded-xl bg-white/5 text-gray-500 text-xs hover:text-white transition-all">
+              Paylaşarak Aç
+            </button>
           </div>
         </div>
       ) : url ? (
