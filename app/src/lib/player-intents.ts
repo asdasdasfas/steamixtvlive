@@ -1,10 +1,19 @@
 const APK_PACKAGE = 'com.steamixtv.player'
 
-// Build direct upstream URL for Steamix Player intent
-export function buildSteamixIntentUrl(base_url: string, user: string, pass: string, streamId: number, ext: string): string {
+function buildDirectUrl(base_url: string, user: string, pass: string, streamId: number, ext: string): string {
   const path = `/movie/${user}/${pass}/${streamId}.${ext || 'mkv'}`
-  const directUrl = base_url.replace(/\/+$/, '') + path
-  // intent:// + package name → Android opens directly without chooser dialog
+  return base_url.replace(/\/+$/, '') + path
+}
+
+// When APK may not be installed — simple scheme, no package → fallback works
+export function buildSteamixIntentFallback(base_url: string, user: string, pass: string, streamId: number, ext: string): string {
+  const directUrl = buildDirectUrl(base_url, user, pass, streamId, ext)
+  return `steamixtv://play?url=${encodeURIComponent(directUrl)}`
+}
+
+// When APK is installed — intent:// + package → opens directly, no chooser
+export function buildSteamixIntentDirect(base_url: string, user: string, pass: string, streamId: number, ext: string): string {
+  const directUrl = buildDirectUrl(base_url, user, pass, streamId, ext)
   return `intent://play?url=${encodeURIComponent(directUrl)}#Intent;scheme=steamixtv;package=${APK_PACKAGE};end`
 }
 

@@ -5,7 +5,7 @@ import { fetchVodInfo, fetchSeriesInfo, fetchVods, fetchSeries } from '@/lib/sup
 import DetailView from '@/sections/DetailView'
 import { Loader2, Download } from 'lucide-react'
 import { isFavorite, toggleFavorite } from '@/lib/favorites'
-import { buildSteamixIntentUrl, APK_DOWNLOAD_URL, INSTALL_FLAG_KEY } from '@/lib/player-intents'
+import { buildSteamixIntentFallback, buildSteamixIntentDirect, APK_DOWNLOAD_URL, INSTALL_FLAG_KEY } from '@/lib/player-intents'
 
 export default function Detail() {
   const [params] = useSearchParams()
@@ -123,20 +123,17 @@ export default function Detail() {
     if (isMobile && (type === 'movie' || type === 'series') && server) {
       const { base_url, xtream_user, xtream_pass } = server
       const sid = parseInt(id || '0')
-      const url = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, sid, ext)
       if (localStorage.getItem(INSTALL_FLAG_KEY)) {
-        window.location.href = url
+        // APK installed → intent:// + package → direkt aç, seçim yok
+        window.location.href = buildSteamixIntentDirect(base_url, xtream_user, xtream_pass, sid, ext)
         return
       }
-      // First time: try intent, show modal on failure
+      // İlk sefer: steamixtv:// basit scheme, fallback modal çalışsın
+      window.location.href = buildSteamixIntentFallback(base_url, xtream_user, xtream_pass, sid, ext)
       setShowApkPrompt(false)
-      window.location.href = url
       let fallback = setTimeout(() => setShowApkPrompt(true), 1500)
-      const onVis = () => {
-        if (document.hidden) clearTimeout(fallback)
-      }
+      const onVis = () => { if (document.hidden) clearTimeout(fallback) }
       document.addEventListener('visibilitychange', onVis, { once: true })
-      localStorage.setItem(INSTALL_FLAG_KEY, '1')
       return
     }
     if (type === 'series') {
