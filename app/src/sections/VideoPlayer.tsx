@@ -442,12 +442,6 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       <button onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(debugBuffer.join('\n')).then(() => dbg('KOPYALANDI')).catch(() => dbg('KLIPBOARD HATA')) }}
         className="absolute top-2 right-2 z-30 w-7 h-7 rounded-full bg-yellow-500/80 flex items-center justify-center text-[10px] font-bold text-black">D</button>
       {title && <div className="absolute top-4 left-4 text-white text-sm font-medium drop-shadow-lg bg-black/40 px-3 py-1.5 rounded-lg">{title}</div>}
-      {IS_MOBILE && !playing && !loadError && (
-        <button onClick={e => { e.stopPropagation(); openExternalPlayer(allUrlsRef.current[0] || src) }}
-          className="absolute top-4 right-12 z-30 px-3 py-1.5 rounded-lg bg-orange-500/80 text-white text-xs font-medium backdrop-blur-sm">
-          MX Player'da Aç
-        </button>
-      )}
       {loadError && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
           <div className="text-center max-w-xs">
@@ -455,8 +449,6 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
             <div className="flex gap-2 justify-center">
               <button onClick={() => { setLoadError(''); urlIndexRef.current = 0; tryUrl(videoRef.current!) }}
                 className="px-4 py-2 rounded-lg bg-[#0099ff] text-white text-xs">Tekrar Dene</button>
-              <button onClick={() => openExternalPlayer(allUrlsRef.current[0] || src)}
-                className="px-4 py-2 rounded-lg bg-orange-500 text-white text-xs">MX Player</button>
             </div>
           </div>
         </div>
