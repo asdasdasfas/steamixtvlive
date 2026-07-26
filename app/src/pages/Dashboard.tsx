@@ -608,7 +608,7 @@ function MovieCategoryGrid({ selectedCat, categoryName }: any) {
   const navigate = useNavigate()
   const [allItems, setAllItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [offset, setOffset] = useState(50)
+  const [offset, setOffset] = useState(100)
   const sentinelRef = useRef<HTMLDivElement>(null)
   const visible = allItems.slice(0, offset)
   const hasMore = visible.length < allItems.length
@@ -616,7 +616,7 @@ function MovieCategoryGrid({ selectedCat, categoryName }: any) {
   useEffect(() => {
     if (!server) return
     setLoading(true)
-    setOffset(50)
+    setOffset(100)
     fetchVods(server.base_url, server.xtream_user, server.xtream_pass, selectedCat)
       .then(data => setAllItems(data || []))
       .catch(() => setAllItems([]))
@@ -676,7 +676,7 @@ function SeriesCategoryGrid({ selectedCat, categoryName }: any) {
   const { server } = useAuth()
   const [allItems, setAllItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [offset, setOffset] = useState(50)
+  const [offset, setOffset] = useState(100)
   const sentinelRef = useRef<HTMLDivElement>(null)
   const visible = allItems.slice(0, offset)
   const hasMore = visible.length < allItems.length
