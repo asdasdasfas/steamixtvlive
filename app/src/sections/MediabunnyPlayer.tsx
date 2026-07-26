@@ -33,6 +33,7 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const [fullscreen, setFullscreen] = useState(false)
   const [volume, setVolume] = useState(1)
   const [muted, setMuted] = useState(false)
+  const playStopRef = useRef<() => void>(() => {})
   const dbg = (..._args: any[]) => {}
 
   const playerRef = useRef<{
