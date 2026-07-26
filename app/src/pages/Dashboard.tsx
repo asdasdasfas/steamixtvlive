@@ -608,10 +608,15 @@ function MovieCategoryGrid({ selectedCat, categoryName }: any) {
   const navigate = useNavigate()
   const [allItems, setAllItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [visibleStart, setVisibleStart] = useState(0)
+  const [page, setPage] = useState(0)
+  const ITEMS_PER_PAGE = 150
 
   useEffect(() => {
     if (!server) return
     setLoading(true)
+    setPage(0)
     fetchVods(server.base_url, server.xtream_user, server.xtream_pass, selectedCat)
       .then(data => setAllItems(data || []))
       .catch(() => setAllItems([]))
@@ -625,31 +630,43 @@ function MovieCategoryGrid({ selectedCat, categoryName }: any) {
     navigate(`/detail?${sp}`)
   }
 
+  const totalPages = Math.ceil(allItems.length / ITEMS_PER_PAGE)
+  const visible = allItems.slice(0, (page + 1) * ITEMS_PER_PAGE)
+
   return (
     <div className="px-4 md:px-6 pt-3">
-      <h2 className="text-base font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-        {categoryName} <span className="text-xs text-gray-500 font-normal">(ID:{selectedCat} API:{allItems.length})</span>
+      <h2 className="text-base font-bold text-white mb-1" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+        {categoryName} <span className="text-xs text-gray-500 font-normal">({allItems.length})</span>
       </h2>
       {loading ? (
         <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-[#0099ff] animate-spin" /></div>
       ) : (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
-          {allItems.map((s: any) => (
-            <div key={s.stream_id} className="group">
-              <button onClick={() => handleDetail(s)} className="w-full">
-                <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
-                  <Poster src={s.stream_icon} type="movie" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
-                    <div className="w-14 h-14 rounded-full bg-[#0099ff] flex items-center justify-center shadow-[0_0_20px_rgba(0,153,255,0.6)] backdrop-blur-sm">
-                      <Play className="w-6 h-6 text-white ml-1 fill-white" />
+        <div ref={containerRef} className="overflow-y-auto scrollbar-hide" style={{ height: 'calc(100vh - 210px)' }}>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
+            {visible.map((s: any) => (
+              <div key={s.stream_id} className="group">
+                <button onClick={() => handleDetail(s)} className="w-full">
+                  <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
+                    <Poster src={s.stream_icon} type="movie" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
+                      <div className="w-14 h-14 rounded-full bg-[#0099ff] flex items-center justify-center shadow-[0_0_20px_rgba(0,153,255,0.6)] backdrop-blur-sm">
+                        <Play className="w-6 h-6 text-white ml-1 fill-white" />
+                      </div>
                     </div>
                   </div>
-                </div>
-                <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
+                  <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
+                </button>
+              </div>
+            ))}
+          </div>
+          {page + 1 < totalPages && (
+            <div className="flex justify-center py-6">
+              <button onClick={() => setPage(p => p + 1)} className="px-8 py-3 rounded-xl bg-[#0099ff]/20 text-[#0099ff] text-sm font-semibold hover:bg-[#0099ff]/30 transition-all">
+                Daha Fazla Göster ({(page + 1) * ITEMS_PER_PAGE}/{allItems.length})
               </button>
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>
