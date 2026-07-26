@@ -115,10 +115,12 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
 
             {/* Play + Favori */}
             <div className="flex items-center gap-3 mb-6">
+              {!(isMobile && isSeries) && (
               <button onClick={onPlay}
                 className="flex items-center gap-2.5 px-7 py-3 rounded-xl bg-[#0099ff] text-white font-semibold text-sm hover:bg-[#0088ee] transition-all shadow-lg shadow-[#0099ff]/20 hover:shadow-[#0099ff]/30">
                 <Play className="w-4 h-4 fill-white" />{isSeries ? 'Bölümleri Göster' : 'İzle'}
               </button>
+              )}
               <button onClick={onToggleFav}
                 className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all">
                 <Heart className={`w-5 h-5 transition-all ${isFav ? 'fill-red-500 text-red-500' : 'text-white'}`} />
