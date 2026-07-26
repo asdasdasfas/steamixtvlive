@@ -5,7 +5,7 @@ import { fetchVodInfo, fetchSeriesInfo, fetchVods, fetchSeries } from '@/lib/sup
 import DetailView from '@/sections/DetailView'
 import { Loader2, Download } from 'lucide-react'
 import { isFavorite, toggleFavorite } from '@/lib/favorites'
-import { buildSteamixIntentUrl, APK_DOWNLOAD_URL } from '@/lib/player-intents'
+import { buildSteamixIntentUrl, APK_DOWNLOAD_URL, INSTALL_FLAG_KEY } from '@/lib/player-intents'
 
 export default function Detail() {
   const [params] = useSearchParams()
@@ -124,22 +124,19 @@ export default function Detail() {
       const { base_url, xtream_user, xtream_pass } = server
       const sid = parseInt(id || '0')
       const url = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, sid, ext)
+      if (localStorage.getItem(INSTALL_FLAG_KEY)) {
+        window.location.href = url
+        return
+      }
+      // First time: try intent, show modal on failure
       setShowApkPrompt(false)
-      const iframe = document.createElement('iframe')
-      iframe.style.display = 'none'
-      iframe.src = url
-      document.body.appendChild(iframe)
-      let fallback = setTimeout(() => {
-        document.body.removeChild(iframe)
-        setShowApkPrompt(true)
-      }, 1500)
+      window.location.href = url
+      let fallback = setTimeout(() => setShowApkPrompt(true), 1500)
       const onVis = () => {
-        if (document.hidden) {
-          clearTimeout(fallback)
-          if (document.body.contains(iframe)) document.body.removeChild(iframe)
-        }
+        if (document.hidden) clearTimeout(fallback)
       }
       document.addEventListener('visibilitychange', onVis, { once: true })
+      localStorage.setItem(INSTALL_FLAG_KEY, '1')
       return
     }
     if (type === 'series') {
@@ -198,6 +195,7 @@ export default function Detail() {
             <h3 className="text-white font-semibold text-lg mb-2">Steamix Player Gerekli</h3>
             <p className="text-gray-400 text-sm mb-5">Bu içeriği izlemek için Steamix Player uygulamasını yüklemeniz gerekiyor.</p>
             <a href={APK_DOWNLOAD_URL}
+              onClick={() => localStorage.setItem(INSTALL_FLAG_KEY, '1')}
               className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl bg-[#0099ff] text-white font-semibold text-sm hover:bg-[#0088ee] transition-all mb-3">
               <Download className="w-4 h-4" />APK'yı İndir (2.8 MB)
             </a>
