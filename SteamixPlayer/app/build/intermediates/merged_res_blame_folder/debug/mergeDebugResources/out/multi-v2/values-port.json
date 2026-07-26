@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.steamixtv.player.app-mergeDebugResources-31:/values-port/values-port.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\sehab\\.gradle\\caches\\8.12\\transforms\\ce8d626bd5a82e62c1dc6a2a4454707e\\transformed\\appcompat-1.7.1\\res\\values-port\\values-port.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "55",
+                        "endOffsets": "106"
+                    }
+                }
+            ]
+        }
+    ]
+}

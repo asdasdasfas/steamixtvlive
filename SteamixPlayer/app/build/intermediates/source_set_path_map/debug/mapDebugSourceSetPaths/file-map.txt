@@ -1,0 +1,36 @@
+com.steamixtv.player.app-activity-1.10.1-0 C:\Users\sehab\.gradle\caches\8.12\transforms\15022ee7f7477642673d1418e78b4a2f\transformed\activity-1.10.1\res
+com.steamixtv.player.app-savedstate-1.2.1-1 C:\Users\sehab\.gradle\caches\8.12\transforms\2354a29b2681e3c32f9480ee1bce27ec\transformed\savedstate-1.2.1\res
+com.steamixtv.player.app-startup-runtime-1.1.1-2 C:\Users\sehab\.gradle\caches\8.12\transforms\290d40c583f3a37f4587781a5f25a53d\transformed\startup-runtime-1.1.1\res
+com.steamixtv.player.app-recyclerview-1.3.0-3 C:\Users\sehab\.gradle\caches\8.12\transforms\309cd3b4df40b354d194e7f7465a99a0\transformed\recyclerview-1.3.0\res
+com.steamixtv.player.app-customview-poolingcontainer-1.0.0-4 C:\Users\sehab\.gradle\caches\8.12\transforms\341294c7b28b7f68d015cc8d82de617b\transformed\customview-poolingcontainer-1.0.0\res
+com.steamixtv.player.app-lifecycle-viewmodel-2.6.2-5 C:\Users\sehab\.gradle\caches\8.12\transforms\3dcac4813e4efcd0b062f6219cfab534\transformed\lifecycle-viewmodel-2.6.2\res
+com.steamixtv.player.app-emoji2-views-helper-1.3.0-6 C:\Users\sehab\.gradle\caches\8.12\transforms\5dc3cd47ca3dd9737d370d901379b06d\transformed\emoji2-views-helper-1.3.0\res
+com.steamixtv.player.app-lifecycle-viewmodel-ktx-2.6.2-7 C:\Users\sehab\.gradle\caches\8.12\transforms\5dcb9d24057ff2dd35f99645b505ebc0\transformed\lifecycle-viewmodel-ktx-2.6.2\res
+com.steamixtv.player.app-emoji2-1.3.0-8 C:\Users\sehab\.gradle\caches\8.12\transforms\63440cca935c06956e8dfbf62a282320\transformed\emoji2-1.3.0\res
+com.steamixtv.player.app-lifecycle-runtime-2.6.2-9 C:\Users\sehab\.gradle\caches\8.12\transforms\644ddac10a5114ccb2fbcae40dcf560c\transformed\lifecycle-runtime-2.6.2\res
+com.steamixtv.player.app-annotation-experimental-1.4.1-10 C:\Users\sehab\.gradle\caches\8.12\transforms\65a3b6445fe8a7908ed5f2eeb4a96285\transformed\annotation-experimental-1.4.1\res
+com.steamixtv.player.app-lifecycle-livedata-core-2.6.2-11 C:\Users\sehab\.gradle\caches\8.12\transforms\7d6da811d03cb5fe8760e34d4033cb07\transformed\lifecycle-livedata-core-2.6.2\res
+com.steamixtv.player.app-core-1.15.0-12 C:\Users\sehab\.gradle\caches\8.12\transforms\7f1d3f748046df2ee45afcaee87dad39\transformed\core-1.15.0\res
+com.steamixtv.player.app-appcompat-resources-1.7.1-13 C:\Users\sehab\.gradle\caches\8.12\transforms\811dcc574ed303a2f41fca921a96eaba\transformed\appcompat-resources-1.7.1\res
+com.steamixtv.player.app-activity-ktx-1.10.1-14 C:\Users\sehab\.gradle\caches\8.12\transforms\9e4e3f2a188f1908581a9e2b7ee899b6\transformed\activity-ktx-1.10.1\res
+com.steamixtv.player.app-media3-exoplayer-1.9.2-15 C:\Users\sehab\.gradle\caches\8.12\transforms\a270a4aa271cdda791a8e3e867dce096\transformed\media3-exoplayer-1.9.2\res
+com.steamixtv.player.app-fragment-1.5.4-16 C:\Users\sehab\.gradle\caches\8.12\transforms\b2bdb5497105fa98a8bab458b5300259\transformed\fragment-1.5.4\res
+com.steamixtv.player.app-lifecycle-process-2.6.2-17 C:\Users\sehab\.gradle\caches\8.12\transforms\b589f6e5b37c9cdbd068437529febfa1\transformed\lifecycle-process-2.6.2\res
+com.steamixtv.player.app-lifecycle-viewmodel-savedstate-2.6.2-18 C:\Users\sehab\.gradle\caches\8.12\transforms\b5debc6c98134c5b9397a68b6610cda9\transformed\lifecycle-viewmodel-savedstate-2.6.2\res
+com.steamixtv.player.app-core-runtime-2.2.0-19 C:\Users\sehab\.gradle\caches\8.12\transforms\bc2543eebe7fd64c4a1db4cbec9e1a92\transformed\core-runtime-2.2.0\res
+com.steamixtv.player.app-tracing-1.2.0-20 C:\Users\sehab\.gradle\caches\8.12\transforms\be0118fc738531ab21e50797043e9da5\transformed\tracing-1.2.0\res
+com.steamixtv.player.app-savedstate-ktx-1.2.1-21 C:\Users\sehab\.gradle\caches\8.12\transforms\be97eb274c22b9ad6c995d290e2fe954\transformed\savedstate-ktx-1.2.1\res
+com.steamixtv.player.app-core-ktx-1.15.0-22 C:\Users\sehab\.gradle\caches\8.12\transforms\c8703453ef203cb6327d79256d296339\transformed\core-ktx-1.15.0\res
+com.steamixtv.player.app-appcompat-1.7.1-23 C:\Users\sehab\.gradle\caches\8.12\transforms\ce8d626bd5a82e62c1dc6a2a4454707e\transformed\appcompat-1.7.1\res
+com.steamixtv.player.app-lifecycle-livedata-2.6.2-24 C:\Users\sehab\.gradle\caches\8.12\transforms\d618293a193ebaee2c7f61a6bcf5e869\transformed\lifecycle-livedata-2.6.2\res
+com.steamixtv.player.app-core-viewtree-1.0.0-25 C:\Users\sehab\.gradle\caches\8.12\transforms\da0e16a0c7cbe00ccf205c96677aeb1b\transformed\core-viewtree-1.0.0\res
+com.steamixtv.player.app-profileinstaller-1.4.0-26 C:\Users\sehab\.gradle\caches\8.12\transforms\ed222a641bc50155f1969b25152f66b7\transformed\profileinstaller-1.4.0\res
+com.steamixtv.player.app-media3-ui-1.9.2-27 C:\Users\sehab\.gradle\caches\8.12\transforms\fa995df2158eb3f1e4d9d98cccbd6613\transformed\media3-ui-1.9.2\res
+com.steamixtv.player.app-lifecycle-runtime-ktx-2.6.2-28 C:\Users\sehab\.gradle\caches\8.12\transforms\fca5c25766a89154438d4b954de36c8f\transformed\lifecycle-runtime-ktx-2.6.2\res
+com.steamixtv.player.app-pngs-29 C:\Users\sehab\PROJELER 2026\steamixtvlive\SteamixPlayer\app\build\generated\res\pngs\debug
+com.steamixtv.player.app-resValues-30 C:\Users\sehab\PROJELER 2026\steamixtvlive\SteamixPlayer\app\build\generated\res\resValues\debug
+com.steamixtv.player.app-packageDebugResources-31 C:\Users\sehab\PROJELER 2026\steamixtvlive\SteamixPlayer\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.steamixtv.player.app-packageDebugResources-32 C:\Users\sehab\PROJELER 2026\steamixtvlive\SteamixPlayer\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.steamixtv.player.app-debug-33 C:\Users\sehab\PROJELER 2026\steamixtvlive\SteamixPlayer\app\build\intermediates\merged_res\debug\mergeDebugResources
+com.steamixtv.player.app-debug-34 C:\Users\sehab\PROJELER 2026\steamixtvlive\SteamixPlayer\app\src\debug\res
+com.steamixtv.player.app-main-35 C:\Users\sehab\PROJELER 2026\steamixtvlive\SteamixPlayer\app\src\main\res

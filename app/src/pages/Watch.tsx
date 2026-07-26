@@ -87,6 +87,7 @@ export default function Watch() {
   const [nativePlayerUrl, setNativePlayerUrl] = useState('')
   const [mxIntentUrl, setMxIntentUrl] = useState('')
   const [vlcIntentUrl, setVlcIntentUrl] = useState('')
+  const [steamixIntentUrl, setSteamixIntentUrl] = useState('')
 
   const streamId = params.get('stream_id')
   const rotationId = params.get('rotation_id')
@@ -115,18 +116,21 @@ export default function Watch() {
             : vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid)))
           let finalUrls = allUrls
           let nativeUrl = ''
+          let directUrl = ''
           if (isMobile) {
             const mkvAt = allUrls.findIndex(u => u.startsWith('/dyn/') && u.endsWith('.mkv'))
             const mp4At = mkvAt < 0 ? allUrls.findIndex(u => u.startsWith('/dyn/') && u.endsWith('.mp4')) : -1
             const found = mkvAt >= 0 ? mkvAt : mp4At
             if (found >= 0) {
-              // Use proxy URL (not direct) so MX Player connects through Render
               nativeUrl = window.location.origin + allUrls[found]
+              const decoded = decodeProxyDirect(allUrls[found])
+              if (decoded) directUrl = decoded.startsWith('http') ? decoded : window.location.origin + decoded
             }
           }
           if (nativeUrl) {
             const intents = buildPlayerIntents(nativeUrl)
             if (intents) { setNativePlayerUrl(intents.raw); setMxIntentUrl(intents.mx); setVlcIntentUrl(intents.vlc) }
+            if (directUrl) setSteamixIntentUrl(`steamixtv://play?url=${encodeURIComponent(directUrl)}`)
           }
           if (!cancelled) { 
             setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1))
@@ -166,6 +170,8 @@ export default function Watch() {
                 const intents = buildPlayerIntents(nativeUrl)
                 setNativePlayerUrl(intents?.raw || '')
                 if (intents) { setMxIntentUrl(intents.mx); setVlcIntentUrl(intents.vlc) }
+                const decoded = decodeProxyDirect(ordered[found])
+                if (decoded) { const absUrl = decoded.startsWith('http') ? decoded : window.location.origin + decoded; setSteamixIntentUrl(`steamixtv://play?url=${encodeURIComponent(absUrl)}`) }
                 setUrl(ordered[0]); setFallbackUrls(ordered.slice(1))
               } else {
                 setUrl(ordered[0]); setFallbackUrls(ordered.slice(1))
@@ -243,9 +249,14 @@ export default function Watch() {
             ) : (
               <>
                 <VideoPlayer key={url} src={url} fallbackSrcs={fallbackUrls} title={title} onEnded={() => navigate(-1)} />
-                {isMobile && (mxIntentUrl || vlcIntentUrl) && (
+                {isMobile && (mxIntentUrl || vlcIntentUrl || steamixIntentUrl) && (
                   <div className="flex items-center justify-center gap-3 px-4 py-3 bg-black/60">
                     <span className="text-[10px] text-gray-500 uppercase tracking-wider">Ses yok mu?</span>
+                    {steamixIntentUrl && (
+                      <a href={steamixIntentUrl} className="px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold transition">
+                        Steamix Player'da Aç
+                      </a>
+                    )}
                     {mxIntentUrl && (
                       <a href={mxIntentUrl} className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs transition">
                         MX Player'da Aç
