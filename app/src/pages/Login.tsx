@@ -178,7 +178,11 @@ export default function Login() {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-xs text-gray-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                  Windows / macOS / Linux — Chrome, Edge, Firefox, Safari ile izlenebilir (AC3 hariç)
+                  Windows — Chrome, Edge ile tam uyumlu (AC3 dahil)
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                  macOS / Linux — Chrome, Safari, Firefox ile izlenebilir (AC3 hariç)
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
