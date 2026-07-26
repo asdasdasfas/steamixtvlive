@@ -7,14 +7,15 @@ interface Props {
   onEnded?: () => void
 }
 
-export default function MoviPlayerCustom({ src, onEnded }: Props) {
+export default function MoviPlayerCustom({ src, poster, onEnded }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const playerRef = useRef<any>(null)
-  const [status, setStatus] = useState<'loading' | 'error' | 'paused' | 'playing'>('loading')
+  const [status, setStatus] = useState<'loading' | 'error' | 'paused' | 'playing' | 'native'>('loading')
   const [errorMsg, setErrorMsg] = useState('')
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [retryKey, setRetryKey] = useState(0)
+  const [nativeSrc, setNativeSrc] = useState('')
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -22,29 +23,23 @@ export default function MoviPlayerCustom({ src, onEnded }: Props) {
 
     let mounted = true
     let player: any = null
+    let stepLog: string[] = []
 
-    const log: typeof console.log = (...args) => console.log('[MoviCustom]', ...args)
-    log(`basladi src=${src?.substring(0,100)}`)
+    const slog = (msg: string) => { stepLog.push(msg); console.log('[Movi]', msg) }
 
-    // First: test if proxy URL is reachable
+    slog('1 URL test...')
+    // Quick HEAD test to see if proxy is working
+    fetch(src, { method: 'HEAD', signal: AbortSignal.timeout(8000) })
+      .then(r => slog(`1 HEAD ${r.status} ${r.ok?'OK':'FAIL'}`))
+      .catch((e: any) => slog(`1 HEAD error ${e?.message?.substring(0,80)}`))
+
     ;(async () => {
       try {
-        log('1/5 URL test ediliyor...')
-        const r = await fetch(src, { method: 'HEAD', signal: AbortSignal.timeout(10000) })
-        log(`2/5 URL yanit verdi status=${r.status} ok=${r.ok} content-type=${r.headers.get('content-type')} content-length=${r.headers.get('content-length')}`)
-      } catch (e: any) {
-        log(`2/5 URL HATA: ${e?.message || e}`)
-      }
-    })()
-
-    // Then: load MoviPlayer dynamically from CDN (no Render bandwidth cost)
-    ;(async () => {
-      try {
-        log('3/5 MoviPlayer CDN\'den yukleniyor...')
-        // @ts-expect-error - CDN module, types available at runtime
+        slog('2 CDN import...')
+        // @ts-expect-error - CDN module
         const { MoviPlayer } = await import('https://cdn.jsdelivr.net/npm/movi-player@0.3.5/dist/player.js')
-        if (!mounted || !canvas) return
-        log('4/5 MoviPlayer yuklendi, baslatiliyor...')
+        if (!mounted) return
+        slog('2 CDN OK')
 
         player = new MoviPlayer({
           source: { type: 'url', url: src },
@@ -55,43 +50,51 @@ export default function MoviPlayerCustom({ src, onEnded }: Props) {
 
         player.on('stateChange', (s: string) => {
           if (!mounted) return
-          log('state:', s)
+          slog('state: ' + s)
           if (s === 'playing') setStatus('playing')
           else if (s === 'paused' || s === 'ready') setStatus('paused')
-          else if (s === 'error') { setStatus('error'); setErrorMsg('Oynatma hatası') }
+          else if (s === 'error') { setStatus('error'); setErrorMsg('Oynatma durdu') }
         })
         player.on('timeUpdate', (t: number) => { if (mounted && isFinite(t)) setCurrentTime(t) })
         player.on('durationChange', (d: number) => { if (mounted && isFinite(d)) setDuration(d) })
         player.on('error', (e: any) => {
           if (!mounted) return
-          log('error event:', e?.message || e)
-          setStatus('error')
-          setErrorMsg(e?.message || 'Bilinmeyen hata')
+          slog('error: ' + (e?.message || e))
+          setStatus('error'); setErrorMsg(e?.message || 'Bilinmeyen hata')
         })
         player.on('ended', () => { if (mounted) onEnded?.() })
 
-        log('5/5 load() basliyor...')
+        slog('3 load...')
         await player.load()
-        log('5/5 load() basarili, play() basliyor...')
+        slog('3 load OK')
+        slog('4 play...')
         await player.play()
-        log('5/5 OYNUYOR!')
+        slog('4 PLAYING!')
       } catch (e: any) {
         if (!mounted) return
-        log('INIT HATASI:', e?.message || e)
+        const msg = e?.message || String(e)
+        slog('HATA: ' + msg.substring(0,200))
         setStatus('error')
-        setErrorMsg(e?.message || 'Player başlatılamadı')
+        setErrorMsg(`[${stepLog.length}] ${msg.substring(0,150)}`)
       }
     })()
 
     return () => {
       mounted = false
       playerRef.current = null
-      if (player) {
-        log('destroy')
-        player.destroy()
-      }
+      if (player) { slog('destroy'); player.destroy() }
     }
   }, [src, retryKey])
+
+  // If user chose native fallback
+  if (status === 'native' && nativeSrc) {
+    return (
+      <div className="w-full aspect-video bg-black relative">
+        <video src={nativeSrc} poster={poster} className="w-full h-full" controls playsInline crossOrigin="anonymous" />
+        <p className="absolute bottom-2 left-2 text-[10px] text-gray-500 bg-black/60 px-2 py-1 rounded">Native (ses yok)</p>
+      </div>
+    )
+  }
 
   const togglePlay = () => {
     const p = playerRef.current
@@ -117,17 +120,24 @@ export default function MoviPlayerCustom({ src, onEnded }: Props) {
         <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
           <div className="flex flex-col items-center gap-3">
             <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-            <span className="text-sm text-white/50">MoviPlayer yükleniyor...</span>
+            <span className="text-sm text-white/50">MoviPlayer yükleniyor (6MB)...</span>
           </div>
         </div>
       )}
 
       {status === 'error' && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-10 gap-4">
-          <p className="text-sm text-red-400 max-w-xs text-center px-4">{errorMsg}</p>
-          <button onClick={() => { setStatus('loading'); setErrorMsg(''); setRetryKey(k => k + 1) }} className="px-5 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm transition cursor-pointer">
-            Tekrar Dene
-          </button>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-10 gap-4 px-6">
+          <p className="text-sm text-red-400 text-center break-all">{errorMsg}</p>
+          <div className="flex gap-3">
+            <button onClick={() => { setStatus('loading'); setErrorMsg(''); setRetryKey(k => k + 1) }}
+              className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm transition cursor-pointer">
+              Tekrar Dene
+            </button>
+            <button onClick={() => { setNativeSrc(src); setStatus('native') }}
+              className="px-4 py-2 rounded-lg bg-yellow-600/80 hover:bg-yellow-600 text-white text-sm transition cursor-pointer">
+              Native (Sessiz)
+            </button>
+          </div>
         </div>
       )}
 
