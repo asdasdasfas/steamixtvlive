@@ -128,11 +128,13 @@ export default function Dashboard() {
   const loadFullCategory = useCallback(async (catId: string, type: 'movie' | 'series') => {
     if (!server) return
     try {
-      const matchCat = (item: any, id: string) => {
-        if (String(item.category_id) === id) return true
-        if (item.category_ids?.some((c: any) => String(c) === id)) return true
-        return false
+      const primaryCatId = (item: any): string | null => {
+        const cid = item.category_id
+        if (cid != null && String(cid).trim() !== '' && String(cid) !== '0') return String(cid)
+        const alt = item.category_ids?.find((c: any) => String(c).trim() !== '' && String(c) !== '0')
+        return alt != null ? String(alt) : null
       }
+      const matchCat = (item: any, id: string) => primaryCatId(item) === id
       if (type === 'movie') {
         if (allVods) {
           setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId)) }))
