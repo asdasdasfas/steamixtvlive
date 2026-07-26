@@ -3,21 +3,44 @@ import https from 'node:https'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { gunzipSync } from 'node:zlib'
 import { spawn, execSync } from 'node:child_process'
+import { createGunzip } from 'node:zlib'
 import ffmpegPathStatic from 'ffmpeg-static'
 
-// Try to find ffmpeg: first check static, then system PATH, then common locations
+// Find or download ffmpeg — blocks server start until done
 let ffmpegPath = null
-try {
-  // Check if static path exists
-  if (ffmpegPathStatic) { try { fs.accessSync(ffmpegPathStatic); ffmpegPath = ffmpegPathStatic } catch {} }
-  // Check system PATH (Linux/macOS: which, Windows: where)
+async function initFfmpeg() {
+  // 1) Check ffmpeg-static
+  if (ffmpegPathStatic) { try { fs.accessSync(ffmpegPathStatic); ffmpegPath = ffmpegPathStatic; return } catch {} }
+  // 2) Check system PATH
   if (!ffmpegPath) { try { ffmpegPath = execSync('which ffmpeg 2>/dev/null || where ffmpeg 2>nul', {encoding:'utf8'}).trim().split('\n')[0] || null } catch {} }
-  // Check common locations
+  if (ffmpegPath) { try { fs.accessSync(ffmpegPath); return } catch { ffmpegPath = null } }
+  // 3) Check common locations
   const commonPaths = ['/usr/bin/ffmpeg', '/usr/local/bin/ffmpeg', '/opt/bin/ffmpeg']
-  for (const p of commonPaths) { if (!ffmpegPath) { try { fs.accessSync(p); ffmpegPath = p } catch {} } }
-} catch(e) { console.log(`[FFMPEG] init error: ${e.message}`) }
+  for (const p of commonPaths) { try { fs.accessSync(p); ffmpegPath = p; return } catch {} }
+  // 4) Download ffmpeg-static binary for linux-x64
+  if (process.platform !== 'linux') { console.log('[FFMPEG] not linux, skip download'); return }
+  const dest = '/tmp/ffmpeg'
+  if (fs.existsSync(dest)) { ffmpegPath = dest; try { fs.chmodSync(dest, 0o755) } catch {}; return }
+  const tmp = dest + '.gz'
+  const url = 'https://github.com/eugeneware/ffmpeg-static/releases/download/v5.3.0/ffmpeg-linux-x64.gz'
+  console.log(`[FFMPEG] downloading from ${url} ...`)
+  return new Promise((resolve) => {
+    https.get(url, (res) => {
+      if (res.statusCode !== 200) { console.log(`[FFMPEG] HTTP ${res.statusCode}`); resolve(); return }
+      const f = fs.createWriteStream(tmp)
+      res.pipe(createGunzip()).pipe(f)
+      f.on('finish', () => {
+        f.close()
+        fs.rename(tmp, dest, () => {})
+        try { fs.chmodSync(dest, 0o755); ffmpegPath = dest } catch {}
+        console.log(`[FFMPEG] downloaded to ${dest}`)
+        resolve()
+      })
+    }).on('error', (e) => { console.log(`[FFMPEG] download error: ${e.message}`); resolve() })
+  })
+}
+await initFfmpeg()
 console.log(`[FFMPEG] path=${ffmpegPath}`)
 
 const PORT = process.env.PORT || 5173
