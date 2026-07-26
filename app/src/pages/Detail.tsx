@@ -121,14 +121,14 @@ export default function Detail() {
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
   const handlePlay = () => {
     if (isMobile && (type === 'movie' || type === 'series') && server) {
-      if (localStorage.getItem(INSTALL_FLAG_KEY)) {
-        // APK yüklü → intent:// + package → direkt aç, seçim yok
-        const { base_url, xtream_user, xtream_pass } = server
-        const url = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(id || '0'), ext)
-        window.location.href = url
-      } else {
-        // İlk sefer → direkt modal göster, intent denenmez
-        setShowApkPrompt(true)
+      const { base_url, xtream_user, xtream_pass } = server
+      const url = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(id || '0'), ext)
+      window.location.href = url
+      if (!localStorage.getItem(INSTALL_FLAG_KEY)) {
+        setShowApkPrompt(false)
+        let fallback = setTimeout(() => setShowApkPrompt(true), 1500)
+        const onVis = () => { if (document.hidden) clearTimeout(fallback) }
+        document.addEventListener('visibilitychange', onVis, { once: true })
       }
       return
     }
