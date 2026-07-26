@@ -13,8 +13,8 @@ const reorderUrls = (urls: string[]) => {
   if (!isMobile) return urls
   return [...urls].sort((a, b) => {
     const aMkv = a.endsWith('.mkv'), bMkv = b.endsWith('.mkv')
-    if (aMkv && !bMkv) return -1
-    if (!aMkv && bMkv) return 1
+    if (aMkv && !bMkv) return 1   // MKV'yi sona at (mobilde AC3 ses yok)
+    if (!aMkv && bMkv) return -1  // HLS/MP4 önce dene (AAC ses var)
     return 0
   })
 }
