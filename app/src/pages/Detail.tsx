@@ -121,23 +121,12 @@ export default function Detail() {
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
   const handlePlay = () => {
     if (isMobile && (type === 'movie' || type === 'series') && server) {
-      const { base_url, xtream_user, xtream_pass } = server
-      const url = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(id || '0'), ext)
-      setShowApkPrompt(false)
-      const iframe = document.createElement('iframe')
-      iframe.style.display = 'none'
-      iframe.src = url
-      document.body.appendChild(iframe)
-      if (!localStorage.getItem(INSTALL_FLAG_KEY)) {
-        let fallback = setTimeout(() => {
-          if (document.body.contains(iframe)) document.body.removeChild(iframe)
-          setShowApkPrompt(true)
-        }, 1500)
-        const onVis = () => { if (document.hidden) clearTimeout(fallback) }
-        document.addEventListener('visibilitychange', onVis, { once: true })
+      if (localStorage.getItem(INSTALL_FLAG_KEY)) {
+        const { base_url, xtream_user, xtream_pass } = server
+        const url = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(id || '0'), ext)
+        window.location.href = url
       } else {
-        // Flag var ama APK hala yoksa iframe'i temizle (5sn sonra)
-        setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe) }, 5000)
+        setShowApkPrompt(true)
       }
       return
     }
@@ -197,13 +186,20 @@ export default function Detail() {
             <h3 className="text-white font-semibold text-lg mb-2">Steamix Player Gerekli</h3>
             <p className="text-gray-400 text-sm mb-5">Bu içeriği izlemek için Steamix Player uygulamasını yüklemeniz gerekiyor.</p>
             <a href={APK_DOWNLOAD_URL}
-              onClick={() => localStorage.setItem(INSTALL_FLAG_KEY, '1')}
               className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl bg-[#0099ff] text-white font-semibold text-sm hover:bg-[#0088ee] transition-all mb-3">
               <Download className="w-4 h-4" />APK'yı İndir (2.8 MB)
             </a>
-            <p className="text-xs text-gray-500 text-center">Kurulumdan sonra geri gelip tekrar <span className="text-[#0099ff]">İzle</span>'ye tıklayın.</p>
+            <button onClick={() => {
+              const { base_url, xtream_user, xtream_pass } = server!
+              const url = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(id || '0'), ext)
+              localStorage.setItem(INSTALL_FLAG_KEY, '1')
+              window.location.href = url
+            }}
+              className="w-full px-5 py-2.5 rounded-xl bg-white/10 text-white font-medium text-sm hover:bg-white/15 transition-all mb-3">
+              APK Kuruldu, İzle
+            </button>
             <button onClick={() => setShowApkPrompt(false)}
-              className="w-full mt-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">Kapat</button>
+              className="w-full py-2 text-sm text-gray-400 hover:text-white transition-colors">Kapat</button>
           </div>
         </div>
       )}
