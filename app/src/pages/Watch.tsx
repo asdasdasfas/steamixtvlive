@@ -19,16 +19,53 @@ const reorderUrls = (urls: string[]) => {
   })
 }
 
+// Decode proxy URL to direct provider URL (for external player)
+function decodeProxyDirect(proxyPath: string): string | null {
+  if (!proxyPath) return null
+  if (proxyPath.startsWith('http://') || proxyPath.startsWith('https://')) return proxyPath
+  const b64decode = (s: string) => { try { return atob(s.replace(/-/g,'+').replace(/_/g,'/')) } catch { return null } }
+  const KNOWN = {
+    '/dyn/': null,   // dynamic base64
+    '/p2095/': 'http://dzcvip1.xyz:2095',
+    '/p8080/': 'http://dzcvip1.xyz:8080',
+    '/xtream-api/': 'http://ctn34.xyz:8080',
+    '/xtream/': 'http://dzcvip1.xyz:2095',
+  }
+  for (const [prefix, base] of Object.entries(KNOWN)) {
+    if (!proxyPath.startsWith(prefix)) continue
+    const rest = proxyPath.slice(prefix.length)
+    if (base) return base + rest
+    // dynamic: /dyn/{b64(base_url)}/{path}
+    const si = rest.indexOf('/')
+    if (si <= 0) continue
+    const decoded = b64decode(rest.slice(0, si))
+    if (decoded) return decoded.replace(/\/+$/,'') + rest.slice(si)
+  }
+  // /p/{b64(base_url)}/{path}
+  const pm = proxyPath.match(/^\/p\/([A-Za-z0-9\-_]+)(\/.*)$/)
+  if (pm) { const d = b64decode(pm[1]); if (d) return d.replace(/\/+$/,'') + pm[2] }
+  // /v/{b64}/{path}
+  const vm = proxyPath.match(/^\/v\/([A-Za-z0-9\-_]+)(\/.*)$/)
+  if (vm) { const d = b64decode(vm[1]); if (d) return d.replace(/\/+$/,'') + vm[2] }
+  // /audio-fix/{b64(base_url)}/{path}
+  const af = proxyPath.match(/^\/audio-fix\/([A-Za-z0-9\-_]+)(\/.*)$/)
+  if (af) { const d = b64decode(af[1]); if (d) return d.replace(/\/+$/,'') + af[2] }
+  // /audio-fix/s/{b64(absolute_url)}
+  const afs = proxyPath.match(/^\/audio-fix\/s\/([A-Za-z0-9\-_]+)$/)
+  if (afs) { const d = b64decode(afs[1]); if (d) return d }
+  return null
+}
+
 // Build MX Player / VLC Android Intent URL from a proxy path
 function buildPlayerIntents(proxyPath: string): { mx: string; vlc: string; raw: string } | null {
-  if (!proxyPath || proxyPath.startsWith('http')) return null
-  const fullUrl = window.location.origin + proxyPath
-  const hostPath = fullUrl.replace(/^https?:\/\//, '')
-  const encUrl = encodeURIComponent(fullUrl)
+  const directUrl = decodeProxyDirect(proxyPath)
+  if (!directUrl) return null
+  const hostPath = directUrl.replace(/^https?:\/\//, '')
+  const encUrl = encodeURIComponent(directUrl)
   return {
     mx: `intent://${hostPath}#Intent;package=com.mxtech.videoplayer.ad;action=android.intent.action.VIEW;type=video/*;S.browser_fallback_url=${encUrl};end`,
     vlc: `intent://${hostPath}#Intent;package=org.videolan.vlc;action=android.intent.action.VIEW;type=video/*;S.browser_fallback_url=${encUrl};end`,
-    raw: fullUrl,
+    raw: directUrl,
   }
 }
 

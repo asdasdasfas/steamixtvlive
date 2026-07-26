@@ -5,17 +5,32 @@ import MediabunnyPlayer from './MediabunnyPlayer'
 
 
 const decodeProxyUrl = (url: string): string | null => {
-  const m = url.match(/^\/(?:dyn|p2095|p8080|audio-fix)\/([A-Za-z0-9\-_]+)(\/.*)$/)
-  if (!m) return null
-  try {
-    const base = atob(m[1].replace(/-/g, '+').replace(/_/g, '/'))
-    if (base.startsWith('http://') || base.startsWith('https://')) return base.replace(/\/+$/, '') + m[2]
-  } catch {}
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  const b64d = (s: string) => { try { return atob(s.replace(/-/g,'+').replace(/_/g,'/')) } catch { return null } }
+  const KNOWN: Record<string,string|null> = { '/dyn/':null, '/p2095/':'http://dzcvip1.xyz:2095', '/p8080/':'http://dzcvip1.xyz:8080', '/xtream/':'http://dzcvip1.xyz:2095', '/xtream-api/':'http://ctn34.xyz:8080' }
+  for (const [pfx, base] of Object.entries(KNOWN)) {
+    if (!url.startsWith(pfx)) continue
+    const rest = url.slice(pfx.length)
+    if (base) return base + rest
+    const si = rest.indexOf('/')
+    if (si <= 0) continue
+    const d = b64d(rest.slice(0, si))
+    if (d) return d.replace(/\/+$/,'') + rest.slice(si)
+  }
+  const pm = url.match(/^\/p\/([A-Za-z0-9\-_]+)(\/.*)$/)
+  if (pm) { const d = b64d(pm[1]); if (d) return d.replace(/\/+$/,'') + pm[2] }
+  const vm = url.match(/^\/v\/([A-Za-z0-9\-_]+)(\/.*)$/)
+  if (vm) { const d = b64d(vm[1]); if (d) return d.replace(/\/+$/,'') + vm[2] }
+  const af = url.match(/^\/audio-fix\/([A-Za-z0-9\-_]+)(\/.*)$/)
+  if (af) { const d = b64d(af[1]); if (d) return d.replace(/\/+$/,'') + af[2] }
+  const afs = url.match(/^\/audio-fix\/s\/([A-Za-z0-9\-_]+)$/)
+  if (afs) { const d = b64d(afs[1]); if (d) return d }
   return null
 }
 
 const openExternalPlayer = (url: string) => {
-  const fullUrl = url.startsWith('http') ? url : window.location.origin + url
+  const directUrl = decodeProxyUrl(url) || url
+  const fullUrl = directUrl.startsWith('http') ? directUrl : window.location.origin + directUrl
   const hostPath = fullUrl.replace(/^https?:\/\//, '')
   const encUrl = encodeURIComponent(fullUrl)
   const intentUrl = `intent://${hostPath}#Intent;package=com.mxtech.videoplayer.ad;action=android.intent.action.VIEW;type=video/*;S.browser_fallback_url=${encUrl};end`
