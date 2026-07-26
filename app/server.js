@@ -537,6 +537,22 @@ http.createServer((req, res) => {
     return
   }
 
+  // FFmpeg status check
+  if (req.url === '/__ffmpeg') {
+    let ffOk = false
+    let ffVer = 'not found'
+    try {
+      if (ffmpegPath) { fs.accessSync(ffmpegPath); ffOk = true }
+    } catch {}
+    if (ffOk) {
+      try { ffVer = execSync(`"${ffmpegPath}" -version 2>&1 | head -1`, {encoding:'utf8', timeout:5000}).trim() } catch(e) { ffVer = `error: ${e.message}` }
+    }
+    res.setHeader('Content-Type', 'application/json')
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.end(JSON.stringify({ ffmpegPath, ffOk, ffVer, static: ffmpegPathStatic, node: process.version, platform: process.platform, arch: process.arch }))
+    return
+  }
+
   // Console log capture endpoint (GET via Image beacon or POST via fetch)
   if (req.url === '/__log' || req.url.startsWith('/__log?')) {
     if (req.method === 'POST') {

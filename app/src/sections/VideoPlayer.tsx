@@ -200,6 +200,13 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       console.log(`[TRYURL] FETCH test: status=${r.status} ct=${ct}`)
       ctrl.abort()
     }).catch(() => {})
+    // Check if ffmpeg is available on server (for /audio-fix/ URLs)
+    if (currentSrc.startsWith('/audio-fix/')) {
+      fetch('/__ffmpeg').then(r => r.json()).then(d => {
+        console.log(`[FFMPEG] path=${d.ffmpegPath} ok=${d.ffOk} ver=${(d.ffVer||'').substring(0,80)} static=${d.static}`)
+        if (!d.ffOk) dbg(`UYARI: Sunucuda ffmpeg bulunamadi! AC3->AAC donusumu yapilamayacak.`) 
+      }).catch(() => {})
+    }
 
     // Destroy previous HLS and reset video element fully
     if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null }
