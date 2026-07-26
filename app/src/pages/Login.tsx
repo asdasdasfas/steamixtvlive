@@ -190,7 +190,11 @@ export default function Login() {
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                  Android TV / Smart TV — Tarayıcı veya APK yükleme ile uyumlu
+                  Android TV — APK yükleme ile uyumlu
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                  Smart TV (LG webOS, Samsung Tizen) — Dahili tarayıcı ile izlenebilir (AC3 hariç)
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
