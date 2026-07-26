@@ -23,7 +23,7 @@ async function initFfmpeg() {
   const dest = '/tmp/ffmpeg'
   if (fs.existsSync(dest)) { ffmpegPath = dest; try { fs.chmodSync(dest, 0o755) } catch {}; return }
   const tmp = dest + '.gz'
-  const url = 'https://github.com/eugeneware/ffmpeg-static/releases/download/v5.3.0/ffmpeg-linux-x64.gz'
+  const url = 'https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-linux-x64.gz'
   console.log(`[FFMPEG] downloading from ${url} ...`)
   return new Promise((resolve) => {
     https.get(url, (res) => {
