@@ -7,10 +7,9 @@ export function buildSteamixIntentUrl(
   opts?: { type?: string; season?: string; episode?: string }
 ): string {
   let path: string
-  if (opts?.type === 'series' && opts.season && opts.episode) {
-    const s = opts.season.padStart(2, '0')
-    const e = opts.episode.padStart(2, '0')
-    path = `/series/${user}/${pass}/${streamId}/${s}/${e}${ext ? '.' + ext.replace(/^\./, '') : ''}`
+  if (opts?.type === 'series') {
+    const e = (ext || 'mp4').replace(/^\./, '')
+    path = `/series/${user}/${pass}/${streamId}.${e}`
   } else {
     path = `/movie/${user}/${pass}/${streamId}.${ext || 'mkv'}`
   }
