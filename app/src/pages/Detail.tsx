@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { fetchVodInfo, fetchSeriesInfo, fetchVods, fetchSeries } from '@/lib/supabase'
 import DetailView from '@/sections/DetailView'
-import { Loader2, Download } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { isFavorite, toggleFavorite } from '@/lib/favorites'
 import { buildSteamixIntentUrl, APK_DOWNLOAD_URL, INSTALL_FLAG_KEY } from '@/lib/player-intents'
 
@@ -20,7 +20,6 @@ export default function Detail() {
   const [similar, setSimilar] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [isFav, setIsFav] = useState(isFavorite(parseInt(id || '0'), type as 'movie' | 'series'))
-  const [showApkPrompt, setShowApkPrompt] = useState(false)
 
   useEffect(() => {
     if (!id || !server) return
@@ -120,14 +119,9 @@ export default function Detail() {
 
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
   const handlePlay = () => {
-    if (isMobile && (type === 'movie' || type === 'series') && server) {
-      if (localStorage.getItem(INSTALL_FLAG_KEY)) {
-        const { base_url, xtream_user, xtream_pass } = server
-        const url = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(id || '0'), ext)
-        window.location.href = url
-      } else {
-        setShowApkPrompt(true)
-      }
+    if (isMobile && (type === 'movie' || type === 'series') && server && localStorage.getItem(INSTALL_FLAG_KEY)) {
+      const { base_url, xtream_user, xtream_pass } = server
+      window.location.href = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(id || '0'), ext)
       return
     }
     if (type === 'series') {
@@ -171,38 +165,17 @@ export default function Detail() {
   }
 
   return (
-    <>
-      <DetailView
-        data={data}
-        similarItems={similar}
-        onSimilarClick={handleSimilarClick}
-        isFav={isFav}
-        onToggleFav={handleToggleFav}
-        onPlay={handlePlay}
-      />
-      {showApkPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="bg-[#1e293b] rounded-2xl p-6 max-w-sm w-full shadow-xl">
-            <h3 className="text-white font-semibold text-lg mb-2">Steamix Player Gerekli</h3>
-            <p className="text-gray-400 text-sm mb-5">Bu içeriği izlemek için Steamix Player uygulamasını yüklemeniz gerekiyor.</p>
-            <a href={APK_DOWNLOAD_URL}
-              className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl bg-[#0099ff] text-white font-semibold text-sm hover:bg-[#0088ee] transition-all mb-3">
-              <Download className="w-4 h-4" />APK'yı İndir (2.8 MB)
-            </a>
-            <button onClick={() => {
-              const { base_url, xtream_user, xtream_pass } = server!
-              const url = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(id || '0'), ext)
-              localStorage.setItem(INSTALL_FLAG_KEY, '1')
-              window.location.href = url
-            }}
-              className="w-full px-5 py-2.5 rounded-xl bg-white/10 text-white font-medium text-sm hover:bg-white/15 transition-all mb-3">
-              APK Kuruldu, İzle
-            </button>
-            <button onClick={() => setShowApkPrompt(false)}
-              className="w-full py-2 text-sm text-gray-400 hover:text-white transition-colors">Kapat</button>
-          </div>
-        </div>
-      )}
-    </>
+    <DetailView
+      data={data}
+      similarItems={similar}
+      onSimilarClick={handleSimilarClick}
+      isFav={isFav}
+      onToggleFav={handleToggleFav}
+      onPlay={handlePlay}
+      isMobile={isMobile}
+      server={server}
+      streamId={parseInt(id || '0')}
+      ext={ext}
+    />
   )
 }
