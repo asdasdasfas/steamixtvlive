@@ -19,7 +19,7 @@ const openExternalPlayer = (url: string) => {
   if (!directUrl) return
   const hostPath = directUrl.replace(/^https?:\/\//, '')
   const encUrl = encodeURIComponent(directUrl)
-  const intentUrl = `intent://${hostPath}#Intent;scheme=http;action=android.intent.action.VIEW;type=video%2F*;package=com.mxtech.videoplayer.ad;S.browser_fallback_url=${encUrl};end`
+  const intentUrl = `intent://${hostPath}#Intent;scheme=http;action=android.intent.action.VIEW;type=video%2F*;package=com.hdr.videoplayer;S.browser_fallback_url=${encUrl};end`
   window.location.href = intentUrl
 }
 
