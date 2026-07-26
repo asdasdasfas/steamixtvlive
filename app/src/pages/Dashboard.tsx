@@ -133,19 +133,33 @@ export default function Dashboard() {
         if (cid != null && String(cid).trim() !== '' && String(cid) !== '0' && String(cid) === id) return true
         return item.category_ids?.includes(Number(id))
       }
+      const fetchAllCatsSequential = async (type2: string): Promise<any[]> => {
+        const cats = type2 === 'movie' ? vodCats : seriesCats
+        const fetcher = type2 === 'movie' ? fetchVods : fetchSeries
+        const idField = type2 === 'movie' ? 'stream_id' : 'series_id'
+        const all: any[] = []
+        const seen = new Set<number>()
+        for (let i = 0; i < cats.length; i++) {
+          if (!cats[i]?.category_id) continue
+          try {
+            const chunk = await fetcher(server.base_url, server.xtream_user, server.xtream_pass, cats[i].category_id)
+            if (Array.isArray(chunk)) {
+              for (const item of chunk) {
+                const k = Number((item as any)[idField])
+                if (!seen.has(k)) { seen.add(k); all.push(item) }
+              }
+            }
+          } catch {}
+        }
+        return all
+      }
       if (type === 'movie') {
         if (allVods) {
           setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId)) }))
           return
         }
         let items = await fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass)
-        if (!items || items.length === 0) {
-          items = (await Promise.all(vodCats.map(c =>
-            fetchVods(server.base_url, server.xtream_user, server.xtream_pass, c.category_id).catch(() => [])
-          ))).flat()
-          const seen = new Set<number>()
-          items = items.filter((i: any) => { const k = Number(i.stream_id); if (seen.has(k)) return false; seen.add(k); return true })
-        }
+        if (!items || items.length === 0) items = await fetchAllCatsSequential('movie')
         setAllVods(items || [])
         setVodItems(prev => ({ ...prev, [catId]: (items || []).filter((i: any) => matchCat(i, catId)) }))
       } else {
@@ -154,13 +168,7 @@ export default function Dashboard() {
           return
         }
         let items = await fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass)
-        if (!items || items.length === 0) {
-          items = (await Promise.all(seriesCats.map(c =>
-            fetchSeries(server.base_url, server.xtream_user, server.xtream_pass, c.category_id).catch(() => [])
-          ))).flat()
-          const seen = new Set<number>()
-          items = items.filter((i: any) => { const k = Number(i.series_id); if (seen.has(k)) return false; seen.add(k); return true })
-        }
+        if (!items || items.length === 0) items = await fetchAllCatsSequential('series')
         setAllSeries(items || [])
         setSeriesItems(prev => ({ ...prev, [catId]: (items || []).filter((i: any) => matchCat(i, catId)) }))
       }
