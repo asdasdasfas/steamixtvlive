@@ -233,7 +233,24 @@ export default function Watch() {
             {rotationId ? (
               <LivePlayer channelId={rotationId} title={title} src={url} onEnded={() => navigate(-1)} onChannelChange={handleChannelChange} />
             ) : (
-              <VideoPlayer key={url} src={url} fallbackSrcs={fallbackUrls} title={title} onEnded={() => navigate(-1)} />
+              <>
+                <VideoPlayer key={url} src={url} fallbackSrcs={fallbackUrls} title={title} onEnded={() => navigate(-1)} />
+                {isMobile && (mxIntentUrl || vlcIntentUrl) && (
+                  <div className="flex items-center justify-center gap-3 px-4 py-3 bg-black/60">
+                    <span className="text-[10px] text-gray-500 uppercase tracking-wider">Ses yok mu?</span>
+                    {mxIntentUrl && (
+                      <a href={mxIntentUrl} className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs transition">
+                        MX Player'da Aç
+                      </a>
+                    )}
+                    {vlcIntentUrl && (
+                      <a href={vlcIntentUrl} className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs transition">
+                        VLC'de Aç
+                      </a>
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
