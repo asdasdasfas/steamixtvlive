@@ -608,29 +608,15 @@ function MovieCategoryGrid({ selectedCat, categoryName }: any) {
   const navigate = useNavigate()
   const [allItems, setAllItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [offset, setOffset] = useState(100)
-  const sentinelRef = useRef<HTMLDivElement>(null)
-  const visible = allItems.slice(0, offset)
-  const hasMore = visible.length < allItems.length
 
   useEffect(() => {
     if (!server) return
     setLoading(true)
-    setOffset(100)
     fetchVods(server.base_url, server.xtream_user, server.xtream_pass, selectedCat)
       .then(data => setAllItems(data || []))
       .catch(() => setAllItems([]))
       .finally(() => setLoading(false))
   }, [server, selectedCat])
-
-  useEffect(() => {
-    if (!sentinelRef.current || !hasMore) return
-    const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) setOffset(prev => prev + 50)
-    }, { rootMargin: '200px' })
-    obs.observe(sentinelRef.current)
-    return () => obs.disconnect()
-  }, [hasMore, offset])
 
   const handleDetail = (item: any) => {
     const sp = new URLSearchParams({ id: String(item.stream_id), type: 'movie', cat: selectedCat })
@@ -647,26 +633,22 @@ function MovieCategoryGrid({ selectedCat, categoryName }: any) {
       {loading ? (
         <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-[#0099ff] animate-spin" /></div>
       ) : (
-        <>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
-            {visible.map((s: any) => (
-              <button key={s.stream_id} onClick={() => handleDetail(s)} className="group">
-                <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
-                  <Poster src={s.stream_icon} type="movie" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
-                    <div className="w-14 h-14 rounded-full bg-[#0099ff] flex items-center justify-center shadow-[0_0_20px_rgba(0,153,255,0.6)] backdrop-blur-sm">
-                      <Play className="w-6 h-6 text-white ml-1 fill-white" />
-                    </div>
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
+          {allItems.map((s: any) => (
+            <button key={s.stream_id} onClick={() => handleDetail(s)} className="group">
+              <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
+                <Poster src={s.stream_icon} type="movie" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
+                  <div className="w-14 h-14 rounded-full bg-[#0099ff] flex items-center justify-center shadow-[0_0_20px_rgba(0,153,255,0.6)] backdrop-blur-sm">
+                    <Play className="w-6 h-6 text-white ml-1 fill-white" />
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
-              </button>
-            ))}
-          </div>
-          <div ref={sentinelRef} className="h-10" />
-          {hasMore && <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 text-[#0099ff] animate-spin" /></div>}
-        </>
+              </div>
+              <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
+            </button>
+          ))}
+        </div>
       )}
     </div>
   )
@@ -676,10 +658,6 @@ function SeriesCategoryGrid({ selectedCat, categoryName }: any) {
   const { server } = useAuth()
   const [allItems, setAllItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [offset, setOffset] = useState(100)
-  const sentinelRef = useRef<HTMLDivElement>(null)
-  const visible = allItems.slice(0, offset)
-  const hasMore = visible.length < allItems.length
 
   useEffect(() => {
     if (!server) return
@@ -689,15 +667,6 @@ function SeriesCategoryGrid({ selectedCat, categoryName }: any) {
       .catch(() => setAllItems([]))
       .finally(() => setLoading(false))
   }, [server, selectedCat])
-
-  useEffect(() => {
-    if (!sentinelRef.current || !hasMore) return
-    const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) setOffset(prev => prev + 50)
-    }, { rootMargin: '200px' })
-    obs.observe(sentinelRef.current)
-    return () => obs.disconnect()
-  }, [hasMore, offset])
 
   const navigate = useNavigate()
   const handleDetail = (item: any) => {
@@ -714,26 +683,22 @@ function SeriesCategoryGrid({ selectedCat, categoryName }: any) {
       {loading ? (
         <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-[#0099ff] animate-spin" /></div>
       ) : (
-        <>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
-            {visible.map((s: any) => (
-              <button key={s.series_id} onClick={() => handleDetail(s)} className="group">
-                <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-2 group-hover:ring-[#14b8a6]/40">
-                  <Poster src={s.cover || s.thumbnail} type="series" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
-                    <div className="w-14 h-14 rounded-full bg-[#14b8a6] flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.6)] backdrop-blur-sm">
-                      <Play className="w-6 h-6 text-white ml-1 fill-white" />
-                    </div>
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
+          {allItems.map((s: any) => (
+            <button key={s.series_id} onClick={() => handleDetail(s)} className="group">
+              <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-2 group-hover:ring-[#14b8a6]/40">
+                <Poster src={s.cover || s.thumbnail} type="series" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
+                  <div className="w-14 h-14 rounded-full bg-[#14b8a6] flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.6)] backdrop-blur-sm">
+                    <Play className="w-6 h-6 text-white ml-1 fill-white" />
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
-              </button>
-            ))}
-          </div>
-          <div ref={sentinelRef} className="h-10" />
-          {hasMore && <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 text-[#0099ff] animate-spin" /></div>}
-        </>
+              </div>
+              <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
+            </button>
+          ))}
+        </div>
       )}
     </div>
   )
