@@ -361,7 +361,9 @@ export default function Dashboard() {
   const proxyImg = (url: string) => {
     if (!url) return url
     if (url.startsWith('/t/p/')) return `https://image.tmdb.org${url}`
-    if (url.startsWith('http://') && server?.base_url) return proxyUrl(server.base_url, url.replace(/^https?:\/\/[^\/]+/, ''))
+    const path = url.replace(/^https?:\/\/[^\/]+/, '')
+    if (path.startsWith('/t/p/')) return `https://image.tmdb.org${path}`
+    if (url.startsWith('http://') && server?.base_url) return proxyUrl(server.base_url, path)
     if (url.startsWith('http://')) return url.replace('http://', 'https://')
     return url
   }
@@ -670,8 +672,11 @@ function MovieCategoryGrid({ items, loading, categoryName }: any) {
   const navigate = useNavigate()
   const { server } = useAuth()
   const pImg = (url: string) => {
-    if (!url || !url.startsWith('http://') || !server?.base_url) return url
-    return proxyUrl(server.base_url, url.replace(/^https?:\/\/[^\/]+/, ''))
+    if (!url) return url
+    const path = url.replace(/^https?:\/\/[^\/]+/, '')
+    if (path.startsWith('/t/p/')) return `https://image.tmdb.org${path}`
+    if (url.startsWith('http://') && server?.base_url) return proxyUrl(server.base_url, path)
+    return url
   }
 
   const handleDetail = (item: any) => {
@@ -717,8 +722,11 @@ function SeriesCategoryGrid({ items, loading, categoryName }: any) {
   const navigate = useNavigate()
   const { server } = useAuth()
   const pImg = (url: string) => {
-    if (!url || !url.startsWith('http://') || !server?.base_url) return url
-    return proxyUrl(server.base_url, url.replace(/^https?:\/\/[^\/]+/, ''))
+    if (!url) return url
+    const path = url.replace(/^https?:\/\/[^\/]+/, '')
+    if (path.startsWith('/t/p/')) return `https://image.tmdb.org${path}`
+    if (url.startsWith('http://') && server?.base_url) return proxyUrl(server.base_url, path)
+    return url
   }
   const handleDetail = (item: any) => {
     const sp = new URLSearchParams({ id: String(item.series_id), type: 'series', cat: item.category_id || '' })

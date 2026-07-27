@@ -123,11 +123,13 @@ export async function fetchLiveStreams(base: string, user: string, pass: string,
 }
 
 function normalizeIcon(base: string, icon: string | undefined | null, _id?: number | string): string {
-  if (icon && icon.startsWith('http://')) return proxyUrl(base, icon.replace(/^https?:\/\/[^\/]+/, ''))
-  if (icon && icon.startsWith('https://')) return icon
-  if (icon && icon.startsWith('/')) return proxyUrl(base, icon)
-  if (icon) return icon
-  return ''
+  if (!icon) return ''
+  const path = icon.replace(/^https?:\/\/[^\/]+/, '')
+  if (path.startsWith('/t/p/')) return `https://image.tmdb.org${path}`
+  if (icon.startsWith('http://')) return proxyUrl(base, path)
+  if (icon.startsWith('https://')) return icon
+  if (icon.startsWith('/')) return proxyUrl(base, icon)
+  return icon
 }
 
 async function tryFetchAll<T>(url: string): Promise<T[] | null> {
@@ -259,10 +261,14 @@ export function parseSureDuration(sure: string): number {
 }
 
 export function posterUrl(base: string | undefined | null, icon: string | undefined | null, fallbackId?: number | string): string {
-  if (icon && icon.startsWith('http://')) return proxyUrl(base || '', icon.replace(/^https?:\/\/[^\/]+/, ''))
-  if (icon && icon.startsWith('https://')) return icon
-  if (icon && icon.startsWith('/')) return proxyUrl(base || '', icon)
-  if (icon) return icon
-  if (base && fallbackId) return proxyUrl(base, `/images/${fallbackId}.jpg`)
-  return ''
+  if (!icon) {
+    if (base && fallbackId) return proxyUrl(base, `/images/${fallbackId}.jpg`)
+    return ''
+  }
+  const path = icon.replace(/^https?:\/\/[^\/]+/, '')
+  if (path.startsWith('/t/p/')) return `https://image.tmdb.org${path}`
+  if (icon.startsWith('http://')) return proxyUrl(base || '', path)
+  if (icon.startsWith('https://')) return icon
+  if (icon.startsWith('/')) return proxyUrl(base || '', icon)
+  return icon
 }
