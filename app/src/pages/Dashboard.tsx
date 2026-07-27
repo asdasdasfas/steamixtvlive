@@ -463,7 +463,7 @@ export default function Dashboard() {
             {/* HERO SLAYT - ÖNE ÇIKANLAR */}
             {heroItems.length > 0 && (
               <div className="w-full mb-6">
-                <div className="relative overflow-hidden rounded-2xl shadow-2xl shadow-[#0099ff]/10 aspect-[1/1] md:aspect-[21/9]">
+                <div className="relative overflow-hidden rounded-2xl shadow-2xl shadow-[#0099ff]/10 aspect-[1/1] md:aspect-[2/1]">
                   {/* Left arrow */}
                   <button onClick={() => setCurrentSlide(prev => (prev - 1 + heroItems.length) % heroItems.length)}
                     className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all backdrop-blur-sm">
