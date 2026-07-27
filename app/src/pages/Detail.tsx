@@ -6,6 +6,7 @@ import DetailView from '@/sections/DetailView'
 import { Loader2 } from 'lucide-react'
 import { isFavorite, toggleFavorite } from '@/lib/favorites'
 import { buildSteamixIntentUrl } from '@/lib/player-intents'
+import { searchTrailer } from '@/lib/youtube'
 
 function decodeField(v: string): string {
   if (!v) return ''
@@ -68,7 +69,11 @@ export default function Detail() {
               category_id: catId || iv?.category_id || mapi?.category_id || '',
               cast: decodeField(md2?.cast || iv?.cast || ''),
               director: decodeField(md2?.director || iv?.director || ''),
-              youtube_trailer: iv?.movie_data?.info?.youtube_trailer || '',
+              youtube_trailer: '',
+            })
+            const movieName = urlName || iv?.name || mapi?.name || ''
+            searchTrailer(movieName).then(vid => {
+              if (!cancelled && vid) setData(prev => prev ? { ...prev, youtube_trailer: vid } : prev)
             })
             // Load similar from same category (silent, parallel)
             if (catId || info?.info?.category_id) {
@@ -106,7 +111,11 @@ export default function Detail() {
               cast: decodeField(si?.cast || ''),
               director: decodeField(si?.director || ''),
               episodes,
-              youtube_trailer: si?.youtube_trailer || '',
+              youtube_trailer: '',
+            })
+            const seriesName = urlName || si?.name || ''
+            searchTrailer(seriesName).then(vid => {
+              if (!cancelled && vid) setData(prev => prev ? { ...prev, youtube_trailer: vid } : prev)
             })
             // Load similar from same category (silent, parallel)
             if (catId || si?.category_id) {
