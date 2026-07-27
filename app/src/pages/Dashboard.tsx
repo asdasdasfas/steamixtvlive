@@ -667,6 +667,7 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+      <DebugPanel />
     </div>
   )
 }
@@ -875,7 +876,6 @@ function FavoritesSection() {
           <p className="text-sm">Henüz favori eklenmemiş</p>
           <p className="text-xs text-gray-600 mt-1">Film veya dizi detay sayfasından kalbe basarak ekleyebilirsiniz</p>
       </div>
-      <DebugPanel />
     </div>
   )
 }
