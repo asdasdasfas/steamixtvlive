@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { Play, Star, Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight, Eye, Heart, Volume2, VolumeX } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Poster from '@/components/Poster'
@@ -35,56 +35,23 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
   const [selectedSeason, setSelectedSeason] = useState('1')
   const [trailerMuted, setTrailerMuted] = useState(true)
   const trailerId = getYoutubeId(data.youtube_trailer || '')
-  const playerContainerRef = useRef<HTMLDivElement>(null)
-  const playerRef = useRef<any>(null)
-  const apiReadyRef = useRef(false)
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  const trailerSrc = trailerId
+    ? `https://www.youtube.com/embed/${trailerId}?autoplay=1&${trailerMuted ? 'mute=1' : ''}&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&fs=0&disablekb=1`
+    : ''
 
   const similarRef = useRef<HTMLDivElement>(null)
+  const trailerRef = useRef<HTMLIFrameElement>(null)
   const handleDownload = () => {
     window.location.href = APK_DOWNLOAD_URL
   }
 
-  // YouTube IFrame Player API ile player oluştur
-  useEffect(() => {
-    if (!trailerId) return
-    let player: any = null
-    const createPlayer = () => {
-      if (!playerContainerRef.current) return
-      player = new (window as any).YT.Player(playerContainerRef.current, {
-        height: '100%', width: '100%',
-        videoId: trailerId,
-        playerVars: {
-          autoplay: 1, controls: 0, mute: 1, loop: 1,
-          playlist: trailerId, modestbranding: 1, rel: 0,
-          iv_load_policy: 3, playsinline: 1, fs: 0,
-        },
-        events: {
-          onReady: (e: any) => {
-            playerRef.current = e.target
-            e.target.playVideo()
-          }
-        }
-      })
-      playerRef.current = player
-    }
-    if (!(window as any).YT) {
-      const tag = document.createElement('script')
-      tag.src = 'https://www.youtube.com/iframe_api'
-      tag.onload = () => { apiReadyRef.current = true; createPlayer() }
-      document.head.appendChild(tag)
-    } else if ((window as any).YT.Player) {
-      createPlayer()
-    } else {
-      (window as any).YT.ready(createPlayer)
-    }
-    return () => { player?.destroy() }
-  }, [trailerId])
-
   const toggleTrailerMute = () => {
-    const p = playerRef.current
-    if (!p) return
-    if (p.isMuted()) { p.unMute(); setTrailerMuted(false) }
-    else { p.mute(); setTrailerMuted(true) }
+    if (isMobile) {
+      window.open(`https://www.youtube.com/watch?v=${trailerId}`, '_blank')
+      return
+    }
+    setTrailerMuted(!trailerMuted)
   }
 
   const isSeries = data.stream_type === 'series'
@@ -105,8 +72,12 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
       {/* Backdrop */}
       <div className="relative h-[50vh] md:h-[80vh] overflow-hidden bg-black">
         {trailerId ? (
-          <div className="absolute inset-0 overflow-hidden" style={{ transform: 'scale(1.8)', transformOrigin: 'center center' }}>
-            <div ref={playerContainerRef} className="w-full h-full pointer-events-none" />
+          <div className="absolute inset-0 overflow-hidden" style={{ transform: 'scale(2)', transformOrigin: 'center center' }}>
+            <iframe ref={trailerRef} key={trailerMuted ? 'm' : 'u'}
+              src={trailerSrc}
+              className="w-full h-full"
+              allow="autoplay; encrypted-media"
+              title="trailer" />
           </div>
         ) : (
           data.backdrop_path?.[0] || data.stream_icon ? (
