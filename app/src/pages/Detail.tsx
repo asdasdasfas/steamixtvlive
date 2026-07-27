@@ -143,6 +143,14 @@ export default function Detail() {
     setIsFav(nowFav)
   }
 
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  const handleMobileEpisodePlay = isMobile && server ? (ep: any) => {
+    const { base_url, xtream_user, xtream_pass } = server
+    window.location.href = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(String(ep.stream_id || ep.id)), ep.container_extension || ext, {
+      type: 'series', season: ep.season || '1', episode: ep.episode_num || '1'
+    })
+  } : undefined
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
@@ -166,6 +174,7 @@ export default function Detail() {
       onSimilarClick={handleSimilarClick}
       isFav={isFav}
       onToggleFav={handleToggleFav}
+      onMobileEpisodePlay={handleMobileEpisodePlay}
       onPlay={() => {
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
         if (isMobile && (type === 'movie' || type === 'series') && server) {
