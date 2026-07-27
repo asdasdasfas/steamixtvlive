@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react'
-import { Play, Star, Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight, Eye, Heart, X } from 'lucide-react'
+import { Play, Star, Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight, Eye, Heart } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Poster from '@/components/Poster'
-import { buildSteamixIntentUrl, APK_DOWNLOAD_URL, INSTALL_FLAG_KEY } from '@/lib/player-intents'
+import { buildSteamixIntentUrl, APK_DOWNLOAD_URL } from '@/lib/player-intents'
 import type { ServerRow } from '@/lib/supabase'
 
 interface DetailData {
@@ -26,10 +26,42 @@ interface Props {
 export default function DetailView({ data, onPlay, similarItems, onSimilarClick, isFav, onToggleFav, server, ext }: Props) {
   const navigate = useNavigate()
   const [selectedSeason, setSelectedSeason] = useState('1')
-  const [showDlModal, setShowDlModal] = useState(false)
-  const [pendingEp, setPendingEp] = useState<any>(null)
 
   const similarRef = useRef<HTMLDivElement>(null)
+  const [dlState, setDlState] = useState<'idle' | 'downloading' | 'done'>('idle')
+  const [dlProgress, setDlProgress] = useState(0)
+
+  const handleDownload = async () => {
+    setDlState('downloading')
+    setDlProgress(0)
+    try {
+      const res = await fetch(APK_DOWNLOAD_URL)
+      const total = parseInt(res.headers.get('Content-Length') || '0')
+      const reader = res.body!.getReader()
+      const chunks: Uint8Array[] = []
+      let loaded = 0
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        chunks.push(value)
+        loaded += value.length
+        if (total) setDlProgress(Math.round((loaded / total) * 100))
+      }
+      const blob = new Blob(chunks as BlobPart[], { type: 'application/vnd.android.package-archive' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'SteamixPlayer.apk'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      setDlState('done')
+      setTimeout(() => setDlState('idle'), 4000)
+    } catch {
+      window.location.href = APK_DOWNLOAD_URL
+    }
+  }
 
   const isSeries = data.stream_type === 'series'
   const episodes = data.episodes?.[selectedSeason] || []
@@ -117,15 +149,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
             {/* Play (sadece film) + Favori */}
             <div className="flex items-center gap-3 mb-6">
               {!isSeries && (
-                <button onClick={() => {
-                  const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-                  if (mobile && !localStorage.getItem(INSTALL_FLAG_KEY)) {
-                    setPendingEp(null)
-                    setShowDlModal(true)
-                    return
-                  }
-                  onPlay?.()
-                }}
+                <button onClick={onPlay}
                   className="flex items-center gap-2.5 px-7 py-3 rounded-xl bg-[#0099ff] text-white font-semibold text-sm hover:bg-[#0088ee] transition-all shadow-lg shadow-[#0099ff]/20 hover:shadow-[#0099ff]/30">
                   <Play className="w-4 h-4 fill-white" />İzle
                 </button>
@@ -136,7 +160,29 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
               </button>
             </div>
 
-
+            {/* Mobil: Steamix APK indirme butonu */}
+            <div className="block md:hidden mb-6 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+              <p className="text-[11px] text-gray-400 leading-relaxed mb-3">
+                Tarayıcınız <span className="text-orange-400 font-medium">AC3 ses</span> kodlamasını desteklemez.
+                <br />Steamix Player ile tüm içerikleri sorunsuz izleyin.
+              </p>
+              <button onClick={handleDownload} disabled={dlState === 'downloading'}
+                className="w-full inline-flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-semibold hover:from-purple-500 hover:to-indigo-500 transition-all shadow-lg shadow-purple-600/25 active:scale-[0.97] disabled:opacity-70 disabled:cursor-not-allowed">
+                {dlState === 'idle' && <>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                  Steamix Player'ı İndir
+                  <span className="text-purple-200 text-[10px] font-medium bg-white/10 px-1.5 py-0.5 rounded">2.8 MB</span>
+                </>}
+                {dlState === 'downloading' && <>
+                  <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                  İndiriliyor... %{dlProgress}
+                </>}
+                {dlState === 'done' && <>
+                  <svg className="w-5 h-5 text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                  Başarıyla İndirildi
+                </>}
+              </button>
+            </div>
 
             {/* Plot */}
             {data.plot && (
@@ -176,15 +222,10 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
                         const enum_ = String(ep.episode_num || '1')
                         const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
                         if (mobile && server) {
-                          if (!localStorage.getItem(INSTALL_FLAG_KEY)) {
-                            setPendingEp({ sid, snum, enum_, container: ep.container_extension })
-                            setShowDlModal(true)
-                            return
-                          }
                           const { base_url, xtream_user, xtream_pass } = server
                           window.location.href = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(sid), ep.container_extension || ext || '', 'series')
                         } else if (!mobile && server) {
-                          const sp = new URLSearchParams({ stream_id: String(ep.stream_id || ep.id), type: 'series', season: selectedSeason, episode: ep.episode_num })
+                          const sp = new URLSearchParams({ stream_id: sid, type: 'series', season: snum, episode: enum_ })
                           if (ep.container_extension) sp.set('ext', ep.container_extension)
                           if (data.stream_icon) sp.set('icon', data.stream_icon)
                           sp.set('series_id', String(data.id))
@@ -247,56 +288,6 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
           </div>
         )}
       </div>
-
-      {/* Steamix Download Modal (mobil) */}
-      {showDlModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4" onClick={() => setShowDlModal(false)}>
-          <div className="w-full max-w-sm rounded-2xl bg-[#1a1f35] border border-white/[0.06] shadow-2xl shadow-black/50 p-6" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-white">Steamix Player Gerekli</h3>
-              <button onClick={() => setShowDlModal(false)} className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 transition-colors">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <p className="text-xs text-gray-400 leading-relaxed mb-5">
-              Tarayıcınız <span className="text-orange-400 font-medium">AC3 ses</span> kodlamasını desteklemez.
-              <br />Steamix Player ile tüm içerikleri sorunsuz izleyin.
-            </p>
-            <button onClick={async () => {
-              try {
-                const res = await fetch(APK_DOWNLOAD_URL)
-                const blob = await res.blob()
-                const url = URL.createObjectURL(blob)
-                const a = document.createElement('a')
-                a.href = url
-                a.download = 'SteamixPlayer.apk'
-                a.type = 'application/vnd.android.package-archive'
-                document.body.appendChild(a)
-                a.click()
-                document.body.removeChild(a)
-                URL.revokeObjectURL(url)
-              } catch { window.location.href = APK_DOWNLOAD_URL }
-            }}
-              className="w-full flex items-center justify-center gap-2.5 px-7 py-3 rounded-xl bg-[#0099ff] text-white font-semibold text-sm hover:bg-[#0088ee] transition-all shadow-lg shadow-[#0099ff]/20 hover:shadow-[#0099ff]/30 mb-3">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-              Steamix Player'ı İndir (2.8 MB)
-            </button>
-            <button onClick={() => {
-              localStorage.setItem(INSTALL_FLAG_KEY, '1')
-              setShowDlModal(false)
-              if (pendingEp) {
-                const { base_url, xtream_user, xtream_pass } = server!
-                window.location.href = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(pendingEp.sid), pendingEp.container || ext || '', 'series')
-              } else {
-                onPlay?.()
-              }
-            }}
-              className="w-full py-2.5 rounded-xl bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-all">
-              KURDUM, Steamix ile Aç
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
