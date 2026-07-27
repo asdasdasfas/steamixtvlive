@@ -126,11 +126,16 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
             </div>
 
             {/* Mobil: Steamix APK indirme butonu */}
-            <div className="block md:hidden mb-6">
+            <div className="block md:hidden mb-6 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+              <p className="text-[11px] text-gray-400 leading-relaxed mb-3">
+                Tarayıcınız <span className="text-orange-400 font-medium">AC3 ses</span> kodlamasını desteklemez.
+                <br />Steamix Player ile tüm içerikleri sorunsuz izleyin.
+              </p>
               <a href={APK_DOWNLOAD_URL} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 text-white text-xs font-medium hover:from-purple-500 hover:to-purple-600 transition-all shadow-lg shadow-purple-600/20 w-fit">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                Steamix APK'yı İndir (2.8 MB)
+                className="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-semibold hover:from-purple-500 hover:to-indigo-500 transition-all shadow-lg shadow-purple-600/25 active:scale-[0.97]">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                Steamix Player'ı İndir
+                <span className="text-purple-200 text-[10px] font-medium bg-white/10 px-1.5 py-0.5 rounded">2.8 MB</span>
               </a>
             </div>
 
