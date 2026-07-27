@@ -29,7 +29,7 @@ export default function Poster({ src, type, className, onClick }: PosterProps) {
 
   return (
     <div className="w-full h-full relative" onClick={onClick}>
-      <img src={url} alt="" className={`w-full h-full object-cover saturate-[1.1] ${className || ''}`} loading="lazy" onError={() => setFailed(true)} />
+      <img src={url} alt="" className={`w-full h-full object-cover saturate-[1.1] contrast-[1.05] ${className || ''}`} loading="lazy" onError={() => setFailed(true)} />
     </div>
   )
 }
