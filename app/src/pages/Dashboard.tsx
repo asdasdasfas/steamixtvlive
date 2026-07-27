@@ -510,7 +510,6 @@ export default function Dashboard() {
                   ))}
                 </div>
               </div>
-            </>
             )}
 
             {/* 2 FİLM KATEGORİSİ */}
