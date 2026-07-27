@@ -610,7 +610,7 @@ export default function Dashboard() {
               ))}
             </div>
             {/* Sağ panel - içerik */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide">
+            <div className="flex-1 overflow-y-auto scrollbar-hide" data-scroll="grid">
               {showMovieCategory && activeMovieCat ? (
                 <MovieCategoryGrid items={vodItems[activeMovieCat]} loading={!allVods && !vodItems[activeMovieCat]} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} />
               ) : (
@@ -641,7 +641,7 @@ export default function Dashboard() {
               ))}
             </div>
             {/* Sağ panel - içerik */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide">
+            <div className="flex-1 overflow-y-auto scrollbar-hide" data-scroll="grid">
               {showSeriesCategory && activeSeriesCat ? (
                 <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} />
               ) : (
@@ -691,24 +691,29 @@ function DebugPanel() {
     if (!open) return
     let domTimer: number
     const checkDom = () => {
-      const y = Math.round(window.scrollY)
-      const max = Math.round(document.documentElement.scrollHeight - window.innerHeight)
-      const allCards = document.querySelectorAll('[class*="grid"] [class*="aspect-"]')
+      const container = document.querySelector('[data-scroll="grid"]')
+      if (!container) return
+      const y = Math.round(container.scrollTop)
+      const max = Math.round(container.scrollHeight - container.clientHeight)
+      const allCards = container.querySelectorAll('[class*="aspect-"]')
       const cards = Array.from(allCards)
-      const visible = cards.filter(el => { const r = el.getBoundingClientRect(); return r.top < window.innerHeight && r.bottom > 0 }).length
+      const ch = container.clientHeight
+      const visible = cards.filter(el => { const r = el.getBoundingClientRect(); return r.top < ch + (container as HTMLElement).getBoundingClientRect().top && r.bottom > 0 }).length
       const lastCard = cards[cards.length - 1]
       let lastBottom = 0
-      if (lastCard) { const r = lastCard.getBoundingClientRect(); lastBottom = Math.round(r.bottom + window.scrollY) }
-      const docHeight = Math.round(document.documentElement.scrollHeight)
+      if (lastCard) { const r = lastCard.getBoundingClientRect(); lastBottom = Math.round(r.bottom + container.scrollTop - (container as HTMLElement).getBoundingClientRect().top) }
+      const sh = Math.round(container.scrollHeight)
       debugLog.scroll(y, max, visible, cards.length, allCards.length)
-      if (cards.length > 0 && lastBottom > 0 && lastBottom < docHeight - 100) {
-        debugLog.info(`SON-KART: last card bottom=${lastBottom} < docHeight=${docHeight}, aradaki fark=${docHeight - lastBottom}px (içerik kesiliyor!)`)
+      if (cards.length > 0 && lastBottom > 0 && lastBottom < sh - 100) {
+        debugLog.info(`SON-KART: last card bottom=${lastBottom} < scrollHeight=${sh}, aradaki fark=${sh - lastBottom}px (içerik kesiliyor!)`)
       }
     }
     const listener = () => { cancelAnimationFrame(domTimer); domTimer = requestAnimationFrame(checkDom) }
-    window.addEventListener('scroll', listener, { passive: true })
+    const container = document.querySelector('[data-scroll="grid"]')
+    if (!container) return
+    container.addEventListener('scroll', listener, { passive: true })
     checkDom()
-    return () => { window.removeEventListener('scroll', listener); cancelAnimationFrame(domTimer) }
+    return () => { container.removeEventListener('scroll', listener); cancelAnimationFrame(domTimer) }
   }, [open])
 
   const copyLogs = () => {
