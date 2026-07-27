@@ -10,7 +10,7 @@ export function buildSteamixIntentUrl(
   if (opts?.type === 'series' && opts.season && opts.episode) {
     const s = opts.season.padStart(2, '0')
     const e = opts.episode.padStart(2, '0')
-    path = `/series/${user}/${pass}/${streamId}/${s}/${e}${ext ? '.' + ext.replace(/^\./, '') : ''}`
+    path = `/series/${user}/${pass}/${streamId}/${s}/${e}${ext ? '.' + ext.replace(/^\./, '') : '.mkv'}`
   } else {
     path = `/movie/${user}/${pass}/${streamId}.${ext || 'mkv'}`
   }
