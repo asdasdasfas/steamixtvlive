@@ -68,6 +68,7 @@ export default function Detail() {
               category_id: catId || iv?.category_id || mapi?.category_id || '',
               cast: decodeField(md2?.cast || iv?.cast || ''),
               director: decodeField(md2?.director || iv?.director || ''),
+              youtube_trailer: iv?.movie_data?.info?.youtube_trailer || '',
             })
             // Load similar from same category (silent, parallel)
             if (catId || info?.info?.category_id) {
@@ -105,6 +106,7 @@ export default function Detail() {
               cast: decodeField(si?.cast || ''),
               director: decodeField(si?.director || ''),
               episodes,
+              youtube_trailer: si?.youtube_trailer || '',
             })
             // Load similar from same category (silent, parallel)
             if (catId || si?.category_id) {

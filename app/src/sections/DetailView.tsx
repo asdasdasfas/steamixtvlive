@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react'
-import { Play, Star, Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight, Eye, Heart } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Play, Star, Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight, Eye, Heart, Volume2, VolumeX } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Poster from '@/components/Poster'
 import { buildSteamixIntentUrl, APK_DOWNLOAD_URL } from '@/lib/player-intents'
@@ -10,6 +10,7 @@ interface DetailData {
   plot?: string; genre?: string; rating?: string; releasedate?: string; duration?: string
   backdrop_path?: string[]; category_id?: string; cast?: string; director?: string
   episodes?: Record<string, { id: string; episode_num: string; title: string; plot: string; stream_id: number; season: string; container_extension?: string }[]>
+  youtube_trailer?: string
 }
 
 interface Props {
@@ -23,14 +24,29 @@ interface Props {
   ext?: string
 }
 
+function getYoutubeId(url: string): string | null {
+  if (!url) return null
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+  return m ? m[1] : /^[a-zA-Z0-9_-]{11}$/.test(url) ? url : null
+}
+
 export default function DetailView({ data, onPlay, similarItems, onSimilarClick, isFav, onToggleFav, server, ext }: Props) {
   const navigate = useNavigate()
   const [selectedSeason, setSelectedSeason] = useState('1')
+  const [trailerMuted, setTrailerMuted] = useState(true)
+  const trailerId = getYoutubeId(data.youtube_trailer || '')
 
   const similarRef = useRef<HTMLDivElement>(null)
+  const trailerRef = useRef<HTMLIFrameElement>(null)
   const handleDownload = () => {
     window.location.href = APK_DOWNLOAD_URL
   }
+  useEffect(() => {
+    if (!trailerRef.current || !trailerId) return
+    trailerRef.current.contentWindow?.postMessage(JSON.stringify({
+      event: 'command', func: trailerMuted ? 'mute' : 'unMute', args: ''
+    }), '*')
+  }, [trailerMuted, trailerId])
 
   const isSeries = data.stream_type === 'series'
   const episodes = data.episodes?.[selectedSeason] || []
@@ -48,15 +64,23 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
   return (
     <div className="min-h-screen bg-[#0f172a]">
       {/* Backdrop */}
-      <div className="relative h-[45vh] md:h-[60vh] overflow-hidden">
-        {data.backdrop_path?.[0] || data.stream_icon ? (
-          <img src={data.backdrop_path?.[0] || data.stream_icon} alt=""
-            className="w-full h-full object-cover"
-            onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+      <div className="relative h-[50vh] md:h-[80vh] overflow-hidden bg-black">
+        {trailerId ? (
+          <iframe ref={trailerRef}
+            src={`https://www.youtube.com/embed/${trailerId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailerId}&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&enablejsapi=1`}
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            allow="autoplay; encrypted-media"
+            title="trailer" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900" />
+          data.backdrop_path?.[0] || data.stream_icon ? (
+            <img src={data.backdrop_path?.[0] || data.stream_icon} alt=""
+              className="w-full h-full object-cover"
+              onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900" />
+          )
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/50 to-transparent" />
         <button onClick={() => navigate(-1)}
           className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors backdrop-blur-sm">
           <ArrowLeft className="w-5 h-5" />
@@ -65,6 +89,12 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
           <div className="absolute top-4 right-4 z-10 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-sm text-xs text-white/80">
             {year}
           </div>
+        )}
+        {trailerId && (
+          <button onClick={() => setTrailerMuted(!trailerMuted)}
+            className="absolute bottom-4 right-4 z-10 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors backdrop-blur-sm">
+            {trailerMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+          </button>
         )}
       </div>
 
