@@ -143,7 +143,6 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
                   const a = document.createElement('a')
                   a.href = url
                   a.download = 'SteamixPlayer.apk'
-                  a.type = 'application/vnd.android.package-archive'
                   document.body.appendChild(a)
                   a.click()
                   document.body.removeChild(a)
