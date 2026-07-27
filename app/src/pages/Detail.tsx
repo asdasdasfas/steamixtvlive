@@ -165,6 +165,21 @@ export default function Detail() {
       onSimilarClick={handleSimilarClick}
       isFav={isFav}
       onToggleFav={handleToggleFav}
+      onEpisodePlay={(ep: any) => {
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+        if (isMobile && server) {
+          const { base_url, xtream_user, xtream_pass } = server
+          window.location.href = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(String(ep.stream_id || ep.id)), ep.container_extension || ext, {
+            type: 'series', season: ep.season || '1', episode: ep.episode_num || '1'
+          })
+          return
+        }
+        const sp = new URLSearchParams({ stream_id: String(ep.stream_id || ep.id), type: 'series', season: ep.season || '1', episode: ep.episode_num })
+        if (ep.container_extension) sp.set('ext', ep.container_extension)
+        if (data?.stream_icon) sp.set('icon', data.stream_icon)
+        sp.set('series_id', String(data?.id || id))
+        navigate(`/watch?${sp}`)
+      }}
       onPlay={() => {
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
         if (isMobile && (type === 'movie' || type === 'series') && server) {
