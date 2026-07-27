@@ -11,15 +11,70 @@ const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|i
 
 const reorderUrls = (urls: string[]) => {
   if (!isMobile) return urls
-  // Mobile: MKV first (Mediabunny AC3 decoder icin), HLS/MP4 sonra
   return [...urls].sort((a, b) => {
-    const aMkv = a.endsWith('.mkv'), bMkv = b.endsWith('.mkv')
-    if (aMkv && !bMkv) return -1  // MKV once
-    if (!aMkv && bMkv) return 1
-    return 0
+    const score = (u: string) => {
+      if (u.endsWith('.mp4')) return 0   // MP4 en önce (AAC ses garantili)
+      if (u.endsWith('.m3u8')) return 1  // HLS ikinci (genelde AAC)
+      if (u.endsWith('.mkv')) return 3   // MKV en son (AC3 sessiz olabilir)
+      return 2
+    }
+    return score(a) - score(b)
   })
 }
 
+// Decode proxy URL to direct provider URL (for external player)
+function decodeProxyDirect(proxyPath: string): string | null {
+  if (!proxyPath) return null
+  if (proxyPath.startsWith('http://') || proxyPath.startsWith('https://')) return proxyPath
+  const b64decode = (s: string) => { try { return atob(s.replace(/-/g,'+').replace(/_/g,'/')) } catch { return null } }
+  const KNOWN = {
+    '/dyn/': null,   // dynamic base64
+    '/p2095/': 'http://dzcvip1.xyz:2095',
+    '/p8080/': 'http://dzcvip1.xyz:8080',
+    '/xtream-api/': 'http://ctn34.xyz:8080',
+    '/xtream/': 'http://dzcvip1.xyz:2095',
+  }
+  for (const [prefix, base] of Object.entries(KNOWN)) {
+    if (!proxyPath.startsWith(prefix)) continue
+    const rest = proxyPath.slice(prefix.length)
+    if (base) return base + rest
+    // dynamic: /dyn/{b64(base_url)}/{path}
+    const si = rest.indexOf('/')
+    if (si <= 0) continue
+    const decoded = b64decode(rest.slice(0, si))
+    if (decoded) return decoded.replace(/\/+$/,'') + rest.slice(si)
+  }
+  // /p/{b64(base_url)}/{path}
+  const pm = proxyPath.match(/^\/p\/([A-Za-z0-9\-_]+)(\/.*)$/)
+  if (pm) { const d = b64decode(pm[1]); if (d) return d.replace(/\/+$/,'') + pm[2] }
+  // /v/{b64}/{path}
+  const vm = proxyPath.match(/^\/v\/([A-Za-z0-9\-_]+)(\/.*)$/)
+  if (vm) { const d = b64decode(vm[1]); if (d) return d.replace(/\/+$/,'') + vm[2] }
+  // /audio-fix/{b64(base_url)}/{path}
+  const af = proxyPath.match(/^\/audio-fix\/([A-Za-z0-9\-_]+)(\/.*)$/)
+  if (af) { const d = b64decode(af[1]); if (d) return d.replace(/\/+$/,'') + af[2] }
+  // /audio-fix/s/{b64(absolute_url)}
+  const afs = proxyPath.match(/^\/audio-fix\/s\/([A-Za-z0-9\-_]+)$/)
+  if (afs) { const d = b64decode(afs[1]); if (d) return d }
+  return null
+}
+
+// Build MX Player / VLC Android Intent URL from a proxy path
+function buildPlayerIntents(proxyPath: string): { mx: string; vlc: string; raw: string } | null {
+  if (!proxyPath) return null
+  const directUrl = decodeProxyDirect(proxyPath) || proxyPath
+  const absUrl = directUrl.startsWith('http') ? directUrl : window.location.origin + directUrl
+  const scheme = absUrl.startsWith('https') ? 'https' : 'http'
+  const hostPath = absUrl.replace(/^https?:\/\//, '')
+  const encUrl = encodeURIComponent(absUrl)
+  return {
+    mx: `intent://${hostPath}#Intent;package=com.mxtech.videoplayer.ad;action=android.intent.action.VIEW;type=video/*;scheme=${scheme};S.browser_fallback_url=${encUrl};end`,
+    vlc: `intent://${hostPath}#Intent;package=org.videolan.vlc;action=android.intent.action.VIEW;type=video/*;scheme=${scheme};S.browser_fallback_url=${encUrl};end`,
+    raw: absUrl,
+  }
+}
+
+// Convert proxy URLs for server-side AC3→AAC transcoding (fallback)
 export default function Watch() {
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
@@ -29,7 +84,11 @@ export default function Watch() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState('')
-
+  const [nativePlayerUrl, setNativePlayerUrl] = useState('')
+  const [mxIntentUrl, setMxIntentUrl] = useState('')
+  const [vlcIntentUrl, setVlcIntentUrl] = useState('')
+  const [steamixIntentUrl, setSteamixIntentUrl] = useState('')
+  const [apkDownloadUrl] = useState('https://www.dropbox.com/scl/fi/dycgacn48jyb55zcv7u7m/app-arm64-v8a-release.apk?rlkey=gqccyxlnezl5u2if30n4pzmhz&st=1x4v2kl2&dl=1')
 
   const streamId = params.get('stream_id')
   const rotationId = params.get('rotation_id')
@@ -56,8 +115,26 @@ export default function Watch() {
           const allUrls = reorderUrls(ext
             ? [vodUrlWithExt(base_url, xtream_user, xtream_pass, sid, ext), ...vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))]
             : vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid)))
+          let finalUrls = allUrls
+          let nativeUrl = ''
+          let directUrl = ''
+          if (isMobile) {
+            const mkvAt = allUrls.findIndex(u => u.startsWith('/dyn/') && u.endsWith('.mkv'))
+            const mp4At = mkvAt < 0 ? allUrls.findIndex(u => u.startsWith('/dyn/') && u.endsWith('.mp4')) : -1
+            const found = mkvAt >= 0 ? mkvAt : mp4At
+            if (found >= 0) {
+              nativeUrl = window.location.origin + allUrls[found]
+              const decoded = decodeProxyDirect(allUrls[found])
+              if (decoded) directUrl = decoded.startsWith('http') ? decoded : window.location.origin + decoded
+            }
+          }
+          if (nativeUrl) {
+            const intents = buildPlayerIntents(nativeUrl)
+            if (intents) { setNativePlayerUrl(intents.raw); setMxIntentUrl(intents.mx); setVlcIntentUrl(intents.vlc) }
+            if (directUrl) setSteamixIntentUrl(`steamixtv://play?url=${encodeURIComponent(directUrl)}`)
+          }
           if (!cancelled) { 
-            setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1))
+            setUrl(finalUrls[0]); setFallbackUrls(finalUrls.slice(1))
           }
           try {
             const info = await fetchVodInfo(base_url, xtream_user, xtream_pass, sid)
@@ -85,7 +162,24 @@ export default function Watch() {
           }
           if (!cancelled) {
             const ordered = reorderUrls(allUrls)
-            setUrl(ordered[0]); setFallbackUrls(ordered.slice(1))
+            if (isMobile) {
+              const mkvAt = ordered.findIndex(u => u.startsWith('/dyn/') && u.endsWith('.mkv'))
+              const mp4At = mkvAt < 0 ? ordered.findIndex(u => u.startsWith('/dyn/') && u.endsWith('.mp4')) : -1
+              const found = mkvAt >= 0 ? mkvAt : mp4At
+              if (found >= 0) {
+                const nativeUrl = window.location.origin + ordered[found]
+                const intents = buildPlayerIntents(nativeUrl)
+                setNativePlayerUrl(intents?.raw || '')
+                if (intents) { setMxIntentUrl(intents.mx); setVlcIntentUrl(intents.vlc) }
+                const decoded = decodeProxyDirect(ordered[found])
+                if (decoded) { const absUrl = decoded.startsWith('http') ? decoded : window.location.origin + decoded; setSteamixIntentUrl(`steamixtv://play?url=${encodeURIComponent(absUrl)}`) }
+                setUrl(ordered[0]); setFallbackUrls(ordered.slice(1))
+              } else {
+                setUrl(ordered[0]); setFallbackUrls(ordered.slice(1))
+              }
+            } else {
+              setUrl(ordered[0]); setFallbackUrls(ordered.slice(1))
+            }
           }
           try {
             const info = await fetchSeriesInfo(base_url, xtream_user, xtream_pass, sid)
@@ -107,6 +201,15 @@ export default function Watch() {
   }, [streamId, rotationId, type, season, episode, ext, seriesId, server])
 
   useEffect(() => { resolveStream() }, [resolveStream])
+
+  // Auto-trigger Steamix Player on mobile VOD after URLs resolve
+  useEffect(() => {
+    if (isMobile && (type === 'movie' || type === 'series') && steamixIntentUrl && !rotationId) {
+      // Small delay to let the page render, then try the intent
+      const t = setTimeout(() => { window.location.href = steamixIntentUrl }, 800)
+      return () => clearTimeout(t)
+    }
+  }, [steamixIntentUrl, type, rotationId])
 
   const handleChannelChange = (newId: string, newUrl: string, newTitle: string) => {
     setUrl(newUrl); setTitle(newTitle); setLoading(false); setError(null)
@@ -153,8 +256,27 @@ export default function Watch() {
           <div className="w-full max-w-full md:max-w-5xl">
             {rotationId ? (
               <LivePlayer channelId={rotationId} title={title} src={url} onEnded={() => navigate(-1)} onChannelChange={handleChannelChange} />
+            ) : isMobile && steamixIntentUrl ? (
+              <div className="flex flex-col items-center justify-center min-h-[80vh] px-6 gap-6">
+                {title && <h1 className="text-lg text-white font-semibold text-center">{title}</h1>}
+                <div className="flex flex-col items-center gap-4">
+                  <a href={steamixIntentUrl}
+                     className="px-8 py-4 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-base font-bold transition shadow-xl shadow-orange-600/40">
+                    Steamix Player'da İzle
+                  </a>
+                  <a href={apkDownloadUrl} target="_blank" rel="noopener noreferrer"
+                     className="text-xs text-gray-500 hover:text-gray-300 underline">
+                    Steamix Player APK'yı İndir & Kur
+                  </a>
+                  <p className="text-[10px] text-gray-600 text-center max-w-xs">
+                    İlk seferde APK'yı indirip kurun, sonraki tıklamalarda direkt açılır.
+                  </p>
+                </div>
+              </div>
             ) : (
-              <VideoPlayer key={url} src={url} fallbackSrcs={fallbackUrls} title={title} onEnded={() => navigate(-1)} />
+              <>
+                <VideoPlayer key={url} src={url} fallbackSrcs={fallbackUrls} title={title} onEnded={() => navigate(-1)} />
+              </>
             )}
           </div>
         </div>

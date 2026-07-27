@@ -8,17 +8,10 @@ interface PosterProps {
   onClick?: () => void
 }
 
-function fixUrl(src?: string): string | undefined {
-  if (!src) return src
-  if (src.startsWith('http://')) return src.replace('http://', 'https://')
-  return src
-}
-
 export default function Poster({ src, type, className, onClick }: PosterProps) {
   const [failed, setFailed] = useState(false)
-  const url = fixUrl(src)
 
-  if (!url || failed) {
+  if (!src || failed) {
     return (
       <div className={`w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center ${className || ''}`}
         onClick={onClick}>
@@ -29,7 +22,7 @@ export default function Poster({ src, type, className, onClick }: PosterProps) {
 
   return (
     <div className="w-full h-full relative" onClick={onClick}>
-      <img src={url} alt="" className={`w-full h-full object-cover ${className || ''}`} loading="lazy" onError={() => setFailed(true)} />
+      <img src={src} alt="" className={`w-full h-full object-cover ${className || ''}`} loading="lazy" onError={() => setFailed(true)} />
     </div>
   )
 }

@@ -4,6 +4,37 @@ import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForwar
 import MediabunnyPlayer from './MediabunnyPlayer'
 
 
+
+const decodeProxyUrl = (url: string): string | null => {
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  const b64d = (s: string) => { try { return atob(s.replace(/-/g,'+').replace(/_/g,'/')) } catch { return null } }
+  const KNOWN: Record<string,string|null> = { '/dyn/':null, '/p2095/':'http://dzcvip1.xyz:2095', '/p8080/':'http://dzcvip1.xyz:8080', '/xtream/':'http://dzcvip1.xyz:2095', '/xtream-api/':'http://ctn34.xyz:8080' }
+  for (const [pfx, base] of Object.entries(KNOWN)) {
+    if (!url.startsWith(pfx)) continue
+    const rest = url.slice(pfx.length)
+    if (base) return base + rest
+    const si = rest.indexOf('/')
+    if (si <= 0) continue
+    const d = b64d(rest.slice(0, si))
+    if (d) return d.replace(/\/+$/,'') + rest.slice(si)
+  }
+  const pm = url.match(/^\/p\/([A-Za-z0-9\-_]+)(\/.*)$/)
+  if (pm) { const d = b64d(pm[1]); if (d) return d.replace(/\/+$/,'') + pm[2] }
+  const vm = url.match(/^\/v\/([A-Za-z0-9\-_]+)(\/.*)$/)
+  if (vm) { const d = b64d(vm[1]); if (d) return d.replace(/\/+$/,'') + vm[2] }
+  return null
+}
+
+const openExternalPlayer = (url: string) => {
+  const directUrl = decodeProxyUrl(url) || url
+  const fullUrl = directUrl.startsWith('http') ? directUrl : window.location.origin + directUrl
+  const scheme = fullUrl.startsWith('https') ? 'https' : 'http'
+  const hostPath = fullUrl.replace(/^https?:\/\//, '')
+  const encUrl = encodeURIComponent(fullUrl)
+  const intentUrl = `intent://${hostPath}#Intent;package=com.mxtech.videoplayer.ad;action=android.intent.action.VIEW;type=video/*;scheme=${scheme};S.browser_fallback_url=${encUrl};end`
+  window.location.href = intentUrl
+}
+
 const debugBuffer: string[] = []
 const MAX_DEBUG = 500
 function dbg(msg: string) {
@@ -24,12 +55,7 @@ interface VideoPlayerProps {
 const IS_MOBILE = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 const PROXY_PREFIXES = ['/dyn/', '/p2095/', '/p8080/']
 
-const isDirectFileUrl = (url: string) => {
-  if (!url) return false
-  if (!IS_MOBILE && PROXY_PREFIXES.some(p => url.startsWith(p))) return false
-  const ext = url.split('?')[0].toLowerCase()
-  return ext.endsWith('.mkv')
-}
+const isDirectMkv = (url: string) => url && !PROXY_PREFIXES.some(p => url.startsWith(p)) && url.split('?')[0].toLowerCase().endsWith('.mkv')
 
 export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs, onToggleFullscreen }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -53,25 +79,17 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const retryCountRef = useRef(0)
   const [useMediabunny, setUseMediabunny] = useState<boolean | null>(null)
 
-  // Detect if Mediabunny should be used for this source
+  // Detect which player to use for this source
   useEffect(() => {
-    const isProxy = (u: string) => PROXY_PREFIXES.some(p => u.startsWith(p))
-    const isMkv = src.endsWith('.mkv')
-    const isProxyUrl = isProxy(src)
-    const canMkv = isMkv
-    dbg(`KARAR: mkv=${isMkv} proxy=${isProxyUrl} mobil=${IS_MOBILE} src=${src?.substring(0,60)}`)
-    if (canMkv && !isProxyUrl && !IS_MOBILE) {
-      setUseMediabunny(true)
-      dbg(`KARAR: Mediabunny KULLANILACAK (sadece PC)`)
-    } else {
-      setUseMediabunny(false)
-      dbg(`KARAR: native video/HLS`)
-    }
+    const directMkv = !!isDirectMkv(src)
+    dbg(`KARAR: mobil=${IS_MOBILE} directMkv=${directMkv}`)
+    setUseMediabunny(!IS_MOBILE && directMkv)
   }, [src, fallbackSrcs])
 
-  // Build full URL list
+  // Build full URL list — mobile: MoviPlayer (WASM/AC3), PC: Mediabunny
   useEffect(() => {
-    const urls = [src, ...(fallbackSrcs || [])]
+    const rewrite = (u: string) => u
+    const urls = [rewrite(src), ...(fallbackSrcs || []).map(rewrite)]
     const filtered = urls.filter(Boolean)
     allUrlsRef.current = filtered
     urlIndexRef.current = 0
@@ -125,7 +143,6 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const total = allUrlsRef.current.length
     const currentSrc = allUrlsRef.current[urlIdx] || ''
     const maxStuck = currentSrc.endsWith('.mkv') ? 15 : 5
-    if (currentSrc.endsWith('.mkv')) dbg(`WATCHDOG: MKV native -> AC3 sesi yok!`)
     watchdogRef.current = setInterval(() => {
       if (!video || video.seeking) return
       if (video.readyState >= 2 && video.currentTime > lastProgressRef.current) {
@@ -173,7 +190,6 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       console.log(`[TRYURL] FETCH test: status=${r.status} ct=${ct}`)
       ctrl.abort()
     }).catch(() => {})
-
     // Destroy previous HLS and reset video element fully
     if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null }
     video.pause()
@@ -186,7 +202,6 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const isHls = srcNoQuery.endsWith('.m3u8')
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
     console.log(`[TRYURL] isHLS:${isHls} HLS.destek:${Hls.isSupported()} Safari:${isSafari}`)
-    if (currentSrc.endsWith('.mkv')) dbg(`MKV native -> AC3 ses OLMAZ!`)
 
     if (isHls && Hls.isSupported() && !isSafari) {
       const isVirtualHls = currentSrc.startsWith('/v/')
@@ -391,10 +406,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
   const bufferedPct = duration > 0 ? (buffered / duration) * 100 : 0
 
-  const isProxyUrl = (u: string) => PROXY_PREFIXES.some(p => u.startsWith(p))
-  const canUseMediabunny = useMediabunny === true && src && (!isProxyUrl(src) || IS_MOBILE) && (!(fallbackSrcs?.some(isProxyUrl)) || IS_MOBILE)
-
-  if (canUseMediabunny) {
+  if (useMediabunny && src) {
     return (
       <MediabunnyPlayer
         key={src}
@@ -417,8 +429,10 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
           <div className="text-center max-w-xs">
             <p className="text-sm text-gray-400 mb-3">{loadError}</p>
-            <button onClick={() => { setLoadError(''); urlIndexRef.current = 0; tryUrl(videoRef.current!) }}
-              className="px-4 py-2 rounded-lg bg-[#0099ff] text-white text-xs">Tekrar Dene</button>
+            <div className="flex gap-2 justify-center">
+              <button onClick={() => { setLoadError(''); urlIndexRef.current = 0; tryUrl(videoRef.current!) }}
+                className="px-4 py-2 rounded-lg bg-[#0099ff] text-white text-xs">Tekrar Dene</button>
+            </div>
           </div>
         </div>
       )}
