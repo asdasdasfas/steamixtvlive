@@ -462,7 +462,7 @@ export default function Dashboard() {
           <div className="pb-20">
             {/* HERO SLAYT - ÖNE ÇIKANLAR */}
             {heroItems.length > 0 && (
-              <div className="w-full max-w-6xl mx-auto mb-6">
+              <div className="w-full mb-6">
                 <div className="relative overflow-hidden rounded-2xl shadow-2xl shadow-[#0099ff]/10 aspect-[1/1] md:aspect-[21/9]">
                   {/* Left arrow */}
                   <button onClick={() => setCurrentSlide(prev => (prev - 1 + heroItems.length) % heroItems.length)}
