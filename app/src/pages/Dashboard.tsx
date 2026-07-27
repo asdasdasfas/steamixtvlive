@@ -673,56 +673,33 @@ function MovieCategoryGrid({ items, loading, categoryName }: any) {
     navigate(`/detail?${sp}`)
   }
 
-  // Pick first 6 items for backdrop collage (from the end)
-  const previewItems = (items || []).slice(-6)
-
   return (
-    <div>
-      <div className="relative w-full h-48 md:h-64 overflow-hidden bg-gradient-to-br from-[#1a1a3e] to-[#0f172a]">
-        <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-20">
-          {previewItems.slice(0, 4).map((s: any, i: number) => (
-            <div key={s.stream_id || i} className="w-20 h-28 md:w-28 md:h-40 rounded-lg overflow-hidden shrink-0 -rotate-3 first:rotate-3 last:-rotate-2 odd:translate-y-3">
-              <img src={pImg(s.cover_big || s.stream_icon)} alt="" className="w-full h-full object-cover"
-                onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+    <div className="px-4 md:px-6 pt-3">
+      <h2 className="text-base font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+        {categoryName} <span className="text-xs text-gray-500 font-normal">({items?.length || 0})</span>
+      </h2>
+      {loading ? (
+        <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-[#0099ff] animate-spin" /></div>
+      ) : (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
+          {(items || []).map((s: any) => (
+            <div key={s.stream_id} className="group">
+              <button onClick={() => handleDetail(s)} className="w-full">
+                <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
+                  <Poster src={pImg(s.cover_big || s.stream_icon)} type="movie" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
+                    <div className="w-14 h-14 rounded-full bg-[#0099ff] flex items-center justify-center shadow-[0_0_20px_rgba(0,153,255,0.6)] backdrop-blur-sm">
+                      <Play className="w-6 h-6 text-white ml-1 fill-white" />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
+              </button>
             </div>
           ))}
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/60 to-transparent" />
-        <div className="absolute bottom-4 md:bottom-6 left-4 md:left-6">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-1 h-5 bg-[#0099ff] rounded-full" />
-            <h2 className="text-sm font-bold text-white tracking-widest" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-              FİLM <span className="text-[#0099ff]">ARŞİVİ</span>
-            </h2>
-          </div>
-          <p className="text-xl md:text-2xl font-bold text-white drop-shadow-lg">{categoryName}</p>
-          <p className="text-xs text-gray-400 mt-1">{items?.length || 0} film</p>
-        </div>
-      </div>
-      <div className="px-4 md:px-6 -mt-8 relative z-10">
-        {loading ? (
-          <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-[#0099ff] animate-spin" /></div>
-        ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
-            {(items || []).map((s: any) => (
-              <div key={s.stream_id} className="group">
-                <button onClick={() => handleDetail(s)} className="w-full">
-                  <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
-                    <Poster src={pImg(s.cover_big || s.stream_icon)} type="movie" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
-                      <div className="w-14 h-14 rounded-full bg-[#0099ff] flex items-center justify-center shadow-[0_0_20px_rgba(0,153,255,0.6)] backdrop-blur-sm">
-                        <Play className="w-6 h-6 text-white ml-1 fill-white" />
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      )}
     </div>
   )
 }
@@ -741,55 +718,33 @@ function SeriesCategoryGrid({ items, loading, categoryName }: any) {
     navigate(`/detail?${sp}`)
   }
 
-  const previewItems = (items || []).slice(-6)
-
   return (
-    <div>
-      <div className="relative w-full h-48 md:h-64 overflow-hidden bg-gradient-to-br from-[#1a3a1e] to-[#0f172a]">
-        <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-20">
-          {previewItems.slice(0, 4).map((s: any, i: number) => (
-            <div key={s.series_id || i} className="w-20 h-28 md:w-28 md:h-40 rounded-lg overflow-hidden shrink-0 -rotate-3 first:rotate-3 last:-rotate-2 odd:translate-y-3">
-              <img src={pImg(s.cover_big || s.movie_image || s.cover || s.thumbnail)} alt="" className="w-full h-full object-cover"
-                onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+    <div className="px-4 md:px-6 pt-3">
+      <h2 className="text-base font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+        {categoryName}
+      </h2>
+      {loading ? (
+        <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-[#0099ff] animate-spin" /></div>
+      ) : (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
+          {(items || []).map((s: any) => (
+            <div key={s.series_id} className="group">
+              <button onClick={() => handleDetail(s)} className="w-full">
+                <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-2 group-hover:ring-[#14b8a6]/40">
+                  <Poster src={pImg(s.cover_big || s.movie_image || s.cover || s.thumbnail)} type="series" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
+                    <div className="w-14 h-14 rounded-full bg-[#14b8a6] flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.6)] backdrop-blur-sm">
+                      <Play className="w-6 h-6 text-white ml-1 fill-white" />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
+              </button>
             </div>
           ))}
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/60 to-transparent" />
-        <div className="absolute bottom-4 md:bottom-6 left-4 md:left-6">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-1 h-5 bg-[#14b8a6] rounded-full" />
-            <h2 className="text-sm font-bold text-white tracking-widest" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-              DİZİ <span className="text-[#14b8a6]">ARŞİVİ</span>
-            </h2>
-          </div>
-          <p className="text-xl md:text-2xl font-bold text-white drop-shadow-lg">{categoryName}</p>
-          <p className="text-xs text-gray-400 mt-1">{items?.length || 0} bölüm</p>
-        </div>
-      </div>
-      <div className="px-4 md:px-6 -mt-8 relative z-10">
-        {loading ? (
-          <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-[#0099ff] animate-spin" /></div>
-        ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
-            {(items || []).map((s: any) => (
-              <div key={s.series_id} className="group">
-                <button onClick={() => handleDetail(s)} className="w-full">
-                  <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-2 group-hover:ring-[#14b8a6]/40">
-                    <Poster src={pImg(s.cover_big || s.movie_image || s.cover || s.thumbnail)} type="series" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
-                      <div className="w-14 h-14 rounded-full bg-[#14b8a6] flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.6)] backdrop-blur-sm">
-                        <Play className="w-6 h-6 text-white ml-1 fill-white" />
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      )}
     </div>
   )
 }
