@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Play, Star, Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight, Eye, Heart, Volume2, VolumeX } from 'lucide-react'
+import { Play, Star, Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight, Eye, Heart } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Poster from '@/components/Poster'
 import { buildSteamixIntentUrl, APK_DOWNLOAD_URL } from '@/lib/player-intents'
@@ -33,30 +33,21 @@ function getYoutubeId(url: string): string | null {
 export default function DetailView({ data, onPlay, similarItems, onSimilarClick, isFav, onToggleFav, server, ext }: Props) {
   const navigate = useNavigate()
   const [selectedSeason, setSelectedSeason] = useState('1')
-  const [trailerMuted, setTrailerMuted] = useState(true)
   const trailerId = getYoutubeId(data.youtube_trailer || '')
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  const fragmanUrl = trailerId
+    ? isMobile
+      ? `intent://www.youtube.com/watch?v=${trailerId}#Intent;scheme=https;package=com.google.android.youtube;end`
+      : `https://www.youtube.com/watch?v=${trailerId}`
+    : ''
   const trailerSrc = trailerId
     ? `https://www.youtube.com/embed/${trailerId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&fs=0`
-    : ''
-  const pcTrailerSrc = trailerId
-    ? `https://www.youtube.com/embed/${trailerId}?autoplay=1&${trailerMuted ? 'mute=1' : ''}&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&fs=0`
     : ''
 
   const similarRef = useRef<HTMLDivElement>(null)
   const trailerRef = useRef<HTMLIFrameElement>(null)
   const handleDownload = () => {
     window.location.href = APK_DOWNLOAD_URL
-  }
-
-  const openYoutubeApp = () => {
-    const url = `https://www.youtube.com/watch?v=${trailerId}`
-    const intent = `intent://www.youtube.com/watch?v=${trailerId}#Intent;scheme=https;package=com.google.android.youtube;end`
-    const a = document.createElement('a')
-    a.href = isMobile ? intent : url
-    a.target = '_blank'
-    a.rel = 'noopener noreferrer'
-    a.click()
   }
 
 
@@ -80,8 +71,8 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
       <div className="relative h-[50vh] md:h-[80vh] overflow-hidden bg-black">
         {trailerId ? (
           <div className="absolute inset-0">
-            <iframe ref={trailerRef} key={isMobile ? 0 : (trailerMuted ? 1 : 2)}
-              src={isMobile ? trailerSrc : pcTrailerSrc}
+            <iframe ref={trailerRef}
+              src={trailerSrc}
               className="w-full h-full"
               allow="autoplay; encrypted-media; fullscreen"
               title="trailer" />
@@ -105,17 +96,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
             {year}
           </div>
         )}
-        {trailerId && (
-          <button onClick={openYoutubeApp}
-            className="absolute bottom-4 right-4 z-20 w-12 h-12 rounded-full bg-black/70 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/90 transition-colors border border-white/10 shadow-lg"
-            title="Sesi YouTube'da aç">
-            {isMobile ? (
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
-            ) : (
-              <Volume2 className="w-5 h-5" />
-            )}
-          </button>
-        )}
+
       </div>
 
       {/* Content */}
@@ -165,13 +146,20 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
               </div>
             )}
 
-            {/* Play (sadece film) + Favori */}
+            {/* Play + Fragman + Favori */}
             <div className="flex items-center gap-3 mb-6">
               {!isSeries && (
                 <button onClick={onPlay}
                   className="flex items-center gap-2.5 px-7 py-3 rounded-xl bg-[#0099ff] text-white font-semibold text-sm hover:bg-[#0088ee] transition-all shadow-lg shadow-[#0099ff]/20 hover:shadow-[#0099ff]/30">
                   <Play className="w-4 h-4 fill-white" />İzle
                 </button>
+              )}
+              {trailerId && (
+                <a href={fragmanUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/10 text-white text-sm font-semibold hover:bg-white/20 transition-all">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+                  Fragman
+                </a>
               )}
               <button onClick={onToggleFav}
                 className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all">
