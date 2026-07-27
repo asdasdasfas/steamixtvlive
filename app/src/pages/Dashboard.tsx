@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
-import { fetchCategories, fetchVods, fetchSeries, fetchAllVods, fetchAllSeries } from '@/lib/supabase'
+import { fetchCategories, fetchVods, fetchSeries, fetchAllVods, fetchAllSeries, posterUrl } from '@/lib/supabase'
 import { debugLog } from '@/lib/debug-logger'
 import { parseRotationData } from '@/lib/rotation'
 import { getFavorites, removeFavorite } from '@/lib/favorites'
