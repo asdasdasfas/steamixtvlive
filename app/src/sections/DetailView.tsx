@@ -200,8 +200,9 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
                         }
                       }}
                         className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] hover:bg-white/10 transition-colors text-left border border-white/[0.03] hover:border-white/10">
-                        <div className="w-9 h-9 rounded-lg bg-[#0099ff]/15 flex items-center justify-center shrink-0">
-                          <Play className="w-4 h-4 text-[#0099ff] fill-[#0099ff]" />
+                        <div className="w-10 h-10 rounded-xl bg-[#0099ff]/15 flex items-center justify-center gap-1 shrink-0">
+                          <Play className="w-3.5 h-3.5 text-[#0099ff] fill-[#0099ff]" />
+                          <span className="text-[10px] font-semibold text-[#0099ff]">İzle</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-white truncate">{ep.episode_num}. {ep.title || 'Bölüm'}</p>
