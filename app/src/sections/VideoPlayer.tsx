@@ -4,14 +4,6 @@ import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForwar
 import MediabunnyPlayer from './MediabunnyPlayer'
 
 
-const debugBuffer: string[] = []
-const MAX_DEBUG = 500
-function dbg(msg: string) {
-  debugBuffer.push(`[${new Date().toISOString().slice(11,19)}] ${msg}`)
-  if (debugBuffer.length > MAX_DEBUG) debugBuffer.splice(0, debugBuffer.length - MAX_DEBUG)
-  console.log(msg)
-}
-
 interface VideoPlayerProps {
   src: string
   poster?: string
@@ -59,13 +51,10 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const isMkv = src.endsWith('.mkv')
     const isProxyUrl = isProxy(src)
     const canMkv = isMkv
-    dbg(`KARAR: mkv=${isMkv} proxy=${isProxyUrl} mobil=${IS_MOBILE} src=${src?.substring(0,60)}`)
     if (canMkv && !isProxyUrl && !IS_MOBILE) {
       setUseMediabunny(true)
-      dbg(`KARAR: Mediabunny KULLANILACAK (sadece PC)`)
     } else {
       setUseMediabunny(false)
-      dbg(`KARAR: native video/HLS`)
     }
   }, [src, fallbackSrcs])
 
@@ -76,7 +65,6 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     allUrlsRef.current = filtered
     urlIndexRef.current = 0
     setLoadError('')
-    console.log(`%c[VIDEO] URL list (${allUrlsRef.current.length})`, 'color:cyan', allUrlsRef.current.map((u,i)=>`#${i}: ${u?.substring(0,130)}`))
   }, [src, fallbackSrcs])
 
   const formatTime = (s: number) => {
@@ -125,20 +113,16 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const total = allUrlsRef.current.length
     const currentSrc = allUrlsRef.current[urlIdx] || ''
     const maxStuck = currentSrc.endsWith('.mkv') ? 15 : 5
-    if (currentSrc.endsWith('.mkv')) dbg(`WATCHDOG: MKV native -> AC3 sesi yok!`)
     watchdogRef.current = setInterval(() => {
       if (!video || video.seeking) return
       if (video.readyState >= 2 && video.currentTime > lastProgressRef.current) {
-        if (stuckCount > 0) console.log(`%c[WATCHDOG] Kurtuldu! ilerleme var: ${video.currentTime}s`, 'color:lime')
         lastProgressRef.current = video.currentTime
         stuckCount = 0
         return
       }
       stuckCount++
-      console.log(`[WATCHDOG] Takildi! #${urlIdx}/${total} stuck:${stuckCount}/${maxStuck} readyState:${video.readyState} currentTime:${video.currentTime.toFixed(2)}s lastProgress:${lastProgressRef.current.toFixed(2)}s buffered:${video.buffered?.length||0}`)
       if (stuckCount >= maxStuck) {
-        console.log(`%c[WATCHDOG] ${maxStuck} kez takildi -> SONRAKI URL`, 'color:red')
-        clearInterval(watchdogRef.current)
+                clearInterval(watchdogRef.current)
         if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null }
         if (videoRef.current) videoRef.current.onerror = null
         video.src = ''
@@ -147,7 +131,6 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         if (urlIndexRef.current < allUrlsRef.current.length) {
           tryUrl(video)
         } else {
-          console.log(`%c[WATCHDOG] TUM URL'LER DENENDI ${total} adet -> HATA`, 'color:red;font-size:16px')
           setLoadError('Hiçbir yayın kaynağı çalışmadı')
         }
       }
@@ -158,19 +141,13 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const tryUrl = useCallback((video: HTMLVideoElement) => {
     const idx = urlIndexRef.current
     const urls = allUrlsRef.current
-    if (idx >= urls.length) { console.log(`%c[TRYURL] Hic URL kalmadi`, 'color:red'); setLoadError('Hiçbir yayın kaynağı çalışmadı'); return }
+    if (idx >= urls.length) { setLoadError('Hiçbir yayın kaynağı çalışmadı'); return }
     const currentSrc = urls[idx]
     retryCountRef.current = 0
-
-    console.log(`%c[TRYURL] ======== DENEME #${idx}/${urls.length} ========`, 'color:yellow;font-size:14px')
-    console.log(`[TRYURL] URL: ${currentSrc}`)
-    console.log(`[TRYURL] Protokol: ${currentSrc?.startsWith('https') ? 'HTTPS' : currentSrc?.startsWith('http') ? 'HTTP' : currentSrc?.startsWith('/api') ? 'API_PROXY' : 'OTHER'}`)
-    console.log(`[TRYURL] Sayfa: ${window.location.protocol}//${window.location.host}`)
 
     const ctrl = new AbortController()
     fetch(currentSrc, { signal: ctrl.signal }).then(r => {
       const ct = r.headers.get('content-type') || ''
-      console.log(`[TRYURL] FETCH test: status=${r.status} ct=${ct}`)
       ctrl.abort()
     }).catch(() => {})
 
@@ -185,14 +162,10 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const srcNoQuery = currentSrc.split('?')[0]
     const isHls = srcNoQuery.endsWith('.m3u8')
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
-    console.log(`[TRYURL] isHLS:${isHls} HLS.destek:${Hls.isSupported()} Safari:${isSafari}`)
-    if (currentSrc.endsWith('.mkv')) dbg(`MKV native -> AC3 ses OLMAZ!`)
-
     if (isHls && Hls.isSupported() && !isSafari) {
       const isVirtualHls = currentSrc.startsWith('/v/')
-      console.log(`[TRYURL] HLS.js baslatiliyor... virtual=${isVirtualHls}`)
       const hls = new Hls({
-        enableWorker: false, lowLatencyMode: isVirtualHls, debug: true,
+        enableWorker: false, lowLatencyMode: isVirtualHls, debug: false,
         fragLoadingTimeOut: isVirtualHls ? 0 : 3000,
         fragLoadingMaxRetry: 0,
         fragLoadingRetryDelay: 0,
@@ -206,7 +179,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
               const base = u.protocol + '//' + u.hostname + ':' + (u.port || (u.protocol === 'https:' ? 443 : 80))
               const b64 = btoa(base).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
               url = '/p/' + b64 + u.pathname + (u.search || '')
-              console.log(`[FETCH-SETUP] Akamai URL proxied: ${url.substring(0, 120)}`)
+
             } catch (e) {}
           }
           return new Request(url, {
@@ -221,53 +194,25 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       hls.loadSource(currentSrc)
       hls.attachMedia(video)
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        console.log(`%c[HLS] MANIFEST_PARSED OK`, 'color:lime')
         tryPlay(video)
         startWatchdog(video)
       })
-      hls.on(Hls.Events.MANIFEST_LOADED, (_e, data) => {
-        console.log(`[HLS] MANIFEST_LOADED:`, data.url?.substring(0,120), `levels:${data.levels?.length}`)
-      })
       hls.on(Hls.Events.LEVEL_LOADED, (_e, data) => {
-        const d = data.details
-        const levelDetails = d as any
-        console.log(`[HLS] LEVEL_LOADED: level=${data.level} totalduration=${levelDetails?.totalduration?.toFixed(1)}s frags=${levelDetails?.fragments?.length} audioCodec=${levelDetails?.audioCodec||'?'}`)
-        if (levelDetails?.fragments) { levelDetails.fragments.slice(0,2).forEach((f: any) => console.log(`[HLS] Fragment: ${f.relurl||f.url} ${f?.audioCodec?`ac=${f.audioCodec}`:''}`)) }
       })
       hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_e, data) => {
         const tracks: any[] = data.audioTracks || []
-        console.log(`[HLS] AUDIO_TRACKS_UPDATED:`, tracks.map(t => `id=${t.id} lang=${t.lang} name=${t.name} groupId=${t.groupId} type=${t.type}`))
         if (tracks.length > 0) {
           const track = tracks[0]
-          console.log(`[HLS] Selecting audio track: id=${track.id} name=${track.name}`)
           hls.audioTrack = track.id
-        } else {
-          dbg(`HLS'de HIC ses kanali yok! AC3 veya desteklenmeyen codec`) 
         }
       })
-      hls.on(Hls.Events.FRAG_LOADING, (_e, data) => {
-        console.log(`[HLS] FRAG_LOADING: ${data.frag?.relurl||data.frag?.url}`)
-      })
-      hls.on(Hls.Events.FRAG_LOADED, (_e, data) => {
-        console.log(`[HLS] FRAG_LOADED: ${data.frag?.relurl||data.frag?.url} size:${data.payload?.byteLength}`)
-      })
-      hls.on(Hls.Events.FRAG_BUFFERED, (_e, data) => {
-        console.log(`[HLS] FRAG_BUFFERED: ${data.frag?.relurl||data.frag?.url}`)
-      })
       hls.on(Hls.Events.ERROR, (_e, data) => {
-        console.log(`%c[HLS] ERROR type=${data.type} details=${data.details} fatal=${data.fatal}`, 'color:orange',
-          data.response ? `status=${data.response.code}` : '',
-          data.frag ? `frag=${data.frag.relurl||data.frag.url}` : '',
-          data.error ? `error=${data.error.message}` : ''
-        )
         if (data.fatal) {
           if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-            console.log(`%c[HLS] MEDIA_ERROR -> swapAudioCodec (AC3 cozumu deneniyor)`, 'color:orange')
             hls.swapAudioCodec()
             hls.recoverMediaError()
             return
           }
-          console.log(`%c[HLS] FATAL -> sonraki URL`, 'color:red')
           clearInterval(watchdogRef.current)
           hls.destroy(); hlsRef.current = null
           urlIndexRef.current++
@@ -275,17 +220,14 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         }
       })
     } else if (isHls && video.canPlayType('application/vnd.apple.mpegurl')) {
-      console.log(`[TRYURL] Safari native HLS`)
       video.src = currentSrc
       const onReady = () => { video.removeEventListener('canplay', onReady); tryPlay(video); startWatchdog(video) }
       video.addEventListener('canplay', onReady)
-      video.addEventListener('error', (e) => { console.log(`[VIDEO] error:`, video.error?.message) }, { once: true })
+      video.addEventListener('error', () => {}, { once: true })
       startWatchdog(video)
     } else {
-      console.log(`[TRYURL] Direkt video.src`)
       video.src = currentSrc
       video.onerror = () => {
-        console.log(`[VIDEO] onerror: code=${video.error?.code} message=${video.error?.message}`)
         clearInterval(watchdogRef.current)
         urlIndexRef.current++
         tryUrl(video)
@@ -410,8 +352,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   return (
     <div ref={containerRef} className="relative bg-black group cursor-pointer" onClick={togglePlay} onMouseMove={startHideTimer}>
       <video ref={videoRef} className="w-full aspect-video object-contain" poster={poster} playsInline crossOrigin="anonymous" />
-      <button onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(debugBuffer.join('\n')).then(() => dbg('KOPYALANDI')).catch(() => dbg('KLIPBOARD HATA')) }}
-        className="absolute top-2 right-2 z-30 w-7 h-7 rounded-full bg-yellow-500/80 flex items-center justify-center text-[10px] font-bold text-black">D</button>
+
       {title && <div className="absolute top-4 left-4 text-white text-sm font-medium drop-shadow-lg bg-black/40 px-3 py-1.5 rounded-lg">{title}</div>}
       {loadError && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
