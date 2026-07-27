@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
-import { fetchCategories, fetchVods, fetchSeries } from '@/lib/supabase'
+import { fetchCategories, fetchVods, fetchSeries, fetchAllVods, fetchAllSeries, posterUrl, proxyUrl } from '@/lib/supabase'
+import { debugLog } from '@/lib/debug-logger'
 import { parseRotationData } from '@/lib/rotation'
 import { getFavorites, removeFavorite } from '@/lib/favorites'
 import type { FavoriteItem } from '@/lib/favorites'
@@ -30,6 +31,8 @@ export default function Dashboard() {
   const [seriesCats, setSeriesCats] = useState<any[]>([])
   const [vodItems, setVodItems] = useState<Record<string, any[]>>({})
   const [seriesItems, setSeriesItems] = useState<Record<string, any[]>>({})
+  const [allVods, setAllVods] = useState<any[] | null>(null)
+  const [allSeries, setAllSeries] = useState<any[] | null>(null)
   const scrollContainers = useRef<Record<string, HTMLDivElement | null>>({})
 
   const selectedCat = params.get('cat') || ''
@@ -125,13 +128,78 @@ export default function Dashboard() {
 
   const loadFullCategory = useCallback(async (catId: string, type: 'movie' | 'series') => {
     if (!server) return
+    debugLog.info(`loadFullCategory başladı: catId=${catId} type=${type} allVods=${!!allVods} allSeries=${!!allSeries}`)
     try {
-      const fetcher = type === 'movie' ? fetchVods : fetchSeries
-      const items = await fetcher(server.base_url, server.xtream_user, server.xtream_pass, catId)
-      const setter = type === 'movie' ? setVodItems : setSeriesItems
-      setter(prev => ({ ...prev, [catId]: items || [] }))
-    } catch {}
-  }, [server])
+      const matchCat = (item: any, id: string) => {
+        const cid = item.category_id
+        if (cid != null && String(cid).trim() !== '' && String(cid) !== '0' && String(cid) === id) return true
+        return item.category_ids?.includes(Number(id))
+      }
+      const fetchAllCatsSequential = async (type2: string): Promise<any[]> => {
+        const cats = type2 === 'movie' ? vodCats : seriesCats
+        const fetcher = type2 === 'movie' ? fetchVods : fetchSeries
+        const idField = type2 === 'movie' ? 'stream_id' : 'series_id'
+        const all: any[] = []
+        const seen = new Set<number>()
+        debugLog.info(`Sequential fetch başladı: ${cats.length} kategori`)
+        for (let i = 0; i < cats.length; i++) {
+          if (!cats[i]?.category_id) continue
+          try {
+            const t0 = Date.now()
+            const chunk = await fetcher(server.base_url, server.xtream_user, server.xtream_pass, cats[i].category_id)
+            const ms = Date.now() - t0
+            const cnt = Array.isArray(chunk) ? chunk.length : 0
+            if (i % 10 === 0) debugLog.api(`cat=${cats[i].category_id}`, 200, cnt, ms)
+            if (Array.isArray(chunk)) {
+              for (const item of chunk) {
+                const k = Number((item as any)[idField])
+                if (!seen.has(k)) { seen.add(k); all.push(item) }
+              }
+            }
+          } catch { debugLog.apiErr(`cat=${cats[i]?.category_id}`, 'fetch failed') }
+        }
+        debugLog.info(`Sequential fetch bitti: ${all.length} total unique items`)
+        return all
+      }
+      if (type === 'movie') {
+        if (allVods) {
+          const cnt = allVods.filter((i: any) => matchCat(i, catId)).length
+          debugLog.info(`Cache hit: ${cnt} items for cat=${catId}`)
+          setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId)) }))
+          return
+        }
+        debugLog.info('fetchAllVods (category_id siz) deneniyor...')
+        let items = await fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass)
+        debugLog.info(`fetchAllVods sonuç: ${items?.length ?? 0} items`)
+        if (!items || items.length === 0) {
+          debugLog.info('fetchAllVods boş, sequential fallback başlıyor')
+          items = await fetchAllCatsSequential('movie')
+        }
+        const matched = (items || []).filter((i: any) => matchCat(i, catId))
+        debugLog.info(`loadFullCategory bitti: ${matched.length} items for cat=${catId} (total pool: ${items?.length ?? 0})`)
+        setAllVods(items || [])
+        setVodItems(prev => ({ ...prev, [catId]: matched }))
+      } else {
+        if (allSeries) {
+          const cnt = allSeries.filter((i: any) => matchCat(i, catId)).length
+          debugLog.info(`Cache hit: ${cnt} items for cat=${catId}`)
+          setSeriesItems(prev => ({ ...prev, [catId]: allSeries.filter((i: any) => matchCat(i, catId)) }))
+          return
+        }
+        debugLog.info('fetchAllSeries (category_id siz) deneniyor...')
+        let items = await fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass)
+        debugLog.info(`fetchAllSeries sonuç: ${items?.length ?? 0} items`)
+        if (!items || items.length === 0) {
+          debugLog.info('fetchAllSeries boş, sequential fallback başlıyor')
+          items = await fetchAllCatsSequential('series')
+        }
+        const matched = (items || []).filter((i: any) => matchCat(i, catId))
+        debugLog.info(`loadFullCategory bitti: ${matched.length} items for cat=${catId} (total pool: ${items?.length ?? 0})`)
+        setAllSeries(items || [])
+        setSeriesItems(prev => ({ ...prev, [catId]: matched }))
+      }
+    } catch (e) { debugLog.apiErr('loadFullCategory', String(e)) }
+  }, [server, allVods, allSeries, vodCats, seriesCats])
 
   // Kategorilere tıklandığında grid açılsın
   const setTab = (t: string) => {
@@ -310,6 +378,11 @@ export default function Dashboard() {
     return withoutPrefix
   }
 
+  const proxyImg = (url: string) => {
+    if (!url || !url.startsWith('http://') || !server?.base_url) return url
+    return proxyUrl(server.base_url, url.replace(/^https?:\/\/[^\/]+/, ''))
+  }
+
   // Kategoriler yüklendiğinde veya tab değiştiğinde ilk kategori otomatik seçilsin
   useEffect(() => {
     if (tab === 'movies' && filteredVodCats.length > 0 && !selectedCat) {
@@ -362,6 +435,7 @@ export default function Dashboard() {
     if (item.container_extension) sp.set('ext', item.container_extension)
     if (item.stream_icon) sp.set('icon', item.stream_icon)
     if (item.category_id) sp.set('cat', item.category_id)
+    if (item.name) sp.set('name', item.name.replace(/[✓✔☑✗✘]/g, ''))
     navigate(`/detail?${sp}`)
   }
 
@@ -376,7 +450,7 @@ export default function Dashboard() {
 
   // --- Lightweight card ---
   const renderCard = (item: any, type: string, onClick: (item: any) => void, sizeClass = 'w-36') => {
-    const posterSrc = type === 'series' ? (item.cover || item.thumbnail) : item.stream_icon
+    const posterSrc = proxyImg(type === 'series' ? (item.cover_big || item.movie_image || item.cover || item.thumbnail) : (item.cover_big || item.stream_icon))
     const cleanName = (item.name || '').replace(/[✓✔☑✗✘]/g, '')
     return (
       <button key={type === 'series' ? item.series_id : item.stream_id} onClick={() => onClick(item)}
@@ -434,7 +508,7 @@ export default function Dashboard() {
                         zIndex: i === currentSlide % heroItems.length ? 1 : 0,
                         transform: `scale(${i === currentSlide % heroItems.length ? 1 : 1.05})`,
                       }}>
-                      <Poster src={item.stream_icon} type="movie" className="object-top" />
+                      <Poster src={proxyImg(item.cover_big || item.stream_icon)} type="movie" className="object-top" />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/60 to-transparent" />
                       <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
                         <p className="text-white font-bold text-xl md:text-3xl mb-2 drop-shadow-xl">{item.name}</p>
@@ -525,7 +599,7 @@ export default function Dashboard() {
         {tab === 'movies' && (
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
             {/* Sol panel - kategoriler */}
-            <div className="w-48 md:w-60 shrink-0 border-r border-white/10 overflow-y-auto pt-3 pb-4 scrollbar-hide">
+            <div className="w-48 md:w-60 shrink-0 border-r border-white/10 overflow-y-auto pt-3 pb-4 scrollbar-hide min-h-0">
               <div className="px-3 md:px-4 pb-2 mb-2 border-b border-white/10">
                 <h3 className="text-xs font-semibold text-[#0099ff] tracking-widest uppercase" style={{ fontFamily: 'Orbitron, sans-serif' }}>Film Kategorileri</h3>
               </div>
@@ -542,9 +616,9 @@ export default function Dashboard() {
               ))}
             </div>
             {/* Sağ panel - içerik */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide">
+            <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0" data-scroll="grid">
               {showMovieCategory && activeMovieCat ? (
-                <MovieCategoryGrid selectedCat={activeMovieCat} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} />
+                <MovieCategoryGrid items={vodItems[activeMovieCat]} loading={!allVods && !vodItems[activeMovieCat]} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
               )}
@@ -556,7 +630,7 @@ export default function Dashboard() {
         {tab === 'series' && (
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
             {/* Sol panel - kategoriler */}
-            <div className="w-48 md:w-60 shrink-0 border-r border-white/10 overflow-y-auto pt-3 pb-4 scrollbar-hide">
+            <div className="w-48 md:w-60 shrink-0 border-r border-white/10 overflow-y-auto pt-3 pb-4 scrollbar-hide min-h-0">
               <div className="px-3 md:px-4 pb-2 mb-2 border-b border-white/10">
                 <h3 className="text-xs font-semibold text-[#0099ff] tracking-widest uppercase" style={{ fontFamily: 'Orbitron, sans-serif' }}>Dizi Kategorileri</h3>
               </div>
@@ -573,9 +647,9 @@ export default function Dashboard() {
               ))}
             </div>
             {/* Sağ panel - içerik */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide">
+            <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0" data-scroll="grid">
               {showSeriesCategory && activeSeriesCat ? (
-                <SeriesCategoryGrid selectedCat={activeSeriesCat} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} />
+                <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
               )}
@@ -599,60 +673,146 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+      <DebugPanel />
     </div>
   )
 }
 
-function MovieCategoryGrid({ selectedCat, categoryName }: any) {
-  const { server } = useAuth()
+function DebugPanel() {
+  const [open, setOpen] = useState(false)
+  const [logs, setLogs] = useState<string[]>([])
+  const textRef = useRef<HTMLTextAreaElement>(null)
+  const autoScrollRef = useRef(true)
+  const btnRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const interval = setInterval(() => {
+      setLogs(debugLog.getLogs())
+    }, 500)
+    return () => clearInterval(interval)
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    let domTimer: number
+    const checkDom = () => {
+      const container = document.querySelector('[data-scroll="grid"]')
+      if (!container) return
+      const cEl = container as HTMLElement
+      const y = Math.round(cEl.scrollTop)
+      const max = Math.round(cEl.scrollHeight - cEl.clientHeight)
+      const cTop = cEl.getBoundingClientRect().top
+      const allCards = Array.from(cEl.querySelectorAll('[class*="aspect-"]'))
+      const rendered = allCards.filter(el => el.getBoundingClientRect().height > 5)
+      const visible = rendered.filter(el => { const r = el.getBoundingClientRect(); return r.top < cEl.clientHeight + cTop && r.bottom > cTop }).length
+
+      const sh = Math.round(cEl.scrollHeight)
+      const ch = Math.round(cEl.clientHeight)
+
+      debugLog.scroll(y, max, visible, rendered.length, allCards.length)
+
+      if (allCards.length > 0) {
+        // Son 10 kartin DOM'da olup olmadigini kontrol et
+        const parentEl = cEl.querySelector('[class*="grid"]')
+        if (parentEl) {
+          const allDataItems = parentEl.children
+          const lastFew = Array.from(allDataItems).slice(-10)
+          const missing = lastFew.filter(el => !el.querySelector('[class*="aspect-"]') || el.getBoundingClientRect().height < 5)
+          if (missing.length > 0) {
+            debugLog.info(`SON-10: ${missing.length}/${lastFew.length} kart render edilmemis! ScrollHeight=${sh} clientHeight=${ch}`)
+          }
+          // ScrollHeight dogru mu?
+          const nCols = window.innerWidth >= 1280 ? 7 : window.innerWidth >= 1024 ? 6 : window.innerWidth >= 768 ? 5 : window.innerWidth >= 640 ? 4 : 3
+          const expectedMin = Math.round(allDataItems.length / nCols) * 200 // yaklasik
+          if (sh < expectedMin) {
+            debugLog.info(`SCROLL-YANLIS: scrollHeight=${sh} beklenen min=${expectedMin} (kesinti var!)`)
+          }
+        }
+      }
+    }
+    const listener = () => { cancelAnimationFrame(domTimer); domTimer = requestAnimationFrame(checkDom) }
+    const container = document.querySelector('[data-scroll="grid"]')
+    if (!container) return
+    container.addEventListener('scroll', listener, { passive: true })
+    setTimeout(checkDom, 1000)
+    return () => { container.removeEventListener('scroll', listener); cancelAnimationFrame(domTimer) }
+  }, [open])
+
+  const copyLogs = () => {
+    const txt = debugLog.getLogs().join('\n')
+    navigator.clipboard.writeText(txt).then(() => {
+      if (btnRef.current) { btnRef.current.textContent = '✓ Kopyalandı'; setTimeout(() => { if (btnRef.current) btnRef.current.textContent = '📋 Kopyala' }, 2000) }
+    })
+  }
+
+  const clearLogs = () => { debugLog.clear(); setLogs([]) }
+
+  return (
+    <>
+      <button onClick={() => setOpen(!open)} className="fixed bottom-4 right-4 z-[9999] w-12 h-12 rounded-full bg-red-600/80 hover:bg-red-600 text-white flex items-center justify-center text-lg shadow-2xl border border-red-400/30" title="Debug Log">
+        {open ? '✕' : '🐛'}
+      </button>
+      {open && (
+        <div className="fixed inset-0 z-[9998] flex items-end md:items-center justify-center" onClick={() => setOpen(false)}>
+          <div className="w-full md:max-w-2xl md:rounded-2xl bg-gray-900/95 backdrop-blur-xl border border-white/10 shadow-2xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-3 border-b border-white/10 shrink-0">
+              <span className="text-white text-sm font-bold tracking-wider">🐛 DEBUG LOG</span>
+              <div className="flex gap-2">
+                <button ref={btnRef} onClick={copyLogs} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">📋 Kopyala</button>
+                <button onClick={clearLogs} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">🗑 Temizle</button>
+                <button onClick={() => { const c = document.querySelectorAll('[class*="grid"] [class*="aspect-"]'); debugLog.info(`MANUEL DOM SAY: ${c.length} card`); setLogs(debugLog.getLogs()) }} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">🔍 DOM Say</button>
+                <button onClick={() => setOpen(false)} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">✕ Kapat</button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3" style={{ maxHeight: '60vh' }}>
+              {logs.length === 0 ? (
+                <p className="text-gray-500 text-xs text-center py-8">Log bekleniyor...</p>
+              ) : (
+                <div className="space-y-0.5">
+                  {logs.map((l, i) => (
+                    <pre key={i} className="text-[10px] leading-4 font-mono text-gray-300 whitespace-pre-wrap break-all">{l}</pre>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+function MovieCategoryGrid({ items, loading, categoryName }: any) {
   const navigate = useNavigate()
-  const [allItems, setAllItems] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [offset, setOffset] = useState(50)
-  const sentinelRef = useRef<HTMLDivElement>(null)
-  const visible = allItems.slice(0, offset)
-  const hasMore = visible.length < allItems.length
-
-  useEffect(() => {
-    if (!server) return
-    setLoading(true)
-    setOffset(50)
-    fetchVods(server.base_url, server.xtream_user, server.xtream_pass, selectedCat)
-      .then(data => setAllItems(data || []))
-      .catch(() => setAllItems([]))
-      .finally(() => setLoading(false))
-  }, [server, selectedCat])
-
-  useEffect(() => {
-    if (!sentinelRef.current || !hasMore) return
-    const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) setOffset(prev => prev + 50)
-    }, { rootMargin: '200px' })
-    obs.observe(sentinelRef.current)
-    return () => obs.disconnect()
-  }, [hasMore])
+  const { server } = useAuth()
+  const pImg = (url: string) => {
+    if (!url || !url.startsWith('http://') || !server?.base_url) return url
+    return proxyUrl(server.base_url, url.replace(/^https?:\/\/[^\/]+/, ''))
+  }
 
   const handleDetail = (item: any) => {
-    const sp = new URLSearchParams({ id: String(item.stream_id), type: 'movie', cat: selectedCat })
-    if (item.stream_icon) sp.set('icon', item.stream_icon)
+    const sp = new URLSearchParams({ id: String(item.stream_id), type: 'movie', cat: item.category_id || '' })
+    if (item.cover_big || item.stream_icon) sp.set('icon', item.cover_big || item.stream_icon)
     if (item.container_extension) sp.set('ext', item.container_extension)
+    if (item.name) sp.set('name', item.name.replace(/[✓✔☑✗✘]/g, ''))
     navigate(`/detail?${sp}`)
   }
 
   return (
     <div className="px-4 md:px-6 pt-3">
       <h2 className="text-base font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-        {categoryName}
+        {categoryName} <span className="text-xs text-gray-500 font-normal">({items?.length || 0})</span>
       </h2>
       {loading ? (
         <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-[#0099ff] animate-spin" /></div>
       ) : (
-        <>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
-            {visible.map((s: any) => (
-              <button key={s.stream_id} onClick={() => handleDetail(s)} className="group">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
+          {(items || []).map((s: any) => (
+            <div key={s.stream_id} className="group">
+              <button onClick={() => handleDetail(s)} className="w-full">
                 <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
-                  <Poster src={s.stream_icon} type="movie" />
+                  <Poster src={pImg(s.cover_big || s.stream_icon)} type="movie" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
                     <div className="w-14 h-14 rounded-full bg-[#0099ff] flex items-center justify-center shadow-[0_0_20px_rgba(0,153,255,0.6)] backdrop-blur-sm">
@@ -662,47 +822,25 @@ function MovieCategoryGrid({ selectedCat, categoryName }: any) {
                 </div>
                 <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
               </button>
-            ))}
-          </div>
-          <div ref={sentinelRef} className="h-10" />
-          {hasMore && <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 text-[#0099ff] animate-spin" /></div>}
-        </>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   )
 }
 
-function SeriesCategoryGrid({ selectedCat, categoryName }: any) {
-  const { server } = useAuth()
-  const [allItems, setAllItems] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [offset, setOffset] = useState(50)
-  const sentinelRef = useRef<HTMLDivElement>(null)
-  const visible = allItems.slice(0, offset)
-  const hasMore = visible.length < allItems.length
-
-  useEffect(() => {
-    if (!server) return
-    setLoading(true)
-    fetchSeries(server.base_url, server.xtream_user, server.xtream_pass, selectedCat)
-      .then(data => setAllItems(data || []))
-      .catch(() => setAllItems([]))
-      .finally(() => setLoading(false))
-  }, [server, selectedCat])
-
-  useEffect(() => {
-    if (!sentinelRef.current || !hasMore) return
-    const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) setOffset(prev => prev + 50)
-    }, { rootMargin: '200px' })
-    obs.observe(sentinelRef.current)
-    return () => obs.disconnect()
-  }, [hasMore])
-
+function SeriesCategoryGrid({ items, loading, categoryName }: any) {
   const navigate = useNavigate()
+  const { server } = useAuth()
+  const pImg = (url: string) => {
+    if (!url || !url.startsWith('http://') || !server?.base_url) return url
+    return proxyUrl(server.base_url, url.replace(/^https?:\/\/[^\/]+/, ''))
+  }
   const handleDetail = (item: any) => {
-    const sp = new URLSearchParams({ id: String(item.series_id), type: 'series', cat: selectedCat })
-    if (item.cover || item.thumbnail) sp.set('icon', item.cover || item.thumbnail)
+    const sp = new URLSearchParams({ id: String(item.series_id), type: 'series', cat: item.category_id || '' })
+    if (item.cover_big || item.movie_image || item.cover || item.thumbnail) sp.set('icon', item.cover_big || item.movie_image || item.cover || item.thumbnail)
+    if (item.name) sp.set('name', item.name.replace(/[✓✔☑✗✘]/g, ''))
     navigate(`/detail?${sp}`)
   }
 
@@ -714,12 +852,12 @@ function SeriesCategoryGrid({ selectedCat, categoryName }: any) {
       {loading ? (
         <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-[#0099ff] animate-spin" /></div>
       ) : (
-        <>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
-            {visible.map((s: any) => (
-              <button key={s.series_id} onClick={() => handleDetail(s)} className="group">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
+          {(items || []).map((s: any) => (
+            <div key={s.series_id} className="group">
+              <button onClick={() => handleDetail(s)} className="w-full">
                 <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-2 group-hover:ring-[#14b8a6]/40">
-                  <Poster src={s.cover || s.thumbnail} type="series" />
+                  <Poster src={pImg(s.cover_big || s.movie_image || s.cover || s.thumbnail)} type="series" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
                     <div className="w-14 h-14 rounded-full bg-[#14b8a6] flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.6)] backdrop-blur-sm">
@@ -729,11 +867,9 @@ function SeriesCategoryGrid({ selectedCat, categoryName }: any) {
                 </div>
                 <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
               </button>
-            ))}
-          </div>
-          <div ref={sentinelRef} className="h-10" />
-          {hasMore && <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 text-[#0099ff] animate-spin" /></div>}
-        </>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   )
@@ -786,10 +922,10 @@ function FavoritesSection() {
           <Heart className="w-12 h-12 mb-3 text-gray-600" />
           <p className="text-sm">Henüz favori eklenmemiş</p>
           <p className="text-xs text-gray-600 mt-1">Film veya dizi detay sayfasından kalbe basarak ekleyebilirsiniz</p>
-        </div>
       </div>
-    )
-  }
+    </div>
+  )
+}
 
   return (
     <div className="px-4 md:px-8 pb-8 pt-4">
@@ -828,6 +964,7 @@ function FavoritesSection() {
               if (selectMode) { toggleSelect(key); return }
               const sp = new URLSearchParams({ id: String(item.id), type: item.type })
               if (item.image) sp.set('icon', item.image)
+              if (item.name) sp.set('name', item.name)
               navigate(`/detail?${sp}`)
             }} className="group">
               <div className={`aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 ${selectMode ? '' : 'group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40'} ${isSelected ? 'ring-2 ring-red-500' : ''}`}>

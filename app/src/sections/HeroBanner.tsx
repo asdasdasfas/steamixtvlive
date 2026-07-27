@@ -41,7 +41,7 @@ export default function HeroBanner({ items, autoPlay = true }: Props) {
           <button onClick={() => navigate(`/watch?stream_id=${item.id}`)} className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#0099ff] text-white font-semibold text-sm hover:bg-[#0088ee] transition-colors">
             <Play className="w-4 h-4 fill-white" />İzle
           </button>
-          <button onClick={() => navigate(`/detail?id=${item.id}&type=${item.stream_type || 'live'}`)} className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white/10 text-white font-semibold text-sm hover:bg-white/20 transition-colors backdrop-blur-sm">
+          <button onClick={() => { const sp = new URLSearchParams({ id: String(item.id), type: item.stream_type || 'movie' }); if (item.name) sp.set('name', item.name); if (item.stream_icon) sp.set('icon', item.stream_icon); navigate(`/detail?${sp}`) }} className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white/10 text-white font-semibold text-sm hover:bg-white/20 transition-colors backdrop-blur-sm">
             <Info className="w-4 h-4" />Detay
           </button>
         </div>

@@ -79,13 +79,14 @@ export interface XtreamLiveStream {
 
 export interface XtreamVod {
   num: number; name: string; stream_type: string; stream_id: number
-  stream_icon: string; rating: string; rating_5based: number; added: string
+  stream_icon: string; cover_big?: string; rating: string; rating_5based: number; added: string
   category_id: string; category_ids: number[]; container_extension: string
 }
 
 export interface XtreamSeries {
   num: number; name: string; stream_type: string; series_id: number
-  stream_icon: string; rating: string; rating_5based: number; added: string
+  stream_icon: string; cover?: string; cover_big?: string; movie_image?: string; thumbnail?: string
+  rating: string; rating_5based: number; added: string
   category_id: string; category_ids: number[]
 }
 
@@ -127,6 +128,34 @@ function normalizeIcon(base: string, icon: string | undefined | null, _id?: numb
   if (icon && icon.startsWith('/')) return proxyUrl(base, icon)
   if (icon) return icon
   return ''
+}
+
+async function tryFetchAll<T>(url: string): Promise<T[] | null> {
+  try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 15000)
+    const res = await fetch(url, { signal: controller.signal })
+    clearTimeout(timeout)
+    if (!res.ok) return null
+    const text = await res.text()
+    if (!text || text === '[]' || text === '{}') return null
+    const data = JSON.parse(text)
+    if (data && typeof data === 'object' && !Array.isArray(data) && Array.isArray(data.data)) return data.data as T[]
+    if (Array.isArray(data)) return data as T[]
+    return null
+  } catch { return null }
+}
+
+export async function fetchAllVods(base: string, user: string, pass: string): Promise<XtreamVod[]> {
+  const u = `${xtUrl(base, user, pass)}&action=get_vod_streams`
+  const result = await tryFetchAll<XtreamVod>(u)
+  return result || []
+}
+
+export async function fetchAllSeries(base: string, user: string, pass: string): Promise<XtreamSeries[]> {
+  const u = `${xtUrl(base, user, pass)}&action=get_series`
+  const result = await tryFetchAll<XtreamSeries>(u)
+  return result || []
 }
 
 export async function fetchVods(base: string, user: string, pass: string, catId?: string) {

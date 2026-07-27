@@ -50,7 +50,7 @@ export default function ContentRow({ title, items }: Props) {
         )}
         <div ref={scrollRef} onScroll={handleScroll} className="flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide px-4 md:px-8" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {items.map(item => (
-            <button key={item.id} onClick={() => navigate(`/detail?id=${item.id}&type=${item.stream_type || 'live'}`)} className="flex-shrink-0 w-32 md:w-40 group/card">
+            <button key={item.id} onClick={() => { const sp = new URLSearchParams({ id: String(item.id), type: item.stream_type || 'movie' }); if (item.name) sp.set('name', item.name); if (item.stream_icon) sp.set('icon', item.stream_icon); navigate(`/detail?${sp}`) }} className="flex-shrink-0 w-32 md:w-40 group/card">
               <div className="aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 mb-2 relative">
                 <Poster src={item.stream_icon} type={item.stream_type === 'live' ? 'channel' : 'movie'} className="group-hover/card:scale-105 transition-transform duration-300" />
                 <div className="absolute inset-0 bg-black/0 group-hover/card:bg-black/30 transition-colors flex items-center justify-center">
