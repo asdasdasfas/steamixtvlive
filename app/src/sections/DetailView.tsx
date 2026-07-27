@@ -196,11 +196,12 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
                 <button key={item.id} onClick={() => {
                   const sp = new URLSearchParams({ id: String(item.id), type: item.stream_type || 'movie' })
                   if (item.stream_icon) sp.set('icon', item.stream_icon)
+                  if (item.name) sp.set('name', item.name)
                   onSimilarClick ? onSimilarClick(item) : navigate(`/detail?${sp}`)
                 }}
                   className="flex-shrink-0 w-28 md:w-36 group">
                   <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative shadow-lg shadow-black/30 ring-1 ring-white/[0.03] group-hover:ring-[#0099ff]/30 transition-all">
-                    <Poster src={item.stream_icon} type={item.stream_type === 'series' ? 'series' : 'movie'} />
+                    <Poster src={(item as any).cover_big || item.stream_icon} type={item.stream_type === 'series' ? 'series' : 'movie'} />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                       <Play className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
                     </div>

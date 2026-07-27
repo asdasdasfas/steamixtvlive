@@ -430,6 +430,7 @@ export default function Dashboard() {
     if (item.container_extension) sp.set('ext', item.container_extension)
     if (item.stream_icon) sp.set('icon', item.stream_icon)
     if (item.category_id) sp.set('cat', item.category_id)
+    if (item.name) sp.set('name', item.name.replace(/[✓✔☑✗✘]/g, ''))
     navigate(`/detail?${sp}`)
   }
 
@@ -784,6 +785,7 @@ function MovieCategoryGrid({ items, loading, categoryName }: any) {
     const sp = new URLSearchParams({ id: String(item.stream_id), type: 'movie', cat: item.category_id || '' })
     if (item.cover_big || item.stream_icon) sp.set('icon', item.cover_big || item.stream_icon)
     if (item.container_extension) sp.set('ext', item.container_extension)
+    if (item.name) sp.set('name', item.name.replace(/[✓✔☑✗✘]/g, ''))
     navigate(`/detail?${sp}`)
   }
 
@@ -823,6 +825,7 @@ function SeriesCategoryGrid({ items, loading, categoryName }: any) {
   const handleDetail = (item: any) => {
     const sp = new URLSearchParams({ id: String(item.series_id), type: 'series', cat: item.category_id || '' })
     if (item.cover_big || item.movie_image || item.cover || item.thumbnail) sp.set('icon', item.cover_big || item.movie_image || item.cover || item.thumbnail)
+    if (item.name) sp.set('name', item.name.replace(/[✓✔☑✗✘]/g, ''))
     navigate(`/detail?${sp}`)
   }
 
@@ -946,6 +949,7 @@ function FavoritesSection() {
               if (selectMode) { toggleSelect(key); return }
               const sp = new URLSearchParams({ id: String(item.id), type: item.type })
               if (item.image) sp.set('icon', item.image)
+              if (item.name) sp.set('name', item.name)
               navigate(`/detail?${sp}`)
             }} className="group">
               <div className={`aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 ${selectMode ? '' : 'group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40'} ${isSelected ? 'ring-2 ring-red-500' : ''}`}>

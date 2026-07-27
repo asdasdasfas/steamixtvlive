@@ -13,6 +13,7 @@ export default function Detail() {
   const id = params.get('id')
   const type = params.get('type') || 'live'
   const urlIcon = params.get('icon') || ''
+  const urlName = params.get('name') || ''
   const ext = params.get('ext') || ''
   const catId = params.get('cat') || ''
   const [data, setData] = useState<any>(null)
@@ -34,14 +35,14 @@ export default function Detail() {
           if (!cancelled && info) {
             const movieData = info?.info?.movie_data?.info
             setData({
-              id: parseInt(id), name: info?.info?.name || 'İsimsiz',
-              stream_icon: urlIcon || movieData?.movie_image || info?.info?.cover || '',
+              id: parseInt(id), name: urlName || info?.info?.name || 'İsimsiz',
+              stream_icon: urlIcon || movieData?.cover_big || info?.info?.cover_big || movieData?.movie_image || info?.info?.cover || info?.info?.stream_icon || '',
               stream_type: 'movie', plot: movieData?.plot || info?.info?.plot || '',
               genre: movieData?.genre || info?.info?.genre || '',
               rating: movieData?.rating || info?.info?.rating || '',
               releasedate: movieData?.releasedate || (info?.info?.releaseDate || ''),
               duration: movieData?.duration || info?.info?.duration || '',
-              backdrop_path: [urlIcon || movieData?.movie_image || info?.info?.cover || ''],
+              backdrop_path: [urlIcon || movieData?.cover_big || info?.info?.cover_big || movieData?.movie_image || info?.info?.cover || ''],
               category_id: catId || info?.info?.category_id || '',
               cast: movieData?.cast || info?.info?.cast || '',
               director: movieData?.director || info?.info?.director || '',
@@ -52,7 +53,7 @@ export default function Detail() {
               fetchVods(base_url, xtream_user, xtream_pass, cid).then(allVods => {
                 if (!cancelled && allVods) {
                   const sim = allVods.filter((m: any) => String(m.stream_id) !== id).slice(0, 10)
-                  setSimilar(sim.map((s: any) => ({ id: s.stream_id, name: s.name, stream_icon: s.stream_icon, stream_type: 'movie' })))
+                  setSimilar(sim.map((s: any) => ({ id: s.stream_id, name: s.name, stream_icon: s.cover_big || s.stream_icon, cover_big: s.cover_big, stream_type: 'movie' })))
                 }
               }).catch(() => {})
             }
@@ -70,12 +71,12 @@ export default function Detail() {
               }
             }
             setData({
-              id: parseInt(id), name: si?.name || 'İsimsiz',
-              stream_icon: urlIcon || si?.cover || si?.thumbnail || '',
+              id: parseInt(id), name: urlName || si?.name || 'İsimsiz',
+              stream_icon: urlIcon || si?.cover_big || si?.movie_image || si?.cover || si?.thumbnail || '',
               stream_type: 'series', plot: si?.plot || '',
               genre: si?.genre || '', rating: si?.rating || '',
               releasedate: si?.releaseDate || '',
-              backdrop_path: [urlIcon || si?.cover || ''],
+              backdrop_path: [urlIcon || si?.cover_big || si?.movie_image || si?.cover || ''],
               category_id: catId || si?.category_id || '',
               cast: si?.cast || '', director: si?.director || '',
               episodes,
@@ -86,7 +87,7 @@ export default function Detail() {
               fetchSeries(base_url, xtream_user, xtream_pass, cid).then(allSeries => {
                 if (!cancelled && allSeries) {
                   const sim = allSeries.filter((s: any) => String(s.series_id) !== id).slice(0, 10)
-                  setSimilar(sim.map((s: any) => ({ id: s.series_id, name: s.name, stream_icon: s.cover || s.thumbnail, stream_type: 'series' })))
+                  setSimilar(sim.map((s: any) => ({ id: s.series_id, name: s.name, stream_icon: s.cover_big || s.movie_image || s.cover || s.thumbnail, cover_big: s.cover_big, stream_type: 'series' })))
                 }
               }).catch(() => {})
             }
@@ -102,6 +103,7 @@ export default function Detail() {
   const handleSimilarClick = (item: any) => {
     const sp = new URLSearchParams({ id: String(item.id), type: item.stream_type })
     if (item.stream_icon) sp.set('icon', item.stream_icon)
+    if (item.name) sp.set('name', item.name)
     navigate(`/detail?${sp}`)
   }
 
