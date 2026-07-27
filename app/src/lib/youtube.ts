@@ -1,7 +1,6 @@
-export const YOUTUBE_API_KEY = 'AIzaSyDAivPXYp-wdmN2AmL7HUXvf4wHP2o9dHQ'
+const YOUTUBE_API_KEY = 'AIzaSyDAivPXYp-wdmN2AmL7HUXvf4wHP2o9dHQ'
 
 export async function searchTrailer(query: string): Promise<string | null> {
-  if (YOUTUBE_API_KEY === 'YOUR_KEY_HERE') return null
   try {
     const q = encodeURIComponent(`${query} HD trailer`)
     const res = await fetch(

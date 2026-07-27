@@ -73,7 +73,7 @@ export default function Detail() {
             })
             const movieName = urlName || iv?.name || mapi?.name || ''
             searchTrailer(movieName).then(vid => {
-              if (!cancelled && vid) setData(prev => prev ? { ...prev, youtube_trailer: vid } : prev)
+              if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
             })
             // Load similar from same category (silent, parallel)
             if (catId || info?.info?.category_id) {
@@ -115,7 +115,7 @@ export default function Detail() {
             })
             const seriesName = urlName || si?.name || ''
             searchTrailer(seriesName).then(vid => {
-              if (!cancelled && vid) setData(prev => prev ? { ...prev, youtube_trailer: vid } : prev)
+              if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
             })
             // Load similar from same category (silent, parallel)
             if (catId || si?.category_id) {
