@@ -1,10 +1,28 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
-import { fetchVodInfo, fetchSeriesInfo, fetchVods, fetchSeries } from '@/lib/supabase'
+import { fetchVodInfo, fetchSeriesInfo, fetchVods, fetchSeries, proxyUrl } from '@/lib/supabase'
 import DetailView from '@/sections/DetailView'
 import { Loader2 } from 'lucide-react'
 import { isFavorite, toggleFavorite } from '@/lib/favorites'
+
+function decodeField(v: string): string {
+  if (!v) return ''
+  const t = v.trim()
+  if (t.length % 4 !== 0 || !/^[A-Za-z0-9+/]+={0,2}$/.test(t)) return v
+  try {
+    const d = atob(t)
+    if (d.length > 0 && /^[\x20-\x7EğüşıöçĞÜŞİÖÇ\s\.,!?;:'"()-]+$/.test(d)) return d
+  } catch {}
+  return v
+}
+
+function proxyImg(base: string | undefined, url: string): string {
+  if (!url) return ''
+  if (url.startsWith('http://') && base) return proxyUrl(base, url.replace(/^https?:\/\/[^\/]+/, ''))
+  if (url.startsWith('http://')) return url.replace('http://', 'https://')
+  return url
+}
 
 export default function Detail() {
   const [params] = useSearchParams()
@@ -33,19 +51,22 @@ export default function Detail() {
         if (type === 'movie') {
           const info: any = await fetchVodInfo(base_url, xtream_user, xtream_pass, parseInt(id))
           if (!cancelled && info) {
-            const movieData = info?.info?.movie_data?.info
+            const iv = info?.info
+            const md2 = iv?.movie_data?.info || info?.movie_data?.info
+            const mapi = info?.movie_data
             setData({
-              id: parseInt(id), name: urlName || info?.info?.name || 'İsimsiz',
-              stream_icon: urlIcon || movieData?.cover_big || info?.info?.cover_big || movieData?.movie_image || info?.info?.cover || info?.info?.stream_icon || '',
-              stream_type: 'movie', plot: movieData?.plot || info?.info?.plot || '',
-              genre: movieData?.genre || info?.info?.genre || '',
-              rating: movieData?.rating || info?.info?.rating || '',
-              releasedate: movieData?.releasedate || (info?.info?.releaseDate || ''),
-              duration: movieData?.duration || info?.info?.duration || '',
-              backdrop_path: [urlIcon || movieData?.cover_big || info?.info?.cover_big || movieData?.movie_image || info?.info?.cover || ''],
-              category_id: catId || info?.info?.category_id || '',
-              cast: movieData?.cast || info?.info?.cast || '',
-              director: movieData?.director || info?.info?.director || '',
+              id: parseInt(id), name: urlName || iv?.name || mapi?.name || 'İsimsiz',
+              stream_icon: proxyImg(base_url, urlIcon || iv?.movie_image || iv?.cover_big || md2?.cover_big || iv?.cover || iv?.stream_icon || mapi?.stream_icon || ''),
+              stream_type: 'movie',
+              plot: decodeField(md2?.plot || iv?.plot || ''),
+              genre: decodeField(md2?.genre || iv?.genre || ''),
+              rating: iv?.rating || md2?.rating || '',
+              releasedate: iv?.releaseDate || iv?.releasedate || md2?.releasedate || '',
+              duration: iv?.duration || md2?.duration || '',
+              backdrop_path: [proxyImg(base_url, urlIcon || iv?.movie_image || iv?.cover_big || md2?.cover_big || iv?.cover || '')],
+              category_id: catId || iv?.category_id || mapi?.category_id || '',
+              cast: decodeField(md2?.cast || iv?.cast || ''),
+              director: decodeField(md2?.director || iv?.director || ''),
             })
             // Load similar from same category (silent, parallel)
             if (catId || info?.info?.category_id) {
@@ -66,19 +87,22 @@ export default function Detail() {
             if (info?.episodes) {
               for (const [season, eps] of Object.entries(info.episodes)) {
                 episodes[season] = (eps as any[]).map((e: any) => ({
-                  id: e.id, episode_num: e.episode_num, title: e.title, plot: e.plot, stream_id: e.stream_id, season: e.season, container_extension: e.container_extension || '',
+                  id: e.id, episode_num: e.episode_num, title: e.title, plot: decodeField(e.plot || e.info?.plot || ''), stream_id: e.stream_id, season: e.season, container_extension: e.container_extension || '',
                 }))
               }
             }
             setData({
               id: parseInt(id), name: urlName || si?.name || 'İsimsiz',
-              stream_icon: urlIcon || si?.cover_big || si?.movie_image || si?.cover || si?.thumbnail || '',
-              stream_type: 'series', plot: si?.plot || '',
-              genre: si?.genre || '', rating: si?.rating || '',
-              releasedate: si?.releaseDate || '',
-              backdrop_path: [urlIcon || si?.cover_big || si?.movie_image || si?.cover || ''],
+              stream_icon: proxyImg(base_url, urlIcon || si?.cover_big || si?.movie_image || si?.cover || si?.thumbnail || ''),
+              stream_type: 'series',
+              plot: decodeField(si?.plot || si?.description || ''),
+              genre: decodeField(si?.genre || ''),
+              rating: si?.rating || '',
+              releasedate: si?.releaseDate || si?.releasedate || '',
+              backdrop_path: [proxyImg(base_url, urlIcon || si?.cover_big || si?.movie_image || si?.cover || '')],
               category_id: catId || si?.category_id || '',
-              cast: si?.cast || '', director: si?.director || '',
+              cast: decodeField(si?.cast || ''),
+              director: decodeField(si?.director || ''),
               episodes,
             })
             // Load similar from same category (silent, parallel)
@@ -102,7 +126,7 @@ export default function Detail() {
 
   const handleSimilarClick = (item: any) => {
     const sp = new URLSearchParams({ id: String(item.id), type: item.stream_type })
-    if (item.stream_icon) sp.set('icon', item.stream_icon)
+    if (item.stream_icon || item.cover_big) sp.set('icon', item.stream_icon || item.cover_big)
     if (item.name) sp.set('name', item.name)
     navigate(`/detail?${sp}`)
   }
