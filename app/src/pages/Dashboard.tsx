@@ -689,20 +689,26 @@ function DebugPanel() {
 
   useEffect(() => {
     if (!open) return
-    const listener = () => {
-      const y = window.scrollY
-      const max = document.documentElement.scrollHeight - window.innerHeight
-      const cards = document.querySelectorAll('[class*="grid"] [class*="aspect-"]')
-      const visible = Array.from(cards).filter(el => {
-        const r = el.getBoundingClientRect()
-        return r.top < window.innerHeight && r.bottom > 0
-      }).length
-      debugLog.scroll(y, max, visible, cards.length)
+    let domTimer: number
+    const checkDom = () => {
+      const y = Math.round(window.scrollY)
+      const max = Math.round(document.documentElement.scrollHeight - window.innerHeight)
+      const allCards = document.querySelectorAll('[class*="grid"] [class*="aspect-"]')
+      const cards = Array.from(allCards)
+      const visible = cards.filter(el => { const r = el.getBoundingClientRect(); return r.top < window.innerHeight && r.bottom > 0 }).length
+      const lastCard = cards[cards.length - 1]
+      let lastBottom = 0
+      if (lastCard) { const r = lastCard.getBoundingClientRect(); lastBottom = Math.round(r.bottom + window.scrollY) }
+      const docHeight = Math.round(document.documentElement.scrollHeight)
+      debugLog.scroll(y, max, visible, cards.length, allCards.length)
+      if (cards.length > 0 && lastBottom > 0 && lastBottom < docHeight - 100) {
+        debugLog.info(`SON-KART: last card bottom=${lastBottom} < docHeight=${docHeight}, aradaki fark=${docHeight - lastBottom}px (içerik kesiliyor!)`)
+      }
     }
-    let raf: number
-    const handler = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(listener) }
-    window.addEventListener('scroll', handler, { passive: true })
-    return () => { window.removeEventListener('scroll', handler); cancelAnimationFrame(raf) }
+    const listener = () => { cancelAnimationFrame(domTimer); domTimer = requestAnimationFrame(checkDom) }
+    window.addEventListener('scroll', listener, { passive: true })
+    checkDom()
+    return () => { window.removeEventListener('scroll', listener); cancelAnimationFrame(domTimer) }
   }, [open])
 
   const copyLogs = () => {
@@ -727,6 +733,7 @@ function DebugPanel() {
               <div className="flex gap-2">
                 <button ref={btnRef} onClick={copyLogs} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">📋 Kopyala</button>
                 <button onClick={clearLogs} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">🗑 Temizle</button>
+                <button onClick={() => { const c = document.querySelectorAll('[class*="grid"] [class*="aspect-"]'); debugLog.info(`MANUEL DOM SAY: ${c.length} card`); setLogs(debugLog.getLogs()) }} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">🔍 DOM Say</button>
                 <button onClick={() => setOpen(false)} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">✕ Kapat</button>
               </div>
             </div>
