@@ -13,14 +13,14 @@ interface DetailData {
 interface Props {
   data: DetailData
   onPlay?: () => void
-  onMobileEpisodePlay?: (ep: any) => void
+  onEpisodeClick?: (ep: any) => void
   similarItems?: { id: number; name: string; stream_icon?: string; stream_type?: string }[]
   onSimilarClick?: (item: any) => void
   isFav?: boolean
   onToggleFav?: () => void
 }
 
-export default function DetailView({ data, onPlay, onMobileEpisodePlay, similarItems, onSimilarClick, isFav, onToggleFav }: Props) {
+export default function DetailView({ data, onPlay, onEpisodeClick, similarItems, onSimilarClick, isFav, onToggleFav }: Props) {
   const navigate = useNavigate()
   const [selectedSeason, setSelectedSeason] = useState('1')
   const similarRef = useRef<HTMLDivElement>(null)
@@ -154,17 +154,7 @@ export default function DetailView({ data, onPlay, onMobileEpisodePlay, similarI
                     <p className="text-xs text-gray-500">Bu sezonda bölüm bulunamadı</p>
                   ) : (
                     episodes.map((ep: any) => (
-                      <button key={ep.id} onClick={() => {
-                        if (onMobileEpisodePlay) {
-                          onMobileEpisodePlay({ ...ep, season: selectedSeason })
-                        } else {
-                          const sp = new URLSearchParams({ stream_id: String(ep.stream_id || ep.id), type: 'series', season: selectedSeason, episode: ep.episode_num })
-                          if (ep.container_extension) sp.set('ext', ep.container_extension)
-                          if (data.stream_icon) sp.set('icon', data.stream_icon)
-                          sp.set('series_id', String(data.id))
-                          navigate(`/watch?${sp}`)
-                        }
-                      }}
+                      <button key={ep.id} onClick={() => onEpisodeClick?.({ ...ep, season: selectedSeason })}
                         className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] hover:bg-white/10 transition-colors text-left border border-white/[0.03] hover:border-white/10">
                         <div className="w-9 h-9 rounded-lg bg-[#0099ff]/15 flex items-center justify-center shrink-0">
                           <Play className="w-4 h-4 text-[#0099ff] fill-[#0099ff]" />
