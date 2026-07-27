@@ -1,8 +1,22 @@
-// Build direct upstream URL for Steamix Player intent
-export function buildSteamixIntentUrl(base_url: string, user: string, pass: string, streamId: number, ext: string): string {
-  const path = `/movie/${user}/${pass}/${streamId}.${ext || 'mkv'}`
+export function buildSteamixIntentUrl(
+  base_url: string,
+  user: string,
+  pass: string,
+  streamId: number,
+  ext: string,
+  opts?: { type?: string; season?: string; episode?: string }
+): string {
+  let path: string
+  if (opts?.type === 'series' && opts.season && opts.episode) {
+    const s = opts.season.padStart(2, '0')
+    const e = opts.episode.padStart(2, '0')
+    path = `/series/${user}/${pass}/${streamId}/${s}/${e}${ext ? '.' + ext.replace(/^\./, '') : ''}`
+  } else {
+    path = `/movie/${user}/${pass}/${streamId}.${ext || 'mkv'}`
+  }
   const directUrl = base_url.replace(/\/+$/, '') + path
   return `steamixtv://play?url=${encodeURIComponent(directUrl)}`
 }
 
 export const APK_DOWNLOAD_URL = 'https://www.dropbox.com/scl/fi/dycgacn48jyb55zcv7u7m/app-arm64-v8a-release.apk?rlkey=gqccyxlnezl5u2if30n4pzmhz&st=1x4v2kl2&dl=1'
+export const INSTALL_FLAG_KEY = 'steamix_player_ready'

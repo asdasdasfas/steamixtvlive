@@ -3,9 +3,9 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { fetchVodInfo, fetchSeriesInfo, fetchVods, fetchSeries } from '@/lib/supabase'
 import DetailView from '@/sections/DetailView'
-import { Loader2, Download } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { isFavorite, toggleFavorite } from '@/lib/favorites'
-import { buildSteamixIntentUrl, APK_DOWNLOAD_URL } from '@/lib/player-intents'
+import { buildSteamixIntentUrl, APK_DOWNLOAD_URL, INSTALL_FLAG_KEY } from '@/lib/player-intents'
 
 export default function Detail() {
   const [params] = useSearchParams()
@@ -20,7 +20,6 @@ export default function Detail() {
   const [similar, setSimilar] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [isFav, setIsFav] = useState(isFavorite(parseInt(id || '0'), type as 'movie' | 'series'))
-  const [showApkPrompt, setShowApkPrompt] = useState(false)
 
   useEffect(() => {
     if (!id || !server) return
@@ -120,26 +119,9 @@ export default function Detail() {
 
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
   const handlePlay = () => {
-    if (isMobile && (type === 'movie' || type === 'series') && server) {
+    if (isMobile && (type === 'movie' || type === 'series') && server && localStorage.getItem(INSTALL_FLAG_KEY)) {
       const { base_url, xtream_user, xtream_pass } = server
-      const sid = parseInt(id || '0')
-      const url = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, sid, ext)
-      setShowApkPrompt(false)
-      const iframe = document.createElement('iframe')
-      iframe.style.display = 'none'
-      iframe.src = url
-      document.body.appendChild(iframe)
-      let fallback = setTimeout(() => {
-        document.body.removeChild(iframe)
-        setShowApkPrompt(true)
-      }, 1500)
-      const onVis = () => {
-        if (document.hidden) {
-          clearTimeout(fallback)
-          if (document.body.contains(iframe)) document.body.removeChild(iframe)
-        }
-      }
-      document.addEventListener('visibilitychange', onVis, { once: true })
+      window.location.href = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(id || '0'), ext)
       return
     }
     if (type === 'series') {
@@ -166,6 +148,16 @@ export default function Detail() {
     }
   }
 
+  const handleMobileEpisodePlay = (ep: any) => {
+    if (!server) return
+    const { base_url, xtream_user, xtream_pass } = server
+    const epId = parseInt(String(ep.stream_id || ep.id))
+    const epExt = ep.container_extension || ''
+    window.location.href = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, epId, epExt, {
+      type: 'series', season: ep.season || '1', episode: ep.episode_num || '1'
+    })
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
@@ -183,30 +175,18 @@ export default function Detail() {
   }
 
   return (
-    <>
-      <DetailView
-        data={data}
-        similarItems={similar}
-        onSimilarClick={handleSimilarClick}
-        isFav={isFav}
-        onToggleFav={handleToggleFav}
-        onPlay={handlePlay}
-      />
-      {showApkPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="bg-[#1e293b] rounded-2xl p-6 max-w-sm w-full shadow-xl">
-            <h3 className="text-white font-semibold text-lg mb-2">Steamix Player Gerekli</h3>
-            <p className="text-gray-400 text-sm mb-5">Bu içeriği izlemek için Steamix Player uygulamasını yüklemeniz gerekiyor.</p>
-            <a href={APK_DOWNLOAD_URL}
-              className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl bg-[#0099ff] text-white font-semibold text-sm hover:bg-[#0088ee] transition-all mb-3">
-              <Download className="w-4 h-4" />APK'yı İndir (2.8 MB)
-            </a>
-            <p className="text-xs text-gray-500 text-center">Kurulumdan sonra geri gelip tekrar <span className="text-[#0099ff]">İzle</span>'ye tıklayın.</p>
-            <button onClick={() => setShowApkPrompt(false)}
-              className="w-full mt-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">Kapat</button>
-          </div>
-        </div>
-      )}
-    </>
+    <DetailView
+      data={data}
+      similarItems={similar}
+      onSimilarClick={handleSimilarClick}
+      isFav={isFav}
+      onToggleFav={handleToggleFav}
+      onPlay={handlePlay}
+      isMobile={isMobile}
+      server={server}
+      streamId={parseInt(id || '0')}
+      ext={ext}
+      onMobileEpisodePlay={isMobile ? handleMobileEpisodePlay : undefined}
+    />
   )
 }
