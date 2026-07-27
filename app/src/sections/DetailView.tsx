@@ -164,7 +164,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
                         const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
                         if (mobile && server) {
                           const { base_url, xtream_user, xtream_pass } = server
-                          window.location.href = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(sid), ep.container_extension || ext || '')
+                          window.location.href = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(sid), ep.container_extension || ext || '', 'series')
                         } else if (!mobile && server) {
                           const sp = new URLSearchParams({ stream_id: sid, type: 'series', season: snum, episode: enum_ })
                           if (ep.container_extension) sp.set('ext', ep.container_extension)
