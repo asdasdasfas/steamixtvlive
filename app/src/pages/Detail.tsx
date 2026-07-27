@@ -5,7 +5,6 @@ import { fetchVodInfo, fetchSeriesInfo, fetchVods, fetchSeries } from '@/lib/sup
 import DetailView from '@/sections/DetailView'
 import { Loader2 } from 'lucide-react'
 import { isFavorite, toggleFavorite } from '@/lib/favorites'
-import { buildSteamixIntentUrl } from '@/lib/player-intents'
 
 function decodeField(v: string): string {
   if (!v) return ''
@@ -165,24 +164,6 @@ export default function Detail() {
       onSimilarClick={handleSimilarClick}
       isFav={isFav}
       onToggleFav={handleToggleFav}
-      onDownload={() => {
-        if (!server) return
-        const { base_url, xtream_user, xtream_pass } = server
-        if (type === 'series') {
-          const firstSeason = Object.keys(data.episodes || {})[0] || '1'
-          const firstEp = data.episodes?.[firstSeason]?.[0]
-          const url = buildSteamixIntentUrl('series', id!, base_url, xtream_user, xtream_pass, {
-            name: data.name, icon: data.stream_icon, ext: firstEp?.container_extension || ext,
-            season: firstSeason, episode: firstEp?.episode_num || '1', seriesId: String(data.id),
-          })
-          window.location.href = url
-        } else {
-          const url = buildSteamixIntentUrl('movie', id!, base_url, xtream_user, xtream_pass, {
-            name: data.name, icon: data.stream_icon, ext,
-          })
-          window.location.href = url
-        }
-      }}
       onPlay={() => {
         if (type === 'series') {
           const firstSeason = Object.keys(data.episodes || {})[0] || '1'

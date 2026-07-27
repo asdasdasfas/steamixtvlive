@@ -2,14 +2,14 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { fetchCategories, fetchVods, fetchSeries, fetchAllVods, fetchAllSeries, posterUrl } from '@/lib/supabase'
+import { debugLog } from '@/lib/debug-logger'
 import { parseRotationData } from '@/lib/rotation'
 import { getFavorites, removeFavorite } from '@/lib/favorites'
 import type { FavoriteItem } from '@/lib/favorites'
 import Navbar from '@/sections/Navbar'
 import LiveTvScreen from '@/sections/LiveTvScreen'
 import Poster from '@/components/Poster'
-import { Loader2, Play, Info, Heart, Download } from 'lucide-react'
-import { buildSteamixIntentUrl } from '@/lib/player-intents'
+import { Loader2, Play, Info, Heart } from 'lucide-react'
 
 function ArrowLeftIcon({ className }: { className?: string }) {
   return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
@@ -128,6 +128,7 @@ export default function Dashboard() {
 
   const loadFullCategory = useCallback(async (catId: string, type: 'movie' | 'series') => {
     if (!server) return
+    debugLog.info(`loadFullCategory başladı: catId=${catId} type=${type} allVods=${!!allVods} allSeries=${!!allSeries}`)
     try {
       const matchCat = (item: any, id: string) => {
         const cid = item.category_id
@@ -140,47 +141,64 @@ export default function Dashboard() {
         const idField = type2 === 'movie' ? 'stream_id' : 'series_id'
         const all: any[] = []
         const seen = new Set<number>()
+        debugLog.info(`Sequential fetch başladı: ${cats.length} kategori`)
         for (let i = 0; i < cats.length; i++) {
           if (!cats[i]?.category_id) continue
           try {
+            const t0 = Date.now()
             const chunk = await fetcher(server.base_url, server.xtream_user, server.xtream_pass, cats[i].category_id)
+            const ms = Date.now() - t0
             const cnt = Array.isArray(chunk) ? chunk.length : 0
+            if (i % 10 === 0) debugLog.api(`cat=${cats[i].category_id}`, 200, cnt, ms)
             if (Array.isArray(chunk)) {
               for (const item of chunk) {
                 const k = Number((item as any)[idField])
                 if (!seen.has(k)) { seen.add(k); all.push(item) }
               }
             }
-          } catch {}
+          } catch { debugLog.apiErr(`cat=${cats[i]?.category_id}`, 'fetch failed') }
         }
+        debugLog.info(`Sequential fetch bitti: ${all.length} total unique items`)
         return all
       }
       if (type === 'movie') {
         if (allVods) {
+          const cnt = allVods.filter((i: any) => matchCat(i, catId)).length
+          debugLog.info(`Cache hit: ${cnt} items for cat=${catId}`)
           setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId)) }))
           return
         }
+        debugLog.info('fetchAllVods (category_id siz) deneniyor...')
         let items = await fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass)
+        debugLog.info(`fetchAllVods sonuç: ${items?.length ?? 0} items`)
         if (!items || items.length === 0) {
+          debugLog.info('fetchAllVods boş, sequential fallback başlıyor')
           items = await fetchAllCatsSequential('movie')
         }
         const matched = (items || []).filter((i: any) => matchCat(i, catId))
+        debugLog.info(`loadFullCategory bitti: ${matched.length} items for cat=${catId} (total pool: ${items?.length ?? 0})`)
         setAllVods(items || [])
         setVodItems(prev => ({ ...prev, [catId]: matched }))
       } else {
         if (allSeries) {
+          const cnt = allSeries.filter((i: any) => matchCat(i, catId)).length
+          debugLog.info(`Cache hit: ${cnt} items for cat=${catId}`)
           setSeriesItems(prev => ({ ...prev, [catId]: allSeries.filter((i: any) => matchCat(i, catId)) }))
           return
         }
+        debugLog.info('fetchAllSeries (category_id siz) deneniyor...')
         let items = await fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass)
+        debugLog.info(`fetchAllSeries sonuç: ${items?.length ?? 0} items`)
         if (!items || items.length === 0) {
+          debugLog.info('fetchAllSeries boş, sequential fallback başlıyor')
           items = await fetchAllCatsSequential('series')
         }
         const matched = (items || []).filter((i: any) => matchCat(i, catId))
+        debugLog.info(`loadFullCategory bitti: ${matched.length} items for cat=${catId} (total pool: ${items?.length ?? 0})`)
         setAllSeries(items || [])
         setSeriesItems(prev => ({ ...prev, [catId]: matched }))
       }
-    } catch (e) {}
+    } catch (e) { debugLog.apiErr('loadFullCategory', String(e)) }
   }, [server, allVods, allSeries, vodCats, seriesCats])
 
   // Kategorilere tıklandığında grid açılsın
@@ -421,38 +439,6 @@ export default function Dashboard() {
     navigate(`/detail?${sp}`)
   }
 
-  const handlePlayMovie = (item: any) => {
-    const sp = new URLSearchParams()
-    sp.set('stream_id', String(item.stream_id))
-    sp.set('type', 'movie')
-    if (item.container_extension) sp.set('ext', item.container_extension)
-    if (item.stream_icon) sp.set('icon', item.stream_icon)
-    if (item.category_id) sp.set('cat', item.category_id)
-    navigate(`/watch?${sp}`)
-  }
-
-  const handleDownloadMovie = (item: any) => {
-    if (!server) return
-    const { base_url, xtream_user, xtream_pass } = server
-    const url = buildSteamixIntentUrl('movie', String(item.stream_id), base_url, xtream_user, xtream_pass, {
-      name: item.name, icon: item.stream_icon || item.cover_big, ext: item.container_extension,
-    })
-    window.location.href = url
-  }
-
-  const handlePlaySeries = (item: any) => {
-    navigate(`/watch?stream_id=${item.series_id}&type=series&season=1&episode=1`)
-  }
-
-  const handleDownloadSeries = (item: any) => {
-    if (!server) return
-    const { base_url, xtream_user, xtream_pass } = server
-    const url = buildSteamixIntentUrl('series', String(item.series_id), base_url, xtream_user, xtream_pass, {
-      name: item.name, icon: item.stream_icon || item.cover_big || item.movie_image, ext: item.container_extension,
-    })
-    window.location.href = url
-  }
-
   const scrollRow = (catId: string, dir: 'left' | 'right') => {
     const el = scrollContainers.current[catId]
     if (!el) return
@@ -489,7 +475,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#0f172a]">
-      <Navbar onTabChange={setTab} />
+      <Navbar />
       <div className="pt-16 md:pt-20">
         {/* ANA SAYFA */}
         {tab === 'home' && (
@@ -632,7 +618,7 @@ export default function Dashboard() {
             {/* Sağ panel - içerik */}
             <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0" data-scroll="grid">
               {showMovieCategory && activeMovieCat ? (
-                <MovieCategoryGrid items={vodItems[activeMovieCat]} loading={!allVods && !vodItems[activeMovieCat]} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} onPlayMovie={handlePlayMovie} onDownloadMovie={handleDownloadMovie} />
+                <MovieCategoryGrid items={vodItems[activeMovieCat]} loading={!allVods && !vodItems[activeMovieCat]} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
               )}
@@ -663,7 +649,7 @@ export default function Dashboard() {
             {/* Sağ panel - içerik */}
             <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0" data-scroll="grid">
               {showSeriesCategory && activeSeriesCat ? (
-                <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} onPlaySeries={handlePlaySeries} onDownloadSeries={handleDownloadSeries} />
+                <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
               )}
@@ -687,11 +673,117 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+      <DebugPanel />
     </div>
   )
 }
 
-function MovieCategoryGrid({ items, loading, categoryName, onPlayMovie, onDownloadMovie }: any) {
+function DebugPanel() {
+  const [open, setOpen] = useState(false)
+  const [logs, setLogs] = useState<string[]>([])
+  const textRef = useRef<HTMLTextAreaElement>(null)
+  const autoScrollRef = useRef(true)
+  const btnRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const interval = setInterval(() => {
+      setLogs(debugLog.getLogs())
+    }, 500)
+    return () => clearInterval(interval)
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    let domTimer: number
+    const checkDom = () => {
+      const container = document.querySelector('[data-scroll="grid"]')
+      if (!container) return
+      const cEl = container as HTMLElement
+      const y = Math.round(cEl.scrollTop)
+      const max = Math.round(cEl.scrollHeight - cEl.clientHeight)
+      const cTop = cEl.getBoundingClientRect().top
+      const allCards = Array.from(cEl.querySelectorAll('[class*="aspect-"]'))
+      const rendered = allCards.filter(el => el.getBoundingClientRect().height > 5)
+      const visible = rendered.filter(el => { const r = el.getBoundingClientRect(); return r.top < cEl.clientHeight + cTop && r.bottom > cTop }).length
+
+      const sh = Math.round(cEl.scrollHeight)
+      const ch = Math.round(cEl.clientHeight)
+
+      debugLog.scroll(y, max, visible, rendered.length, allCards.length)
+
+      if (allCards.length > 0) {
+        // Son 10 kartin DOM'da olup olmadigini kontrol et
+        const parentEl = cEl.querySelector('[class*="grid"]')
+        if (parentEl) {
+          const allDataItems = parentEl.children
+          const lastFew = Array.from(allDataItems).slice(-10)
+          const missing = lastFew.filter(el => !el.querySelector('[class*="aspect-"]') || el.getBoundingClientRect().height < 5)
+          if (missing.length > 0) {
+            debugLog.info(`SON-10: ${missing.length}/${lastFew.length} kart render edilmemis! ScrollHeight=${sh} clientHeight=${ch}`)
+          }
+          // ScrollHeight dogru mu?
+          const nCols = window.innerWidth >= 1280 ? 7 : window.innerWidth >= 1024 ? 6 : window.innerWidth >= 768 ? 5 : window.innerWidth >= 640 ? 4 : 3
+          const expectedMin = Math.round(allDataItems.length / nCols) * 200 // yaklasik
+          if (sh < expectedMin) {
+            debugLog.info(`SCROLL-YANLIS: scrollHeight=${sh} beklenen min=${expectedMin} (kesinti var!)`)
+          }
+        }
+      }
+    }
+    const listener = () => { cancelAnimationFrame(domTimer); domTimer = requestAnimationFrame(checkDom) }
+    const container = document.querySelector('[data-scroll="grid"]')
+    if (!container) return
+    container.addEventListener('scroll', listener, { passive: true })
+    setTimeout(checkDom, 1000)
+    return () => { container.removeEventListener('scroll', listener); cancelAnimationFrame(domTimer) }
+  }, [open])
+
+  const copyLogs = () => {
+    const txt = debugLog.getLogs().join('\n')
+    navigator.clipboard.writeText(txt).then(() => {
+      if (btnRef.current) { btnRef.current.textContent = '✓ Kopyalandı'; setTimeout(() => { if (btnRef.current) btnRef.current.textContent = '📋 Kopyala' }, 2000) }
+    })
+  }
+
+  const clearLogs = () => { debugLog.clear(); setLogs([]) }
+
+  return (
+    <>
+      <button onClick={() => setOpen(!open)} className="fixed bottom-4 right-4 z-[9999] w-12 h-12 rounded-full bg-red-600/80 hover:bg-red-600 text-white flex items-center justify-center text-lg shadow-2xl border border-red-400/30" title="Debug Log">
+        {open ? '✕' : '🐛'}
+      </button>
+      {open && (
+        <div className="fixed inset-0 z-[9998] flex items-end md:items-center justify-center" onClick={() => setOpen(false)}>
+          <div className="w-full md:max-w-2xl md:rounded-2xl bg-gray-900/95 backdrop-blur-xl border border-white/10 shadow-2xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-3 border-b border-white/10 shrink-0">
+              <span className="text-white text-sm font-bold tracking-wider">🐛 DEBUG LOG</span>
+              <div className="flex gap-2">
+                <button ref={btnRef} onClick={copyLogs} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">📋 Kopyala</button>
+                <button onClick={clearLogs} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">🗑 Temizle</button>
+                <button onClick={() => { const c = document.querySelectorAll('[class*="grid"] [class*="aspect-"]'); debugLog.info(`MANUEL DOM SAY: ${c.length} card`); setLogs(debugLog.getLogs()) }} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">🔍 DOM Say</button>
+                <button onClick={() => setOpen(false)} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">✕ Kapat</button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3" style={{ maxHeight: '60vh' }}>
+              {logs.length === 0 ? (
+                <p className="text-gray-500 text-xs text-center py-8">Log bekleniyor...</p>
+              ) : (
+                <div className="space-y-0.5">
+                  {logs.map((l, i) => (
+                    <pre key={i} className="text-[10px] leading-4 font-mono text-gray-300 whitespace-pre-wrap break-all">{l}</pre>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+function MovieCategoryGrid({ items, loading, categoryName }: any) {
   const navigate = useNavigate()
   const fImg = (url: string) => !url ? url : url.startsWith('http://') ? url.replace('http://', 'https://') : url
 
@@ -714,23 +806,18 @@ function MovieCategoryGrid({ items, loading, categoryName, onPlayMovie, onDownlo
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
           {(items || []).map((s: any) => (
             <div key={s.stream_id} className="group">
-              <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
-                <button onClick={() => handleDetail(s)} className="w-full h-full absolute inset-0 z-0">
+              <button onClick={() => handleDetail(s)} className="w-full">
+                <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
                   <Poster src={fImg(s.cover_big || s.stream_icon)} type="movie" />
-                </button>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10" />
-                <div className="absolute bottom-0 left-0 right-0 p-2 md:p-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-20">
-                  <button onClick={(e) => { e.stopPropagation(); onPlayMovie?.(s) }}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#0099ff] text-white text-[11px] font-semibold hover:bg-[#0088ee] transition-all shadow-lg shadow-[#0099ff]/30">
-                    <Play className="w-3 h-3 fill-white" />İzle
-                  </button>
-                  <button onClick={(e) => { e.stopPropagation(); onDownloadMovie?.(s) }}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white text-[11px] font-semibold hover:from-purple-500 hover:to-blue-500 transition-all shadow-lg shadow-purple-600/30">
-                    <Download className="w-3 h-3" />İndir
-                  </button>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
+                    <div className="w-14 h-14 rounded-full bg-[#0099ff] flex items-center justify-center shadow-[0_0_20px_rgba(0,153,255,0.6)] backdrop-blur-sm">
+                      <Play className="w-6 h-6 text-white ml-1 fill-white" />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
+                <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
+              </button>
             </div>
           ))}
         </div>
@@ -739,7 +826,7 @@ function MovieCategoryGrid({ items, loading, categoryName, onPlayMovie, onDownlo
   )
 }
 
-function SeriesCategoryGrid({ items, loading, categoryName, onPlaySeries, onDownloadSeries }: any) {
+function SeriesCategoryGrid({ items, loading, categoryName }: any) {
   const navigate = useNavigate()
   const fImg = (url: string) => !url ? url : url.startsWith('http://') ? url.replace('http://', 'https://') : url
   const handleDetail = (item: any) => {
@@ -760,23 +847,18 @@ function SeriesCategoryGrid({ items, loading, categoryName, onPlaySeries, onDown
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
           {(items || []).map((s: any) => (
             <div key={s.series_id} className="group">
-              <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-2 group-hover:ring-[#14b8a6]/40">
-                <button onClick={() => handleDetail(s)} className="w-full h-full absolute inset-0 z-0">
+              <button onClick={() => handleDetail(s)} className="w-full">
+                <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-2 group-hover:ring-[#14b8a6]/40">
                   <Poster src={fImg(s.cover_big || s.movie_image || s.cover || s.thumbnail)} type="series" />
-                </button>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10" />
-                <div className="absolute bottom-0 left-0 right-0 p-2 md:p-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-20">
-                  <button onClick={(e) => { e.stopPropagation(); onPlaySeries?.(s) }}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#14b8a6] text-white text-[11px] font-semibold hover:bg-[#13a897] transition-all shadow-lg shadow-[#14b8a6]/30">
-                    <Play className="w-3 h-3 fill-white" />İzle
-                  </button>
-                  <button onClick={(e) => { e.stopPropagation(); onDownloadSeries?.(s) }}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white text-[11px] font-semibold hover:from-purple-500 hover:to-blue-500 transition-all shadow-lg shadow-purple-600/30">
-                    <Download className="w-3 h-3" />İndir
-                  </button>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
+                    <div className="w-14 h-14 rounded-full bg-[#14b8a6] flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.6)] backdrop-blur-sm">
+                      <Play className="w-6 h-6 text-white ml-1 fill-white" />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
+                <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
+              </button>
             </div>
           ))}
         </div>

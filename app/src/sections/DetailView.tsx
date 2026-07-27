@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Play, Star, Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight, Eye, Heart, Download } from 'lucide-react'
+import { Play, Star, Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight, Eye, Heart } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Poster from '@/components/Poster'
 
@@ -13,14 +13,13 @@ interface DetailData {
 interface Props {
   data: DetailData
   onPlay?: () => void
-  onDownload?: () => void
   similarItems?: { id: number; name: string; stream_icon?: string; stream_type?: string }[]
   onSimilarClick?: (item: any) => void
   isFav?: boolean
   onToggleFav?: () => void
 }
 
-export default function DetailView({ data, onPlay, onDownload, similarItems, onSimilarClick, isFav, onToggleFav }: Props) {
+export default function DetailView({ data, onPlay, similarItems, onSimilarClick, isFav, onToggleFav }: Props) {
   const navigate = useNavigate()
   const [selectedSeason, setSelectedSeason] = useState('1')
   const similarRef = useRef<HTMLDivElement>(null)
@@ -108,29 +107,16 @@ export default function DetailView({ data, onPlay, onDownload, similarItems, onS
               </div>
             )}
 
-            {/* Play + Steamix Download + Favori */}
+            {/* Play + Favori */}
             <div className="flex items-center gap-3 mb-6">
               <button onClick={onPlay}
                 className="flex items-center gap-2.5 px-7 py-3 rounded-xl bg-[#0099ff] text-white font-semibold text-sm hover:bg-[#0088ee] transition-all shadow-lg shadow-[#0099ff]/20 hover:shadow-[#0099ff]/30">
-                <Play className="w-4 h-4 fill-white" />İzle
-              </button>
-              <button onClick={onDownload}
-                className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-semibold hover:from-purple-500 hover:to-blue-500 transition-all shadow-lg shadow-purple-600/20 hover:shadow-purple-600/30">
-                <Download className="w-4 h-4" />Steamix'te İzle
+                <Play className="w-4 h-4 fill-white" />{isSeries ? 'Bölümleri Göster' : 'İzle'}
               </button>
               <button onClick={onToggleFav}
                 className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all">
                 <Heart className={`w-5 h-5 transition-all ${isFav ? 'fill-red-500 text-red-500' : 'text-white'}`} />
               </button>
-            </div>
-
-            {/* APK Download Link */}
-            <div className="mb-4">
-              <a href="https://www.dropbox.com/scl/fi/dycgacn48jyb55zcv7u7m/app-arm64-v8a-release.apk?rlkey=gqccyxlnezl5u2if30n4pzmhz&st=1x4v2kl2&dl=1"
-                target="_blank" rel="noopener noreferrer"
-                className="text-xs text-gray-500 hover:text-[#0099ff] transition-colors flex items-center gap-1.5">
-                <Download className="w-3 h-3" />APK yüklü değilse indir
-              </a>
             </div>
 
             {/* Plot */}

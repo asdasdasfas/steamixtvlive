@@ -33,8 +33,10 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
   const [fullscreen, setFullscreen] = useState(false)
   const [volume, setVolume] = useState(1)
   const [muted, setMuted] = useState(false)
+  const debugLogs = useRef<string[]>([])
+  const [debugTxt, setDebugTxt] = useState('')
   const playStopRef = useRef<() => void>(() => {})
-  const dbg = (_msg: string) => {}
+  const dbg = (msg: string) => { debugLogs.current.push(`[${new Date().toISOString().slice(11,19)}] ${msg}`); console.log('[MB]', msg) }
 
   const playerRef = useRef<{
     input: Input
@@ -797,7 +799,8 @@ export default function MediabunnyPlayer({ src, poster, title, onEnded, onToggle
           </div>
         </div>
       )}
-
+      <button onClick={e => { e.stopPropagation(); const logs=debugLogs.current.slice(-200).join('\n'); navigator.clipboard.writeText(logs).then(()=>setDebugTxt('Kopyalandi!')).catch(()=>setDebugTxt('Hata!')); setTimeout(()=>setDebugTxt(''),3000) }}
+        className="absolute top-2 right-2 z-30 w-7 h-7 rounded-full bg-yellow-500/80 flex items-center justify-center text-[10px] font-bold text-black">{debugTxt || 'L'}</button>
       <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-16 pb-3 px-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div className="w-full h-1.5 bg-white/20 rounded-full cursor-pointer mb-3 group/progress hover:h-2.5 transition-all" onClick={e => { e.stopPropagation(); const rect = e.currentTarget.getBoundingClientRect(); const pct = (e.clientX - rect.left) / rect.width; seekTo(pct * duration) }}>
           <div className="h-full bg-white/30 rounded-full" style={{ width: `${progress}%` }}>
