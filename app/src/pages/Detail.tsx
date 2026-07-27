@@ -143,8 +143,9 @@ export default function Detail() {
     setIsFav(nowFav)
   }
 
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-  const handleMobileEpisodePlay = isMobile && server ? (ep: any) => {
+  const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  const handleMobileEpisodePlay = isMobile ? (ep: any) => {
+    if (!server) return
     const { base_url, xtream_user, xtream_pass } = server
     window.location.href = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(String(ep.stream_id || ep.id)), ep.container_extension || ext, {
       type: 'series', season: ep.season || '1', episode: ep.episode_num || '1'
