@@ -48,8 +48,9 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
   useEffect(() => {
     if (!trailerId || !playerContainerRef.current) return
     let player: any = null
-    const init = () => {
-      if (!playerContainerRef.current) return
+    let mounted = true
+    const ourCb = () => {
+      if (!mounted || !playerContainerRef.current) return
       try {
         player = new (window as any).YT.Player(playerContainerRef.current, {
           width: '100%', height: '100%',
@@ -71,18 +72,24 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
         })
       } catch {}
     }
-    if (!(window as any).YT) {
-      const s = document.createElement('script')
-      s.src = 'https://www.youtube.com/iframe_api'
-      ;(window as any).onYouTubeIframeAPIReady = init
-      document.head.appendChild(s)
-    } else if ((window as any).YT.Player) {
-      init()
+    if (!(window as any).YT || !(window as any).YT.Player) {
+      if (!(window as any).YT) {
+        const s = document.createElement('script')
+        s.src = 'https://www.youtube.com/iframe_api'
+        document.head.appendChild(s)
+      }
+      ;(window as any).onYouTubeIframeAPIReady = ourCb
     } else {
-      ;(window as any).YT.ready(init)
+      ourCb()
     }
-    return () => { try { player?.destroy() } catch {} }
-  }, [trailerId])
+    return () => {
+      mounted = false
+      try { player?.destroy() } catch {}
+      if ((window as any).onYouTubeIframeAPIReady === ourCb) {
+        ;(window as any).onYouTubeIframeAPIReady = undefined
+      }
+    }
+  }, [trailerId, isMobile])
 
   const toggleMute = () => {
     const p = playerRef.current
