@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
-import { fetchVodInfo, fetchSeriesInfo, fetchVods, fetchSeries, proxyUrl } from '@/lib/supabase'
+import { fetchVodInfo, fetchSeriesInfo, fetchVods, fetchSeries } from '@/lib/supabase'
 import DetailView from '@/sections/DetailView'
 import { Loader2 } from 'lucide-react'
 import { isFavorite, toggleFavorite } from '@/lib/favorites'
@@ -17,9 +17,8 @@ function decodeField(v: string): string {
   return v
 }
 
-function proxyImg(base: string | undefined, url: string): string {
+function fixImg(url: string): string {
   if (!url) return ''
-  if (url.startsWith('http://') && base) return proxyUrl(base, url.replace(/^https?:\/\/[^\/]+/, ''))
   if (url.startsWith('http://')) return url.replace('http://', 'https://')
   return url
 }
@@ -56,14 +55,14 @@ export default function Detail() {
             const mapi = info?.movie_data
             setData({
               id: parseInt(id), name: urlName || iv?.name || mapi?.name || 'İsimsiz',
-              stream_icon: proxyImg(base_url, urlIcon || iv?.movie_image || iv?.cover_big || md2?.cover_big || iv?.cover || iv?.stream_icon || mapi?.stream_icon || ''),
+              stream_icon: fixImg(urlIcon || iv?.movie_image || iv?.cover_big || md2?.cover_big || iv?.cover || iv?.stream_icon || mapi?.stream_icon || ''),
               stream_type: 'movie',
               plot: decodeField(md2?.plot || iv?.plot || ''),
               genre: decodeField(md2?.genre || iv?.genre || ''),
               rating: iv?.rating || md2?.rating || '',
               releasedate: iv?.releaseDate || iv?.releasedate || md2?.releasedate || '',
               duration: iv?.duration || md2?.duration || '',
-              backdrop_path: [proxyImg(base_url, urlIcon || iv?.movie_image || iv?.cover_big || md2?.cover_big || iv?.cover || '')],
+              backdrop_path: [fixImg(urlIcon || iv?.movie_image || iv?.cover_big || md2?.cover_big || iv?.cover || '')],
               category_id: catId || iv?.category_id || mapi?.category_id || '',
               cast: decodeField(md2?.cast || iv?.cast || ''),
               director: decodeField(md2?.director || iv?.director || ''),
@@ -93,13 +92,13 @@ export default function Detail() {
             }
             setData({
               id: parseInt(id), name: urlName || si?.name || 'İsimsiz',
-              stream_icon: proxyImg(base_url, urlIcon || si?.cover_big || si?.movie_image || si?.cover || si?.thumbnail || ''),
+              stream_icon: fixImg(urlIcon || si?.cover_big || si?.movie_image || si?.cover || si?.thumbnail || ''),
               stream_type: 'series',
               plot: decodeField(si?.plot || si?.description || ''),
               genre: decodeField(si?.genre || ''),
               rating: si?.rating || '',
               releasedate: si?.releaseDate || si?.releasedate || '',
-              backdrop_path: [proxyImg(base_url, urlIcon || si?.cover_big || si?.movie_image || si?.cover || '')],
+              backdrop_path: [fixImg(urlIcon || si?.cover_big || si?.movie_image || si?.cover || '')],
               category_id: catId || si?.category_id || '',
               cast: decodeField(si?.cast || ''),
               director: decodeField(si?.director || ''),

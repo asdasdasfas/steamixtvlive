@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
-import { fetchCategories, fetchVods, fetchSeries, fetchAllVods, fetchAllSeries, posterUrl, proxyUrl } from '@/lib/supabase'
+import { fetchCategories, fetchVods, fetchSeries, fetchAllVods, fetchAllSeries, posterUrl } from '@/lib/supabase'
 import { debugLog } from '@/lib/debug-logger'
 import { parseRotationData } from '@/lib/rotation'
 import { getFavorites, removeFavorite } from '@/lib/favorites'
@@ -378,9 +378,9 @@ export default function Dashboard() {
     return withoutPrefix
   }
 
-  const proxyImg = (url: string) => {
-    if (!url || !url.startsWith('http://') || !server?.base_url) return url
-    return proxyUrl(server.base_url, url.replace(/^https?:\/\/[^\/]+/, ''))
+  const fixImg = (url: string) => {
+    if (!url || !url.startsWith('http://')) return url
+    return url.replace('http://', 'https://')
   }
 
   // Kategoriler yüklendiğinde veya tab değiştiğinde ilk kategori otomatik seçilsin
@@ -450,7 +450,7 @@ export default function Dashboard() {
 
   // --- Lightweight card ---
   const renderCard = (item: any, type: string, onClick: (item: any) => void, sizeClass = 'w-36') => {
-    const posterSrc = proxyImg(type === 'series' ? (item.cover_big || item.movie_image || item.cover || item.thumbnail) : (item.cover_big || item.stream_icon))
+    const posterSrc = fixImg(type === 'series' ? (item.cover_big || item.movie_image || item.cover || item.thumbnail) : (item.cover_big || item.stream_icon))
     const cleanName = (item.name || '').replace(/[✓✔☑✗✘]/g, '')
     return (
       <button key={type === 'series' ? item.series_id : item.stream_id} onClick={() => onClick(item)}
@@ -508,7 +508,7 @@ export default function Dashboard() {
                         zIndex: i === currentSlide % heroItems.length ? 1 : 0,
                         transform: `scale(${i === currentSlide % heroItems.length ? 1 : 1.05})`,
                       }}>
-                      <Poster src={proxyImg(item.cover_big || item.stream_icon)} type="movie" className="object-top" />
+                      <Poster src={fixImg(item.cover_big || item.stream_icon)} type="movie" className="object-top" />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/60 to-transparent" />
                       <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
                         <p className="text-white font-bold text-xl md:text-3xl mb-2 drop-shadow-xl">{item.name}</p>
@@ -785,11 +785,7 @@ function DebugPanel() {
 
 function MovieCategoryGrid({ items, loading, categoryName }: any) {
   const navigate = useNavigate()
-  const { server } = useAuth()
-  const pImg = (url: string) => {
-    if (!url || !url.startsWith('http://') || !server?.base_url) return url
-    return proxyUrl(server.base_url, url.replace(/^https?:\/\/[^\/]+/, ''))
-  }
+  const fImg = (url: string) => !url ? url : url.startsWith('http://') ? url.replace('http://', 'https://') : url
 
   const handleDetail = (item: any) => {
     const sp = new URLSearchParams({ id: String(item.stream_id), type: 'movie', cat: item.category_id || '' })
@@ -812,7 +808,7 @@ function MovieCategoryGrid({ items, loading, categoryName }: any) {
             <div key={s.stream_id} className="group">
               <button onClick={() => handleDetail(s)} className="w-full">
                 <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
-                  <Poster src={pImg(s.cover_big || s.stream_icon)} type="movie" />
+                  <Poster src={fImg(s.cover_big || s.stream_icon)} type="movie" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
                     <div className="w-14 h-14 rounded-full bg-[#0099ff] flex items-center justify-center shadow-[0_0_20px_rgba(0,153,255,0.6)] backdrop-blur-sm">
@@ -832,11 +828,7 @@ function MovieCategoryGrid({ items, loading, categoryName }: any) {
 
 function SeriesCategoryGrid({ items, loading, categoryName }: any) {
   const navigate = useNavigate()
-  const { server } = useAuth()
-  const pImg = (url: string) => {
-    if (!url || !url.startsWith('http://') || !server?.base_url) return url
-    return proxyUrl(server.base_url, url.replace(/^https?:\/\/[^\/]+/, ''))
-  }
+  const fImg = (url: string) => !url ? url : url.startsWith('http://') ? url.replace('http://', 'https://') : url
   const handleDetail = (item: any) => {
     const sp = new URLSearchParams({ id: String(item.series_id), type: 'series', cat: item.category_id || '' })
     if (item.cover_big || item.movie_image || item.cover || item.thumbnail) sp.set('icon', item.cover_big || item.movie_image || item.cover || item.thumbnail)
@@ -857,7 +849,7 @@ function SeriesCategoryGrid({ items, loading, categoryName }: any) {
             <div key={s.series_id} className="group">
               <button onClick={() => handleDetail(s)} className="w-full">
                 <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-2 group-hover:ring-[#14b8a6]/40">
-                  <Poster src={pImg(s.cover_big || s.movie_image || s.cover || s.thumbnail)} type="series" />
+                  <Poster src={fImg(s.cover_big || s.movie_image || s.cover || s.thumbnail)} type="series" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
                     <div className="w-14 h-14 rounded-full bg-[#14b8a6] flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.6)] backdrop-blur-sm">
