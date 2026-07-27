@@ -462,8 +462,8 @@ export default function Dashboard() {
           <div className="pb-20">
             {/* HERO SLAYT - ÖNE ÇIKANLAR */}
             {heroItems.length > 0 && (
-              <div className="max-w-5xl mx-auto px-4 md:px-8 mb-6 pt-4">
-                <div className="flex items-center gap-2 mb-3">
+              <div className="max-w-5xl mx-auto px-4 md:px-8 mb-6 pt-4 md:max-w-none md:mx-0 md:px-0">
+                <div className="flex items-center gap-2 mb-3 md:hidden">
                   <div className="w-1 h-5 bg-[#0099ff] rounded-full" />
                   <h2 className="text-sm font-bold text-white tracking-widest" style={{ fontFamily: 'Orbitron, sans-serif' }}>
                     ÖNE <span className="text-[#0099ff]">ÇIKANLAR</span>
@@ -480,6 +480,12 @@ export default function Dashboard() {
                     className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all backdrop-blur-sm">
                     <ArrowRightIcon className="w-5 h-5" />
                   </button>
+                  <div className="hidden md:flex absolute top-4 left-4 z-20 items-center gap-2">
+                    <div className="w-1 h-5 bg-[#0099ff] rounded-full" />
+                    <h2 className="text-sm font-bold text-white tracking-widest drop-shadow-lg" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+                      ÖNE <span className="text-[#0099ff]">ÇIKANLAR</span>
+                    </h2>
+                  </div>
                   {heroItems.map((item, i) => (
                     <div key={`${item.stream_id}-${i}`}
                       className="absolute inset-0 transition-all duration-1000 ease-in-out"
