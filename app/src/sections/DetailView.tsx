@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { Play, Star, Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight, Eye, Heart } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Poster from '@/components/Poster'
-import { buildSteamixIntentUrl } from '@/lib/player-intents'
+import { buildSteamixIntentUrl, APK_DOWNLOAD_URL } from '@/lib/player-intents'
 import type { ServerRow } from '@/lib/supabase'
 
 interface DetailData {
@@ -123,6 +123,15 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
                 className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all">
                 <Heart className={`w-5 h-5 transition-all ${isFav ? 'fill-red-500 text-red-500' : 'text-white'}`} />
               </button>
+            </div>
+
+            {/* Mobil: Steamix APK indirme butonu */}
+            <div className="block md:hidden mb-6">
+              <a href={APK_DOWNLOAD_URL} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 text-white text-xs font-medium hover:from-purple-500 hover:to-purple-600 transition-all shadow-lg shadow-purple-600/20 w-fit">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                Steamix APK'yı İndir (2.8 MB)
+              </a>
             </div>
 
             {/* Plot */}
