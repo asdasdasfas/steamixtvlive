@@ -8,7 +8,8 @@ import type { FavoriteItem } from '@/lib/favorites'
 import Navbar from '@/sections/Navbar'
 import LiveTvScreen from '@/sections/LiveTvScreen'
 import Poster from '@/components/Poster'
-import { Loader2, Play, Info, Heart } from 'lucide-react'
+import { Loader2, Play, Info, Heart, Download } from 'lucide-react'
+import { buildSteamixIntentUrl } from '@/lib/player-intents'
 
 function ArrowLeftIcon({ className }: { className?: string }) {
   return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
@@ -420,6 +421,38 @@ export default function Dashboard() {
     navigate(`/detail?${sp}`)
   }
 
+  const handlePlayMovie = (item: any) => {
+    const sp = new URLSearchParams()
+    sp.set('stream_id', String(item.stream_id))
+    sp.set('type', 'movie')
+    if (item.container_extension) sp.set('ext', item.container_extension)
+    if (item.stream_icon) sp.set('icon', item.stream_icon)
+    if (item.category_id) sp.set('cat', item.category_id)
+    navigate(`/watch?${sp}`)
+  }
+
+  const handleDownloadMovie = (item: any) => {
+    if (!server) return
+    const { base_url, xtream_user, xtream_pass } = server
+    const url = buildSteamixIntentUrl('movie', String(item.stream_id), base_url, xtream_user, xtream_pass, {
+      name: item.name, icon: item.stream_icon || item.cover_big, ext: item.container_extension,
+    })
+    window.location.href = url
+  }
+
+  const handlePlaySeries = (item: any) => {
+    navigate(`/watch?stream_id=${item.series_id}&type=series&season=1&episode=1`)
+  }
+
+  const handleDownloadSeries = (item: any) => {
+    if (!server) return
+    const { base_url, xtream_user, xtream_pass } = server
+    const url = buildSteamixIntentUrl('series', String(item.series_id), base_url, xtream_user, xtream_pass, {
+      name: item.name, icon: item.stream_icon || item.cover_big || item.movie_image, ext: item.container_extension,
+    })
+    window.location.href = url
+  }
+
   const scrollRow = (catId: string, dir: 'left' | 'right') => {
     const el = scrollContainers.current[catId]
     if (!el) return
@@ -599,7 +632,7 @@ export default function Dashboard() {
             {/* Sağ panel - içerik */}
             <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0" data-scroll="grid">
               {showMovieCategory && activeMovieCat ? (
-                <MovieCategoryGrid items={vodItems[activeMovieCat]} loading={!allVods && !vodItems[activeMovieCat]} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} />
+                <MovieCategoryGrid items={vodItems[activeMovieCat]} loading={!allVods && !vodItems[activeMovieCat]} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} onPlayMovie={handlePlayMovie} onDownloadMovie={handleDownloadMovie} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
               )}
@@ -630,7 +663,7 @@ export default function Dashboard() {
             {/* Sağ panel - içerik */}
             <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0" data-scroll="grid">
               {showSeriesCategory && activeSeriesCat ? (
-                <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} />
+                <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} onPlaySeries={handlePlaySeries} onDownloadSeries={handleDownloadSeries} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
               )}
@@ -658,7 +691,7 @@ export default function Dashboard() {
   )
 }
 
-function MovieCategoryGrid({ items, loading, categoryName }: any) {
+function MovieCategoryGrid({ items, loading, categoryName, onPlayMovie, onDownloadMovie }: any) {
   const navigate = useNavigate()
   const fImg = (url: string) => !url ? url : url.startsWith('http://') ? url.replace('http://', 'https://') : url
 
@@ -681,18 +714,23 @@ function MovieCategoryGrid({ items, loading, categoryName }: any) {
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
           {(items || []).map((s: any) => (
             <div key={s.stream_id} className="group">
-              <button onClick={() => handleDetail(s)} className="w-full">
-                <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
+              <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
+                <button onClick={() => handleDetail(s)} className="w-full h-full absolute inset-0 z-0">
                   <Poster src={fImg(s.cover_big || s.stream_icon)} type="movie" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
-                    <div className="w-14 h-14 rounded-full bg-[#0099ff] flex items-center justify-center shadow-[0_0_20px_rgba(0,153,255,0.6)] backdrop-blur-sm">
-                      <Play className="w-6 h-6 text-white ml-1 fill-white" />
-                    </div>
-                  </div>
+                </button>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10" />
+                <div className="absolute bottom-0 left-0 right-0 p-2 md:p-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-20">
+                  <button onClick={(e) => { e.stopPropagation(); onPlayMovie?.(s) }}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#0099ff] text-white text-[11px] font-semibold hover:bg-[#0088ee] transition-all shadow-lg shadow-[#0099ff]/30">
+                    <Play className="w-3 h-3 fill-white" />İzle
+                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); onDownloadMovie?.(s) }}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white text-[11px] font-semibold hover:from-purple-500 hover:to-blue-500 transition-all shadow-lg shadow-purple-600/30">
+                    <Download className="w-3 h-3" />İndir
+                  </button>
                 </div>
-                <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
-              </button>
+              </div>
+              <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
             </div>
           ))}
         </div>
@@ -701,7 +739,7 @@ function MovieCategoryGrid({ items, loading, categoryName }: any) {
   )
 }
 
-function SeriesCategoryGrid({ items, loading, categoryName }: any) {
+function SeriesCategoryGrid({ items, loading, categoryName, onPlaySeries, onDownloadSeries }: any) {
   const navigate = useNavigate()
   const fImg = (url: string) => !url ? url : url.startsWith('http://') ? url.replace('http://', 'https://') : url
   const handleDetail = (item: any) => {
@@ -722,18 +760,23 @@ function SeriesCategoryGrid({ items, loading, categoryName }: any) {
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
           {(items || []).map((s: any) => (
             <div key={s.series_id} className="group">
-              <button onClick={() => handleDetail(s)} className="w-full">
-                <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-2 group-hover:ring-[#14b8a6]/40">
+              <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-2 group-hover:ring-[#14b8a6]/40">
+                <button onClick={() => handleDetail(s)} className="w-full h-full absolute inset-0 z-0">
                   <Poster src={fImg(s.cover_big || s.movie_image || s.cover || s.thumbnail)} type="series" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
-                    <div className="w-14 h-14 rounded-full bg-[#14b8a6] flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.6)] backdrop-blur-sm">
-                      <Play className="w-6 h-6 text-white ml-1 fill-white" />
-                    </div>
-                  </div>
+                </button>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10" />
+                <div className="absolute bottom-0 left-0 right-0 p-2 md:p-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-20">
+                  <button onClick={(e) => { e.stopPropagation(); onPlaySeries?.(s) }}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#14b8a6] text-white text-[11px] font-semibold hover:bg-[#13a897] transition-all shadow-lg shadow-[#14b8a6]/30">
+                    <Play className="w-3 h-3 fill-white" />İzle
+                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); onDownloadSeries?.(s) }}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white text-[11px] font-semibold hover:from-purple-500 hover:to-blue-500 transition-all shadow-lg shadow-purple-600/30">
+                    <Download className="w-3 h-3" />İndir
+                  </button>
                 </div>
-                <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
-              </button>
+              </div>
+              <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
             </div>
           ))}
         </div>
