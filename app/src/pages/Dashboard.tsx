@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { fetchCategories, fetchVods, fetchSeries, fetchAllVods, fetchAllSeries } from '@/lib/supabase'
+import { debugLog } from '@/lib/debug-logger'
 import { parseRotationData } from '@/lib/rotation'
 import { getFavorites, removeFavorite } from '@/lib/favorites'
 import type { FavoriteItem } from '@/lib/favorites'
@@ -127,6 +128,7 @@ export default function Dashboard() {
 
   const loadFullCategory = useCallback(async (catId: string, type: 'movie' | 'series') => {
     if (!server) return
+    debugLog.info(`loadFullCategory başladı: catId=${catId} type=${type} allVods=${!!allVods} allSeries=${!!allSeries}`)
     try {
       const matchCat = (item: any, id: string) => {
         const cid = item.category_id
@@ -139,40 +141,64 @@ export default function Dashboard() {
         const idField = type2 === 'movie' ? 'stream_id' : 'series_id'
         const all: any[] = []
         const seen = new Set<number>()
+        debugLog.info(`Sequential fetch başladı: ${cats.length} kategori`)
         for (let i = 0; i < cats.length; i++) {
           if (!cats[i]?.category_id) continue
           try {
+            const t0 = Date.now()
             const chunk = await fetcher(server.base_url, server.xtream_user, server.xtream_pass, cats[i].category_id)
+            const ms = Date.now() - t0
+            const cnt = Array.isArray(chunk) ? chunk.length : 0
+            if (i % 10 === 0) debugLog.api(`cat=${cats[i].category_id}`, 200, cnt, ms)
             if (Array.isArray(chunk)) {
               for (const item of chunk) {
                 const k = Number((item as any)[idField])
                 if (!seen.has(k)) { seen.add(k); all.push(item) }
               }
             }
-          } catch {}
+          } catch { debugLog.apiErr(`cat=${cats[i]?.category_id}`, 'fetch failed') }
         }
+        debugLog.info(`Sequential fetch bitti: ${all.length} total unique items`)
         return all
       }
       if (type === 'movie') {
         if (allVods) {
+          const cnt = allVods.filter((i: any) => matchCat(i, catId)).length
+          debugLog.info(`Cache hit: ${cnt} items for cat=${catId}`)
           setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId)) }))
           return
         }
+        debugLog.info('fetchAllVods (category_id siz) deneniyor...')
         let items = await fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass)
-        if (!items || items.length === 0) items = await fetchAllCatsSequential('movie')
+        debugLog.info(`fetchAllVods sonuç: ${items?.length ?? 0} items`)
+        if (!items || items.length === 0) {
+          debugLog.info('fetchAllVods boş, sequential fallback başlıyor')
+          items = await fetchAllCatsSequential('movie')
+        }
+        const matched = (items || []).filter((i: any) => matchCat(i, catId))
+        debugLog.info(`loadFullCategory bitti: ${matched.length} items for cat=${catId} (total pool: ${items?.length ?? 0})`)
         setAllVods(items || [])
-        setVodItems(prev => ({ ...prev, [catId]: (items || []).filter((i: any) => matchCat(i, catId)) }))
+        setVodItems(prev => ({ ...prev, [catId]: matched }))
       } else {
         if (allSeries) {
+          const cnt = allSeries.filter((i: any) => matchCat(i, catId)).length
+          debugLog.info(`Cache hit: ${cnt} items for cat=${catId}`)
           setSeriesItems(prev => ({ ...prev, [catId]: allSeries.filter((i: any) => matchCat(i, catId)) }))
           return
         }
+        debugLog.info('fetchAllSeries (category_id siz) deneniyor...')
         let items = await fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass)
-        if (!items || items.length === 0) items = await fetchAllCatsSequential('series')
+        debugLog.info(`fetchAllSeries sonuç: ${items?.length ?? 0} items`)
+        if (!items || items.length === 0) {
+          debugLog.info('fetchAllSeries boş, sequential fallback başlıyor')
+          items = await fetchAllCatsSequential('series')
+        }
+        const matched = (items || []).filter((i: any) => matchCat(i, catId))
+        debugLog.info(`loadFullCategory bitti: ${matched.length} items for cat=${catId} (total pool: ${items?.length ?? 0})`)
         setAllSeries(items || [])
-        setSeriesItems(prev => ({ ...prev, [catId]: (items || []).filter((i: any) => matchCat(i, catId)) }))
+        setSeriesItems(prev => ({ ...prev, [catId]: matched }))
       }
-    } catch {}
+    } catch (e) { debugLog.apiErr('loadFullCategory', String(e)) }
   }, [server, allVods, allSeries, vodCats, seriesCats])
 
   // Kategorilere tıklandığında grid açılsın
@@ -645,6 +671,82 @@ export default function Dashboard() {
   )
 }
 
+function DebugPanel() {
+  const [open, setOpen] = useState(false)
+  const [logs, setLogs] = useState<string[]>([])
+  const textRef = useRef<HTMLTextAreaElement>(null)
+  const autoScrollRef = useRef(true)
+  const btnRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const interval = setInterval(() => {
+      setLogs(debugLog.getLogs())
+    }, 500)
+    return () => clearInterval(interval)
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const listener = () => {
+      const y = window.scrollY
+      const max = document.documentElement.scrollHeight - window.innerHeight
+      const cards = document.querySelectorAll('[class*="grid"] [class*="aspect-"]')
+      const visible = Array.from(cards).filter(el => {
+        const r = el.getBoundingClientRect()
+        return r.top < window.innerHeight && r.bottom > 0
+      }).length
+      debugLog.scroll(y, max, visible, cards.length)
+    }
+    let raf: number
+    const handler = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(listener) }
+    window.addEventListener('scroll', handler, { passive: true })
+    return () => { window.removeEventListener('scroll', handler); cancelAnimationFrame(raf) }
+  }, [open])
+
+  const copyLogs = () => {
+    const txt = debugLog.getLogs().join('\n')
+    navigator.clipboard.writeText(txt).then(() => {
+      if (btnRef.current) { btnRef.current.textContent = '✓ Kopyalandı'; setTimeout(() => { if (btnRef.current) btnRef.current.textContent = '📋 Kopyala' }, 2000) }
+    })
+  }
+
+  const clearLogs = () => { debugLog.clear(); setLogs([]) }
+
+  return (
+    <>
+      <button onClick={() => setOpen(!open)} className="fixed bottom-4 right-4 z-[9999] w-12 h-12 rounded-full bg-red-600/80 hover:bg-red-600 text-white flex items-center justify-center text-lg shadow-2xl border border-red-400/30" title="Debug Log">
+        {open ? '✕' : '🐛'}
+      </button>
+      {open && (
+        <div className="fixed inset-0 z-[9998] flex items-end md:items-center justify-center" onClick={() => setOpen(false)}>
+          <div className="w-full md:max-w-2xl md:rounded-2xl bg-gray-900/95 backdrop-blur-xl border border-white/10 shadow-2xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-3 border-b border-white/10 shrink-0">
+              <span className="text-white text-sm font-bold tracking-wider">🐛 DEBUG LOG</span>
+              <div className="flex gap-2">
+                <button ref={btnRef} onClick={copyLogs} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">📋 Kopyala</button>
+                <button onClick={clearLogs} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">🗑 Temizle</button>
+                <button onClick={() => setOpen(false)} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">✕ Kapat</button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3" style={{ maxHeight: '60vh' }}>
+              {logs.length === 0 ? (
+                <p className="text-gray-500 text-xs text-center py-8">Log bekleniyor...</p>
+              ) : (
+                <div className="space-y-0.5">
+                  {logs.map((l, i) => (
+                    <pre key={i} className="text-[10px] leading-4 font-mono text-gray-300 whitespace-pre-wrap break-all">{l}</pre>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 function MovieCategoryGrid({ items, loading, categoryName }: any) {
   const navigate = useNavigate()
 
@@ -772,10 +874,11 @@ function FavoritesSection() {
           <Heart className="w-12 h-12 mb-3 text-gray-600" />
           <p className="text-sm">Henüz favori eklenmemiş</p>
           <p className="text-xs text-gray-600 mt-1">Film veya dizi detay sayfasından kalbe basarak ekleyebilirsiniz</p>
-        </div>
       </div>
-    )
-  }
+      <DebugPanel />
+    </div>
+  )
+}
 
   return (
     <div className="px-4 md:px-8 pb-8 pt-4">
