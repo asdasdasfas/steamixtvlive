@@ -132,12 +132,26 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
                 Tarayıcınız <span className="text-orange-400 font-medium">AC3 ses</span> kodlamasını desteklemez.
                 <br />Steamix Player ile tüm içerikleri sorunsuz izleyin.
               </p>
-              <a href={APK_DOWNLOAD_URL}
+              <button onClick={async () => {
+                try {
+                  const res = await fetch(APK_DOWNLOAD_URL)
+                  const blob = await res.blob()
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.href = url
+                  a.download = 'SteamixPlayer.apk'
+                  a.type = 'application/vnd.android.package-archive'
+                  document.body.appendChild(a)
+                  a.click()
+                  document.body.removeChild(a)
+                  URL.revokeObjectURL(url)
+                } catch { window.location.href = APK_DOWNLOAD_URL }
+              }}
                 className="w-full inline-flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-semibold hover:from-purple-500 hover:to-indigo-500 transition-all shadow-lg shadow-purple-600/25 active:scale-[0.97]">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                 Steamix Player'ı İndir
                 <span className="text-purple-200 text-[10px] font-medium bg-white/10 px-1.5 py-0.5 rounded">2.8 MB</span>
-              </a>
+              </button>
             </div>
 
             {/* Plot */}
