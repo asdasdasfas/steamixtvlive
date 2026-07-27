@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { Play, Star, Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight, Eye, Heart, Volume2, VolumeX } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Poster from '@/components/Poster'
@@ -36,76 +36,21 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
   const trailerId = getYoutubeId(data.youtube_trailer || '')
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
   const [trailerMuted, setTrailerMuted] = useState(true)
-  const playerRef = useRef<any>(null)
-  const playerContainerRef = useRef<HTMLDivElement>(null)
+  const trailerSrc = trailerId
+    ? `https://www.youtube.com/embed/${trailerId}?autoplay=1&${isMobile || trailerMuted ? 'mute=1' : ''}&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&fs=0&cc_load_policy=0&disablekb=1`
+    : ''
   const fragmanUrl = trailerId
     ? isMobile
       ? `intent://www.youtube.com/watch?v=${trailerId}#Intent;scheme=https;package=com.google.android.youtube;end`
       : `https://www.youtube.com/watch?v=${trailerId}`
     : ''
 
-  // YouTube IFrame Player API
-  useEffect(() => {
-    if (!trailerId || !playerContainerRef.current) return
-    let player: any = null
-    let mounted = true
-    const ourCb = () => {
-      if (!mounted || !playerContainerRef.current) return
-      try {
-        player = new (window as any).YT.Player(playerContainerRef.current, {
-          width: '100%', height: '100%',
-          videoId: trailerId,
-          playerVars: {
-            autoplay: 1, controls: 0, mute: 1, loop: 1,
-            playlist: trailerId, modestbranding: 1, rel: 0,
-            iv_load_policy: 3, playsinline: 1, fs: 0, cc_load_policy: 0,
-          },
-          events: {
-            onReady: (e: any) => {
-              playerRef.current = e.target
-              e.target.playVideo()
-              if (!isMobile) {
-                try { e.target.unMute(); setTrailerMuted(false) } catch {}
-              }
-            }
-          }
-        })
-      } catch {}
-    }
-    if (!(window as any).YT || !(window as any).YT.Player) {
-      if (!(window as any).YT) {
-        const s = document.createElement('script')
-        s.src = 'https://www.youtube.com/iframe_api'
-        document.head.appendChild(s)
-      }
-      ;(window as any).onYouTubeIframeAPIReady = ourCb
-    } else {
-      ourCb()
-    }
-    return () => {
-      mounted = false
-      try { player?.destroy() } catch {}
-      if ((window as any).onYouTubeIframeAPIReady === ourCb) {
-        ;(window as any).onYouTubeIframeAPIReady = undefined
-      }
-    }
-  }, [trailerId, isMobile])
-
-  const toggleMute = () => {
-    const p = playerRef.current
-    if (!p) return
-    try {
-      if (p.isMuted()) { p.unMute(); setTrailerMuted(false) }
-      else { p.mute(); setTrailerMuted(true) }
-    } catch {}
-  }
-
   const similarRef = useRef<HTMLDivElement>(null)
   const handleDownload = () => {
     window.location.href = APK_DOWNLOAD_URL
   }
 
-
+  const toggleMute = () => setTrailerMuted(!trailerMuted)
 
   const isSeries = data.stream_type === 'series'
   const episodes = data.episodes?.[selectedSeason] || []
@@ -126,9 +71,11 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
       <div className="relative h-[50vh] md:h-[80vh] overflow-hidden bg-black">
         {trailerId ? (
           <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute" style={{ top: '-15%', left: '-25%', width: '150%', height: '140%' }}>
-              <div ref={playerContainerRef} className="w-full h-full" />
-            </div>
+            <iframe key={trailerMuted ? 'm' : 'u'}
+              src={trailerSrc}
+              className="absolute" style={{ top: '-15%', left: '-25%', width: '150%', height: '140%' }}
+              allow="autoplay; encrypted-media"
+              title="trailer" />
           </div>
         ) : (
           data.backdrop_path?.[0] || data.stream_icon ? (
