@@ -693,29 +693,42 @@ function DebugPanel() {
     const checkDom = () => {
       const container = document.querySelector('[data-scroll="grid"]')
       if (!container) return
-      const y = Math.round(container.scrollTop)
-      const max = Math.round(container.scrollHeight - container.clientHeight)
-      const allCards = Array.from(container.querySelectorAll('[class*="aspect-"]'))
-      const rendered = allCards.filter(el => el.getBoundingClientRect().height > 10)
-      const ch = container.clientHeight
-      const visible = rendered.filter(el => { const r = el.getBoundingClientRect(); return r.top < ch + (container as HTMLElement).getBoundingClientRect().top && r.bottom > 0 }).length
-      const lastCard = rendered[rendered.length - 1]
-      let lastBottom = 0
-      if (lastCard) { const r = lastCard.getBoundingClientRect(); lastBottom = Math.round(r.bottom + container.scrollTop - (container as HTMLElement).getBoundingClientRect().top) }
-      const sh = Math.round(container.scrollHeight)
+      const cEl = container as HTMLElement
+      const y = Math.round(cEl.scrollTop)
+      const max = Math.round(cEl.scrollHeight - cEl.clientHeight)
+      const cTop = cEl.getBoundingClientRect().top
+      const allCards = Array.from(cEl.querySelectorAll('[class*="aspect-"]'))
+      const rendered = allCards.filter(el => el.getBoundingClientRect().height > 5)
+      const visible = rendered.filter(el => { const r = el.getBoundingClientRect(); return r.top < cEl.clientHeight + cTop && r.bottom > cTop }).length
+
+      const sh = Math.round(cEl.scrollHeight)
+      const ch = Math.round(cEl.clientHeight)
+
       debugLog.scroll(y, max, visible, rendered.length, allCards.length)
-      if (allCards.length > 0 && rendered.length !== allCards.length) {
-        debugLog.info(`RENDER-EKSIK: DOM'da ${allCards.length} kart var ama sadece ${rendered.length} tanesi render edilmis (${allCards.length - rendered.length} kart gorunmez)`)
-      }
-      if (rendered.length > 0 && lastBottom > 0 && lastBottom < sh - 100) {
-        debugLog.info(`SON-KART: last rendered card bottom=${lastBottom} < scrollHeight=${sh}, fark=${sh - lastBottom}px (kesinti var)`)
+
+      if (allCards.length > 0) {
+        // Son 10 kartin DOM'da olup olmadigini kontrol et
+        const parentEl = cEl.querySelector('[class*="grid"]')
+        if (parentEl) {
+          const allDataItems = parentEl.children
+          const lastFew = Array.from(allDataItems).slice(-10)
+          const missing = lastFew.filter(el => !el.querySelector('[class*="aspect-"]') || el.getBoundingClientRect().height < 5)
+          if (missing.length > 0) {
+            debugLog.info(`SON-10: ${missing.length}/${lastFew.length} kart render edilmemis! ScrollHeight=${sh} clientHeight=${ch}`)
+          }
+          // ScrollHeight dogru mu?
+          const expectedMin = allDataItems.length * 150 / 3 // yaklasik
+          if (sh < expectedMin) {
+            debugLog.info(`SCROLL-YANLIS: scrollHeight=${sh} beklenen min=${expectedMin} (kesinti var!)`)
+          }
+        }
       }
     }
     const listener = () => { cancelAnimationFrame(domTimer); domTimer = requestAnimationFrame(checkDom) }
     const container = document.querySelector('[data-scroll="grid"]')
     if (!container) return
     container.addEventListener('scroll', listener, { passive: true })
-    checkDom()
+    setTimeout(checkDom, 1000)
     return () => { container.removeEventListener('scroll', listener); cancelAnimationFrame(domTimer) }
   }, [open])
 
