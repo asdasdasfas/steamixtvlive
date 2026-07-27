@@ -158,16 +158,17 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
                   ) : (
                     episodes.map((ep: any) => (
                       <button key={ep.id} onClick={() => {
-                        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-                        if (isMobile && server) {
+                        const sid = String(ep.stream_id || ep.id)
+                        const snum = String(selectedSeason || '1')
+                        const enum_ = String(ep.episode_num || '1')
+                        const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+                        if (mobile && server) {
                           const { base_url, xtream_user, xtream_pass } = server
-                          window.location.href = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(String(ep.stream_id || ep.id)), ep.container_extension || ext || '', {
-                            type: 'series', season: selectedSeason || '1', episode: ep.episode_num || '1'
+                          window.location.href = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(sid), ep.container_extension || ext || '', {
+                            type: 'series', season: snum, episode: enum_
                           })
-                        } else if (isMobile && !server) {
-                          // server null - try again after render
-                        } else {
-                          const sp = new URLSearchParams({ stream_id: String(ep.stream_id || ep.id), type: 'series', season: selectedSeason, episode: ep.episode_num })
+                        } else if (!mobile && server) {
+                          const sp = new URLSearchParams({ stream_id: sid, type: 'series', season: snum, episode: enum_ })
                           if (ep.container_extension) sp.set('ext', ep.container_extension)
                           if (data.stream_icon) sp.set('icon', data.stream_icon)
                           sp.set('series_id', String(data.id))
