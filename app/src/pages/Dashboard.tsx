@@ -462,17 +462,8 @@ export default function Dashboard() {
           <div className="pb-20">
             {/* HERO SLAYT - ÖNE ÇIKANLAR */}
             {heroItems.length > 0 && (
-              <>
-                <div className="max-w-5xl mx-auto px-4 md:px-8 pt-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-1 h-5 bg-[#0099ff] rounded-full" />
-                    <h2 className="text-sm font-bold text-white tracking-widest" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-                      ÖNE <span className="text-[#0099ff]">ÇIKANLAR</span>
-                    </h2>
-                  </div>
-                </div>
-                <div className="w-full mb-6">
-                <div className="relative overflow-hidden shadow-2xl shadow-[#0099ff]/10 aspect-[1/1] md:aspect-[16/9]">
+              <div className="w-full max-w-6xl mx-auto mb-6">
+                <div className="relative overflow-hidden rounded-2xl shadow-2xl shadow-[#0099ff]/10 aspect-[1/1] md:aspect-[21/9]">
                   {/* Left arrow */}
                   <button onClick={() => setCurrentSlide(prev => (prev - 1 + heroItems.length) % heroItems.length)}
                     className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all backdrop-blur-sm">
@@ -493,6 +484,12 @@ export default function Dashboard() {
                       }}>
                       <Poster src={proxyImg(item.cover_big || item.stream_icon)} type="movie" className="object-top" />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/60 to-transparent" />
+                      <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
+                        <div className="w-1 h-5 bg-[#0099ff] rounded-full" />
+                        <h2 className="text-sm font-bold text-white tracking-widest drop-shadow-lg" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+                          ÖNE <span className="text-[#0099ff]">ÇIKANLAR</span>
+                        </h2>
+                      </div>
                       <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
                         <p className="text-white font-bold text-xl md:text-3xl mb-2 drop-shadow-xl">{item.name}</p>
                         <p className="text-gray-300 text-sm mb-4 line-clamp-2 max-w-xl drop-shadow-lg">
