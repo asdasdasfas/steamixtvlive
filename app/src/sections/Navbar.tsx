@@ -12,7 +12,11 @@ const allTabs = [
   { key: 'favorites', icon: Heart, labelKey: 'Favoriler' },
 ]
 
-export default function Navbar() {
+interface NavbarProps {
+  onTabChange?: (tab: string) => void
+}
+
+export default function Navbar({ onTabChange }: NavbarProps) {
   const { t, lang, setLang, langNames, languages } = useLang()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -24,8 +28,12 @@ export default function Navbar() {
   const tabs = allTabs.filter(t => t.key !== 'live' || !liveDisabled)
 
   const handleTab = (key: string) => {
-    if (key === 'home') navigate('/dashboard')
-    else navigate(`/dashboard?tab=${key}`)
+    if (onTabChange) {
+      onTabChange(key)
+    } else {
+      if (key === 'home') navigate('/dashboard')
+      else navigate(`/dashboard?tab=${key}`)
+    }
   }
 
   return (

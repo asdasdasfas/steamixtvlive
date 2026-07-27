@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { fetchCategories, fetchVods, fetchSeries, fetchAllVods, fetchAllSeries, posterUrl } from '@/lib/supabase'
-import { debugLog } from '@/lib/debug-logger'
 import { parseRotationData } from '@/lib/rotation'
 import { getFavorites, removeFavorite } from '@/lib/favorites'
 import type { FavoriteItem } from '@/lib/favorites'
@@ -128,7 +127,6 @@ export default function Dashboard() {
 
   const loadFullCategory = useCallback(async (catId: string, type: 'movie' | 'series') => {
     if (!server) return
-    debugLog.info(`loadFullCategory başladı: catId=${catId} type=${type} allVods=${!!allVods} allSeries=${!!allSeries}`)
     try {
       const matchCat = (item: any, id: string) => {
         const cid = item.category_id
@@ -141,64 +139,47 @@ export default function Dashboard() {
         const idField = type2 === 'movie' ? 'stream_id' : 'series_id'
         const all: any[] = []
         const seen = new Set<number>()
-        debugLog.info(`Sequential fetch başladı: ${cats.length} kategori`)
         for (let i = 0; i < cats.length; i++) {
           if (!cats[i]?.category_id) continue
           try {
-            const t0 = Date.now()
             const chunk = await fetcher(server.base_url, server.xtream_user, server.xtream_pass, cats[i].category_id)
-            const ms = Date.now() - t0
             const cnt = Array.isArray(chunk) ? chunk.length : 0
-            if (i % 10 === 0) debugLog.api(`cat=${cats[i].category_id}`, 200, cnt, ms)
             if (Array.isArray(chunk)) {
               for (const item of chunk) {
                 const k = Number((item as any)[idField])
                 if (!seen.has(k)) { seen.add(k); all.push(item) }
               }
             }
-          } catch { debugLog.apiErr(`cat=${cats[i]?.category_id}`, 'fetch failed') }
+          } catch {}
         }
-        debugLog.info(`Sequential fetch bitti: ${all.length} total unique items`)
         return all
       }
       if (type === 'movie') {
         if (allVods) {
-          const cnt = allVods.filter((i: any) => matchCat(i, catId)).length
-          debugLog.info(`Cache hit: ${cnt} items for cat=${catId}`)
           setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId)) }))
           return
         }
-        debugLog.info('fetchAllVods (category_id siz) deneniyor...')
         let items = await fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass)
-        debugLog.info(`fetchAllVods sonuç: ${items?.length ?? 0} items`)
         if (!items || items.length === 0) {
-          debugLog.info('fetchAllVods boş, sequential fallback başlıyor')
           items = await fetchAllCatsSequential('movie')
         }
         const matched = (items || []).filter((i: any) => matchCat(i, catId))
-        debugLog.info(`loadFullCategory bitti: ${matched.length} items for cat=${catId} (total pool: ${items?.length ?? 0})`)
         setAllVods(items || [])
         setVodItems(prev => ({ ...prev, [catId]: matched }))
       } else {
         if (allSeries) {
-          const cnt = allSeries.filter((i: any) => matchCat(i, catId)).length
-          debugLog.info(`Cache hit: ${cnt} items for cat=${catId}`)
           setSeriesItems(prev => ({ ...prev, [catId]: allSeries.filter((i: any) => matchCat(i, catId)) }))
           return
         }
-        debugLog.info('fetchAllSeries (category_id siz) deneniyor...')
         let items = await fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass)
-        debugLog.info(`fetchAllSeries sonuç: ${items?.length ?? 0} items`)
         if (!items || items.length === 0) {
-          debugLog.info('fetchAllSeries boş, sequential fallback başlıyor')
           items = await fetchAllCatsSequential('series')
         }
         const matched = (items || []).filter((i: any) => matchCat(i, catId))
-        debugLog.info(`loadFullCategory bitti: ${matched.length} items for cat=${catId} (total pool: ${items?.length ?? 0})`)
         setAllSeries(items || [])
         setSeriesItems(prev => ({ ...prev, [catId]: matched }))
       }
-    } catch (e) { debugLog.apiErr('loadFullCategory', String(e)) }
+    } catch (e) {}
   }, [server, allVods, allSeries, vodCats, seriesCats])
 
   // Kategorilere tıklandığında grid açılsın
@@ -475,7 +456,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#0f172a]">
-      <Navbar />
+      <Navbar onTabChange={setTab} />
       <div className="pt-16 md:pt-20">
         {/* ANA SAYFA */}
         {tab === 'home' && (
@@ -673,113 +654,7 @@ export default function Dashboard() {
           </div>
         )}
       </div>
-      <DebugPanel />
     </div>
-  )
-}
-
-function DebugPanel() {
-  const [open, setOpen] = useState(false)
-  const [logs, setLogs] = useState<string[]>([])
-  const textRef = useRef<HTMLTextAreaElement>(null)
-  const autoScrollRef = useRef(true)
-  const btnRef = useRef<HTMLButtonElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const interval = setInterval(() => {
-      setLogs(debugLog.getLogs())
-    }, 500)
-    return () => clearInterval(interval)
-  }, [open])
-
-  useEffect(() => {
-    if (!open) return
-    let domTimer: number
-    const checkDom = () => {
-      const container = document.querySelector('[data-scroll="grid"]')
-      if (!container) return
-      const cEl = container as HTMLElement
-      const y = Math.round(cEl.scrollTop)
-      const max = Math.round(cEl.scrollHeight - cEl.clientHeight)
-      const cTop = cEl.getBoundingClientRect().top
-      const allCards = Array.from(cEl.querySelectorAll('[class*="aspect-"]'))
-      const rendered = allCards.filter(el => el.getBoundingClientRect().height > 5)
-      const visible = rendered.filter(el => { const r = el.getBoundingClientRect(); return r.top < cEl.clientHeight + cTop && r.bottom > cTop }).length
-
-      const sh = Math.round(cEl.scrollHeight)
-      const ch = Math.round(cEl.clientHeight)
-
-      debugLog.scroll(y, max, visible, rendered.length, allCards.length)
-
-      if (allCards.length > 0) {
-        // Son 10 kartin DOM'da olup olmadigini kontrol et
-        const parentEl = cEl.querySelector('[class*="grid"]')
-        if (parentEl) {
-          const allDataItems = parentEl.children
-          const lastFew = Array.from(allDataItems).slice(-10)
-          const missing = lastFew.filter(el => !el.querySelector('[class*="aspect-"]') || el.getBoundingClientRect().height < 5)
-          if (missing.length > 0) {
-            debugLog.info(`SON-10: ${missing.length}/${lastFew.length} kart render edilmemis! ScrollHeight=${sh} clientHeight=${ch}`)
-          }
-          // ScrollHeight dogru mu?
-          const nCols = window.innerWidth >= 1280 ? 7 : window.innerWidth >= 1024 ? 6 : window.innerWidth >= 768 ? 5 : window.innerWidth >= 640 ? 4 : 3
-          const expectedMin = Math.round(allDataItems.length / nCols) * 200 // yaklasik
-          if (sh < expectedMin) {
-            debugLog.info(`SCROLL-YANLIS: scrollHeight=${sh} beklenen min=${expectedMin} (kesinti var!)`)
-          }
-        }
-      }
-    }
-    const listener = () => { cancelAnimationFrame(domTimer); domTimer = requestAnimationFrame(checkDom) }
-    const container = document.querySelector('[data-scroll="grid"]')
-    if (!container) return
-    container.addEventListener('scroll', listener, { passive: true })
-    setTimeout(checkDom, 1000)
-    return () => { container.removeEventListener('scroll', listener); cancelAnimationFrame(domTimer) }
-  }, [open])
-
-  const copyLogs = () => {
-    const txt = debugLog.getLogs().join('\n')
-    navigator.clipboard.writeText(txt).then(() => {
-      if (btnRef.current) { btnRef.current.textContent = '✓ Kopyalandı'; setTimeout(() => { if (btnRef.current) btnRef.current.textContent = '📋 Kopyala' }, 2000) }
-    })
-  }
-
-  const clearLogs = () => { debugLog.clear(); setLogs([]) }
-
-  return (
-    <>
-      <button onClick={() => setOpen(!open)} className="fixed bottom-4 right-4 z-[9999] w-12 h-12 rounded-full bg-red-600/80 hover:bg-red-600 text-white flex items-center justify-center text-lg shadow-2xl border border-red-400/30" title="Debug Log">
-        {open ? '✕' : '🐛'}
-      </button>
-      {open && (
-        <div className="fixed inset-0 z-[9998] flex items-end md:items-center justify-center" onClick={() => setOpen(false)}>
-          <div className="w-full md:max-w-2xl md:rounded-2xl bg-gray-900/95 backdrop-blur-xl border border-white/10 shadow-2xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-3 border-b border-white/10 shrink-0">
-              <span className="text-white text-sm font-bold tracking-wider">🐛 DEBUG LOG</span>
-              <div className="flex gap-2">
-                <button ref={btnRef} onClick={copyLogs} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">📋 Kopyala</button>
-                <button onClick={clearLogs} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">🗑 Temizle</button>
-                <button onClick={() => { const c = document.querySelectorAll('[class*="grid"] [class*="aspect-"]'); debugLog.info(`MANUEL DOM SAY: ${c.length} card`); setLogs(debugLog.getLogs()) }} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">🔍 DOM Say</button>
-                <button onClick={() => setOpen(false)} className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white">✕ Kapat</button>
-              </div>
-            </div>
-            <div className="flex-1 overflow-y-auto p-3" style={{ maxHeight: '60vh' }}>
-              {logs.length === 0 ? (
-                <p className="text-gray-500 text-xs text-center py-8">Log bekleniyor...</p>
-              ) : (
-                <div className="space-y-0.5">
-                  {logs.map((l, i) => (
-                    <pre key={i} className="text-[10px] leading-4 font-mono text-gray-300 whitespace-pre-wrap break-all">{l}</pre>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </>
   )
 }
 
