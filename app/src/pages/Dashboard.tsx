@@ -469,7 +469,7 @@ export default function Dashboard() {
                     ÖNE <span className="text-[#0099ff]">ÇIKANLAR</span>
                   </h2>
                 </div>
-                <div className="relative overflow-hidden rounded-2xl shadow-2xl shadow-[#0099ff]/10" style={{ aspectRatio: '21/9' }}>
+                <div className="relative overflow-hidden rounded-2xl shadow-2xl shadow-[#0099ff]/10 aspect-[16/10] md:aspect-[21/9]">
                   {/* Left arrow */}
                   <button onClick={() => setCurrentSlide(prev => (prev - 1 + heroItems.length) % heroItems.length)}
                     className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all backdrop-blur-sm">
@@ -488,7 +488,7 @@ export default function Dashboard() {
                         zIndex: i === currentSlide % heroItems.length ? 1 : 0,
                         transform: `scale(${i === currentSlide % heroItems.length ? 1 : 1.05})`,
                       }}>
-                      <Poster src={proxyImg(item.cover_big || item.stream_icon)} type="movie" className="object-top" />
+                      <Poster src={proxyImg(item.cover_big || item.stream_icon)} type="movie" />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/60 to-transparent" />
                       <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
                         <p className="text-white font-bold text-xl md:text-3xl mb-2 drop-shadow-xl">{item.name}</p>
