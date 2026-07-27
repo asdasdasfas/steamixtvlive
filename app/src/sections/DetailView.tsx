@@ -48,6 +48,14 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
     }), '*')
   }, [trailerMuted, trailerId])
 
+  const toggleMute = () => {
+    const next = !trailerMuted
+    setTrailerMuted(next)
+    trailerRef.current?.contentWindow?.postMessage(JSON.stringify({
+      event: 'command', func: next ? 'mute' : 'unMute', args: ''
+    }), '*')
+  }
+
   const isSeries = data.stream_type === 'series'
   const episodes = data.episodes?.[selectedSeason] || []
   const seasons = data.episodes ? Object.keys(data.episodes) : []
@@ -66,11 +74,14 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
       {/* Backdrop */}
       <div className="relative h-[50vh] md:h-[80vh] overflow-hidden bg-black">
         {trailerId ? (
-          <iframe ref={trailerRef}
-            src={`https://www.youtube.com/embed/${trailerId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailerId}&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&enablejsapi=1`}
-            className="absolute inset-0 w-full h-full pointer-events-none"
-            allow="autoplay; encrypted-media"
-            title="trailer" />
+          <div className="absolute inset-0 overflow-hidden">
+            <iframe ref={trailerRef}
+              src={`https://www.youtube.com/embed/${trailerId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailerId}&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&enablejsapi=1`}
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              style={{ transform: 'scale(1.4)', transformOrigin: 'center center' }}
+              allow="autoplay; encrypted-media"
+              title="trailer" />
+          </div>
         ) : (
           data.backdrop_path?.[0] || data.stream_icon ? (
             <img src={data.backdrop_path?.[0] || data.stream_icon} alt=""
@@ -91,7 +102,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
           </div>
         )}
         {trailerId && (
-          <button onClick={() => setTrailerMuted(!trailerMuted)}
+          <button onClick={toggleMute}
             className="absolute bottom-4 right-4 z-10 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors backdrop-blur-sm">
             {trailerMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
           </button>
