@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Play, Star, Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight, Eye, Heart, Volume2, VolumeX } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Poster from '@/components/Poster'
@@ -35,14 +35,56 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
   const [selectedSeason, setSelectedSeason] = useState('1')
   const [trailerMuted, setTrailerMuted] = useState(true)
   const trailerId = getYoutubeId(data.youtube_trailer || '')
-  const trailerSrc = trailerId
-    ? `https://www.youtube.com/embed/${trailerId}?autoplay=1&${trailerMuted ? 'mute=1' : ''}&controls=0&loop=1&playlist=${trailerId}&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&disablekb=1&playsinline=1&fs=0&cc_load_policy=0`
-    : ''
+  const playerContainerRef = useRef<HTMLDivElement>(null)
+  const playerRef = useRef<any>(null)
+  const apiReadyRef = useRef(false)
 
   const similarRef = useRef<HTMLDivElement>(null)
-  const trailerRef = useRef<HTMLIFrameElement>(null)
   const handleDownload = () => {
     window.location.href = APK_DOWNLOAD_URL
+  }
+
+  // YouTube IFrame Player API ile player oluştur
+  useEffect(() => {
+    if (!trailerId) return
+    let player: any = null
+    const createPlayer = () => {
+      if (!playerContainerRef.current) return
+      player = new (window as any).YT.Player(playerContainerRef.current, {
+        height: '100%', width: '100%',
+        videoId: trailerId,
+        playerVars: {
+          autoplay: 1, controls: 0, mute: 1, loop: 1,
+          playlist: trailerId, modestbranding: 1, rel: 0,
+          iv_load_policy: 3, playsinline: 1, fs: 0,
+        },
+        events: {
+          onReady: (e: any) => {
+            playerRef.current = e.target
+            e.target.playVideo()
+          }
+        }
+      })
+      playerRef.current = player
+    }
+    if (!(window as any).YT) {
+      const tag = document.createElement('script')
+      tag.src = 'https://www.youtube.com/iframe_api'
+      tag.onload = () => { apiReadyRef.current = true; createPlayer() }
+      document.head.appendChild(tag)
+    } else if ((window as any).YT.Player) {
+      createPlayer()
+    } else {
+      (window as any).YT.ready(createPlayer)
+    }
+    return () => { player?.destroy() }
+  }, [trailerId])
+
+  const toggleTrailerMute = () => {
+    const p = playerRef.current
+    if (!p) return
+    if (p.isMuted()) { p.unMute(); setTrailerMuted(false) }
+    else { p.mute(); setTrailerMuted(true) }
   }
 
   const isSeries = data.stream_type === 'series'
@@ -63,13 +105,8 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
       {/* Backdrop */}
       <div className="relative h-[50vh] md:h-[80vh] overflow-hidden bg-black">
         {trailerId ? (
-          <div className="absolute inset-0 overflow-hidden">
-            <iframe ref={trailerRef} key={trailerMuted ? 'm' : 'u'}
-              src={trailerSrc}
-              className="absolute inset-0 w-full h-full pointer-events-none"
-              style={{ transform: 'scale(2)', transformOrigin: 'center center' }}
-              allow="autoplay; encrypted-media"
-              title="trailer" />
+          <div className="absolute inset-0 overflow-hidden" style={{ transform: 'scale(1.8)', transformOrigin: 'center center' }}>
+            <div ref={playerContainerRef} className="w-full h-full pointer-events-none" />
           </div>
         ) : (
           data.backdrop_path?.[0] || data.stream_icon ? (
@@ -91,7 +128,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
           </div>
         )}
         {trailerId && (
-          <button onClick={() => setTrailerMuted(!trailerMuted)}
+          <button onClick={toggleTrailerMute}
             className="absolute bottom-4 right-4 z-10 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors backdrop-blur-sm">
             {trailerMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
           </button>
