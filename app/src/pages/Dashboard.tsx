@@ -359,8 +359,11 @@ export default function Dashboard() {
   }
 
   const proxyImg = (url: string) => {
-    if (!url || !url.startsWith('http://') || !server?.base_url) return url
-    return proxyUrl(server.base_url, url.replace(/^https?:\/\/[^\/]+/, ''))
+    if (!url) return url
+    if (url.startsWith('/t/p/')) return `https://image.tmdb.org${url}`
+    if (url.startsWith('http://') && server?.base_url) return proxyUrl(server.base_url, url.replace(/^https?:\/\/[^\/]+/, ''))
+    if (url.startsWith('http://')) return url.replace('http://', 'https://')
+    return url
   }
 
   // Kategoriler yüklendiğinde veya tab değiştiğinde ilk kategori otomatik seçilsin

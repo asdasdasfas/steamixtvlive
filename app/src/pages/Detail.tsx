@@ -21,6 +21,7 @@ function decodeField(v: string): string {
 
 function proxyImg(base: string | undefined, url: string): string {
   if (!url) return ''
+  if (url.startsWith('/t/p/')) return `https://image.tmdb.org${url}`
   if (url.startsWith('http://') && base) return proxyUrl(base, url.replace(/^https?:\/\/[^\/]+/, ''))
   if (url.startsWith('http://')) return url.replace('http://', 'https://')
   return url
