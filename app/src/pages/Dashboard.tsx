@@ -593,7 +593,7 @@ export default function Dashboard() {
         {tab === 'movies' && (
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
             {/* Sol panel - kategoriler */}
-            <div className="w-48 md:w-60 shrink-0 border-r border-white/10 overflow-y-auto pt-3 pb-4 scrollbar-hide">
+            <div className="w-48 md:w-60 shrink-0 border-r border-white/10 overflow-y-auto pt-3 pb-4 scrollbar-hide min-h-0">
               <div className="px-3 md:px-4 pb-2 mb-2 border-b border-white/10">
                 <h3 className="text-xs font-semibold text-[#0099ff] tracking-widest uppercase" style={{ fontFamily: 'Orbitron, sans-serif' }}>Film Kategorileri</h3>
               </div>
@@ -610,7 +610,7 @@ export default function Dashboard() {
               ))}
             </div>
             {/* Sağ panel - içerik */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide" data-scroll="grid">
+            <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0" data-scroll="grid">
               {showMovieCategory && activeMovieCat ? (
                 <MovieCategoryGrid items={vodItems[activeMovieCat]} loading={!allVods && !vodItems[activeMovieCat]} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} />
               ) : (
@@ -624,7 +624,7 @@ export default function Dashboard() {
         {tab === 'series' && (
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
             {/* Sol panel - kategoriler */}
-            <div className="w-48 md:w-60 shrink-0 border-r border-white/10 overflow-y-auto pt-3 pb-4 scrollbar-hide">
+            <div className="w-48 md:w-60 shrink-0 border-r border-white/10 overflow-y-auto pt-3 pb-4 scrollbar-hide min-h-0">
               <div className="px-3 md:px-4 pb-2 mb-2 border-b border-white/10">
                 <h3 className="text-xs font-semibold text-[#0099ff] tracking-widest uppercase" style={{ fontFamily: 'Orbitron, sans-serif' }}>Dizi Kategorileri</h3>
               </div>
@@ -641,7 +641,7 @@ export default function Dashboard() {
               ))}
             </div>
             {/* Sağ panel - içerik */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide" data-scroll="grid">
+            <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0" data-scroll="grid">
               {showSeriesCategory && activeSeriesCat ? (
                 <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} />
               ) : (
@@ -717,7 +717,8 @@ function DebugPanel() {
             debugLog.info(`SON-10: ${missing.length}/${lastFew.length} kart render edilmemis! ScrollHeight=${sh} clientHeight=${ch}`)
           }
           // ScrollHeight dogru mu?
-          const expectedMin = allDataItems.length * 150 / 3 // yaklasik
+          const nCols = window.innerWidth >= 1280 ? 7 : window.innerWidth >= 1024 ? 6 : window.innerWidth >= 768 ? 5 : window.innerWidth >= 640 ? 4 : 3
+          const expectedMin = Math.round(allDataItems.length / nCols) * 200 // yaklasik
           if (sh < expectedMin) {
             debugLog.info(`SCROLL-YANLIS: scrollHeight=${sh} beklenen min=${expectedMin} (kesinti var!)`)
           }
