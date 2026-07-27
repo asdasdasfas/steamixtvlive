@@ -695,17 +695,20 @@ function DebugPanel() {
       if (!container) return
       const y = Math.round(container.scrollTop)
       const max = Math.round(container.scrollHeight - container.clientHeight)
-      const allCards = container.querySelectorAll('[class*="aspect-"]')
-      const cards = Array.from(allCards)
+      const allCards = Array.from(container.querySelectorAll('[class*="aspect-"]'))
+      const rendered = allCards.filter(el => el.getBoundingClientRect().height > 10)
       const ch = container.clientHeight
-      const visible = cards.filter(el => { const r = el.getBoundingClientRect(); return r.top < ch + (container as HTMLElement).getBoundingClientRect().top && r.bottom > 0 }).length
-      const lastCard = cards[cards.length - 1]
+      const visible = rendered.filter(el => { const r = el.getBoundingClientRect(); return r.top < ch + (container as HTMLElement).getBoundingClientRect().top && r.bottom > 0 }).length
+      const lastCard = rendered[rendered.length - 1]
       let lastBottom = 0
       if (lastCard) { const r = lastCard.getBoundingClientRect(); lastBottom = Math.round(r.bottom + container.scrollTop - (container as HTMLElement).getBoundingClientRect().top) }
       const sh = Math.round(container.scrollHeight)
-      debugLog.scroll(y, max, visible, cards.length, allCards.length)
-      if (cards.length > 0 && lastBottom > 0 && lastBottom < sh - 100) {
-        debugLog.info(`SON-KART: last card bottom=${lastBottom} < scrollHeight=${sh}, aradaki fark=${sh - lastBottom}px (içerik kesiliyor!)`)
+      debugLog.scroll(y, max, visible, rendered.length, allCards.length)
+      if (allCards.length > 0 && rendered.length !== allCards.length) {
+        debugLog.info(`RENDER-EKSIK: DOM'da ${allCards.length} kart var ama sadece ${rendered.length} tanesi render edilmis (${allCards.length - rendered.length} kart gorunmez)`)
+      }
+      if (rendered.length > 0 && lastBottom > 0 && lastBottom < sh - 100) {
+        debugLog.info(`SON-KART: last rendered card bottom=${lastBottom} < scrollHeight=${sh}, fark=${sh - lastBottom}px (kesinti var)`)
       }
     }
     const listener = () => { cancelAnimationFrame(domTimer); domTimer = requestAnimationFrame(checkDom) }
@@ -780,7 +783,7 @@ function MovieCategoryGrid({ items, loading, categoryName }: any) {
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
           {(items || []).map((s: any) => (
-            <div key={s.stream_id} className="group" style={{ contentVisibility: 'auto' }}>
+            <div key={s.stream_id} className="group" style={{ contentVisibility: 'auto', containIntrinsicSize: '200px 280px' }}>
               <button onClick={() => handleDetail(s)} className="w-full">
                 <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
                   <Poster src={s.cover_big || s.stream_icon} type="movie" />
@@ -819,7 +822,7 @@ function SeriesCategoryGrid({ items, loading, categoryName }: any) {
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
           {(items || []).map((s: any) => (
-            <div key={s.series_id} className="group" style={{ contentVisibility: 'auto' }}>
+            <div key={s.series_id} className="group" style={{ contentVisibility: 'auto', containIntrinsicSize: '200px 280px' }}>
               <button onClick={() => handleDetail(s)} className="w-full">
                 <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-2 group-hover:ring-[#14b8a6]/40">
                   <Poster src={s.cover_big || s.movie_image || s.cover || s.thumbnail} type="series" />
