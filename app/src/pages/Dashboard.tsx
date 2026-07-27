@@ -783,7 +783,7 @@ function MovieCategoryGrid({ items, loading, categoryName }: any) {
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
           {(items || []).map((s: any) => (
-            <div key={s.stream_id} className="group" style={{ contentVisibility: 'auto', containIntrinsicSize: '200px 280px' }}>
+            <div key={s.stream_id} className="group">
               <button onClick={() => handleDetail(s)} className="w-full">
                 <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
                   <Poster src={s.cover_big || s.stream_icon} type="movie" />
@@ -822,7 +822,7 @@ function SeriesCategoryGrid({ items, loading, categoryName }: any) {
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
           {(items || []).map((s: any) => (
-            <div key={s.series_id} className="group" style={{ contentVisibility: 'auto', containIntrinsicSize: '200px 280px' }}>
+            <div key={s.series_id} className="group">
               <button onClick={() => handleDetail(s)} className="w-full">
                 <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-2 group-hover:ring-[#14b8a6]/40">
                   <Poster src={s.cover_big || s.movie_image || s.cover || s.thumbnail} type="series" />
