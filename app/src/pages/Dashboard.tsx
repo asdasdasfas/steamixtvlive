@@ -488,7 +488,7 @@ export default function Dashboard() {
                         zIndex: i === currentSlide % heroItems.length ? 1 : 0,
                         transform: `scale(${i === currentSlide % heroItems.length ? 1 : 1.05})`,
                       }}>
-                      <Poster src={proxyImg(item.cover_big || item.stream_icon)} type="movie" />
+                      <Poster src={proxyImg(item.cover_big || item.stream_icon)} type="movie" className="object-top" />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/60 to-transparent" />
                       <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
                         <p className="text-white font-bold text-xl md:text-3xl mb-2 drop-shadow-xl">{item.name}</p>
