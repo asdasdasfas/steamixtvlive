@@ -39,6 +39,9 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
   const trailerSrc = trailerId
     ? `https://www.youtube.com/embed/${trailerId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&fs=0`
     : ''
+  const pcTrailerSrc = trailerId
+    ? `https://www.youtube.com/embed/${trailerId}?autoplay=1&${trailerMuted ? 'mute=1' : ''}&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&fs=0`
+    : ''
 
   const similarRef = useRef<HTMLDivElement>(null)
   const trailerRef = useRef<HTMLIFrameElement>(null)
@@ -55,6 +58,8 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
     a.rel = 'noopener noreferrer'
     a.click()
   }
+
+
 
   const isSeries = data.stream_type === 'series'
   const episodes = data.episodes?.[selectedSeason] || []
@@ -75,10 +80,10 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
       <div className="relative h-[50vh] md:h-[80vh] overflow-hidden bg-black">
         {trailerId ? (
           <div className="absolute inset-0">
-            <iframe ref={trailerRef}
-              src={trailerSrc}
-              className="w-full h-full pointer-events-none"
-              allow="autoplay; encrypted-media"
+            <iframe ref={trailerRef} key={isMobile ? 0 : (trailerMuted ? 1 : 2)}
+              src={isMobile ? trailerSrc : pcTrailerSrc}
+              className="w-full h-full"
+              allow="autoplay; encrypted-media; fullscreen"
               title="trailer" />
           </div>
         ) : (
@@ -100,17 +105,17 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
             {year}
           </div>
         )}
-        {trailerId && (<>
+        {trailerId && (
           <button onClick={openYoutubeApp}
-            className="absolute bottom-20 right-4 z-20 w-12 h-12 rounded-full bg-[#0099ff]/80 flex items-center justify-center text-white hover:bg-[#0099ff] transition-colors shadow-lg shadow-[#0099ff]/30">
-            <Volume2 className="w-6 h-6" />
+            className="absolute bottom-4 right-4 z-20 w-12 h-12 rounded-full bg-black/70 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/90 transition-colors border border-white/10 shadow-lg"
+            title="Sesi YouTube'da aç">
+            {isMobile ? (
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            ) : (
+              <Volume2 className="w-5 h-5" />
+            )}
           </button>
-          <a href={`https://www.youtube.com/watch?v=${trailerId}`} target="_blank" rel="noopener noreferrer"
-            className="absolute bottom-4 right-4 z-20 px-4 py-2 rounded-full bg-black/70 backdrop-blur-sm text-white text-xs font-semibold hover:bg-black/90 transition-colors flex items-center gap-1.5 border border-white/10">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
-            YouTube'da İzle
-          </a>
-        </>)}
+        )}
       </div>
 
       {/* Content */}
