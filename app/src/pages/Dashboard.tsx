@@ -462,8 +462,8 @@ export default function Dashboard() {
           <div className="pb-20">
             {/* HERO SLAYT - ÖNE ÇIKANLAR */}
             {heroItems.length > 0 && (
-              <div className="w-full mb-6">
-                <div className="relative overflow-hidden rounded-2xl shadow-2xl shadow-[#0099ff]/10 aspect-[1/1] md:aspect-[2/1]">
+              <div className="mb-6 mx-2 md:mx-9">
+                <div className="relative overflow-hidden rounded-2xl shadow-2xl shadow-[#0099ff]/10 aspect-[1/1] md:aspect-[5/3]">
                   {/* Left arrow */}
                   <button onClick={() => setCurrentSlide(prev => (prev - 1 + heroItems.length) % heroItems.length)}
                     className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all backdrop-blur-sm">
@@ -482,8 +482,13 @@ export default function Dashboard() {
                         zIndex: i === currentSlide % heroItems.length ? 1 : 0,
                         transform: `scale(${i === currentSlide % heroItems.length ? 1 : 1.05})`,
                       }}>
-                      <Poster src={proxyImg(item.cover_big || item.stream_icon)} type="movie" className="object-top" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/60 to-transparent" />
+                      <div className="absolute inset-0">
+                        <img src={proxyImg(item.cover_big || item.stream_icon)} alt=""
+                          className="w-full h-full object-cover blur-xl opacity-50 saturate-[1.3] contrast-[1.1] scale-110"
+                          onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                      </div>
+                      <Poster src={proxyImg(item.cover_big || item.stream_icon)} type="movie" className="object-contain saturate-[1.15] contrast-[1.08]" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] from-40% via-[#0f172a]/40 to-transparent" />
                       <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
                         <div className="w-1 h-5 bg-[#0099ff] rounded-full" />
                         <h2 className="text-sm font-bold text-white tracking-widest drop-shadow-lg" style={{ fontFamily: 'Orbitron, sans-serif' }}>

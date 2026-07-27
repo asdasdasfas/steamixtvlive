@@ -73,7 +73,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
           <div className="absolute inset-0 overflow-hidden">
             <iframe key={trailerMuted ? 'm' : 'u'}
               src={trailerSrc}
-              className="absolute" style={{ top: '-15%', left: '-25%', width: '150%', height: '140%' }}
+              className="absolute" style={{ top: '-50%', left: '-50%', width: '200%', height: '200%' }}
               allow="autoplay; encrypted-media"
               title="trailer" />
           </div>
