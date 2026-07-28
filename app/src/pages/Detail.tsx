@@ -25,7 +25,8 @@ function cleanName(raw: string): string {
   // Remove year at end only if preceded by a separator (so "1917" isn't eaten)
   s = s.replace(/[\s\-_.,;:!?]+[\({\[]?\d{4}[\)}\]]?\s*$/, '').trim()
   s = s.replace(/\b(1080p|720p|4K|HD|BluRay|WEB-DL|WEBRip|HDRip|x264|x265)\b/gi, '').trim()
-  s = s.replace(/\s+(TR|EN|DE|FR|ES|IT|PT|JP|KR|CN)\s*$/, '').trim()
+  s = s.replace(/\s+(Altyazili|Altyazılı|Subtitled|Dublaj|Dubbed)\s*$/i, '').trim()
+  s = s.replace(/\s+(TR|EN|DE|FR|ES|IT|PT|JP|KR|CN)\s*$/i, '').trim()
   return s || raw
 }
 
