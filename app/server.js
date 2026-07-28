@@ -482,11 +482,11 @@ http.createServer((req, res) => {
             vidRes.on('end', () => {
               try {
                 const vjson = JSON.parse(vdata)
-                const trailers = (vjson.results || []).filter((v: any) => v.type === 'Trailer' && v.site === 'YouTube')
+                const trailers = (vjson.results || []).filter((v) => v.type === 'Trailer' && v.site === 'YouTube')
                 if (trailers.length === 0) {
                   res.writeHead(404); res.end(JSON.stringify({ error: 'no trailer' })); return
                 }
-                const official = trailers.filter((v: any) => v.official)
+                const official = trailers.filter((v) => v.official)
                 const first = official.length > 0 ? official[0] : trailers[0]
                 res.setHeader('Content-Type', 'application/json')
                 res.setHeader('Access-Control-Allow-Origin', '*')
