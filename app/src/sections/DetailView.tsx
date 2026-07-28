@@ -62,15 +62,14 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
   const toggleMute = () => {
     const p = playerRef.current
     if (!p) return
-    if (trailerMuted) { p.unMute(); setTrailerMuted(false) }
+    if (p.isMuted()) { p.unMute(); setTrailerMuted(false) }
     else { p.mute(); setTrailerMuted(true) }
   }
 
   const playUnmuted = () => {
     const p = playerRef.current
     if (!p) return
-    p.unMute()
-    setTrailerMuted(false)
+    if (p.isMuted()) { p.unMute(); setTrailerMuted(false) }
   }
 
   const similarRef = useRef<HTMLDivElement>(null)
