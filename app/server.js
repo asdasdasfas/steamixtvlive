@@ -455,6 +455,51 @@ http.createServer((req, res) => {
     res.writeHead(502); res.end('Invalid m3u path'); return
   }
 
+  // TMDB Trailer proxy: /api/trailer?name=Inception&year=2010&type=movie
+  if (req.url.startsWith('/api/trailer')) {
+    const u = new URL(req.url, 'http://localhost')
+    const name = u.searchParams.get('name')
+    const year = u.searchParams.get('year') || ''
+    const mediaType = u.searchParams.get('type') || 'movie'
+    if (!name) { res.writeHead(400); res.end(JSON.stringify({ error: 'name required' })); return }
+    const tmdbKey = '7c2cf8a6efe7bf9da7c1af5a3089fe50'
+    let tmdbType = 'movie'; if (mediaType === 'series' || mediaType === 'tv') tmdbType = 'tv'
+    const searchUrl = `https://api.themoviedb.org/3/search/${tmdbType}?api_key=${tmdbKey}&query=${encodeURIComponent(name)}${year ? `&year=${year}` : ''}`
+    https.get(searchUrl, searchRes => {
+      let data = ''
+      searchRes.on('data', c => data += c)
+      searchRes.on('end', () => {
+        try {
+          const searchJson = JSON.parse(data)
+          if (!searchJson.results || searchJson.results.length === 0) {
+            res.writeHead(404); res.end(JSON.stringify({ error: 'not found' })); return
+          }
+          const movieId = searchJson.results[0].id
+          const videosUrl = `https://api.themoviedb.org/3/${tmdbType}/${movieId}/videos?api_key=${tmdbKey}&language=en`
+          https.get(videosUrl, vidRes => {
+            let vdata = ''
+            vidRes.on('data', c => vdata += c)
+            vidRes.on('end', () => {
+              try {
+                const vjson = JSON.parse(vdata)
+                const trailers = (vjson.results || []).filter((v: any) => v.type === 'Trailer' && v.site === 'YouTube')
+                if (trailers.length === 0) {
+                  res.writeHead(404); res.end(JSON.stringify({ error: 'no trailer' })); return
+                }
+                const official = trailers.filter((v: any) => v.official)
+                const first = official.length > 0 ? official[0] : trailers[0]
+                res.setHeader('Content-Type', 'application/json')
+                res.setHeader('Access-Control-Allow-Origin', '*')
+                res.end(JSON.stringify({ youtube_id: first.key, title: first.name, tmdb_id: movieId }))
+              } catch { res.writeHead(502); res.end(JSON.stringify({ error: 'videos parse error' })) }
+            })
+          }).on('error', () => { res.writeHead(502); res.end(JSON.stringify({ error: 'videos fetch error' })) })
+        } catch { res.writeHead(502); res.end(JSON.stringify({ error: 'search parse error' })) }
+      })
+    }).on('error', () => { res.writeHead(502); res.end(JSON.stringify({ error: 'search fetch error' })) })
+    return
+  }
+
   // FFmpeg diagnostic endpoint
   if (req.url === '/__ffmpeg') {
     const info = { path: ffmpegPath, exists: false, type: typeof ffmpegPath }

@@ -6,7 +6,7 @@ import DetailView from '@/sections/DetailView'
 import { Loader2 } from 'lucide-react'
 import { isFavorite, toggleFavorite } from '@/lib/favorites'
 import { buildSteamixIntentUrl } from '@/lib/player-intents'
-import { searchTrailer } from '@/lib/youtube'
+import { searchTrailer, getYoutubeId } from '@/lib/youtube'
 
 function decodeField(v: string): string {
   if (!v) return ''
@@ -58,6 +58,7 @@ export default function Detail() {
             const iv = info?.info
             const md2 = iv?.movie_data?.info || info?.movie_data?.info
             const mapi = info?.movie_data
+            const xtreamYt = getYoutubeId(iv?.youtube_trailer || '')
             setData({
               id: parseInt(id), name: urlName || iv?.name || mapi?.name || 'İsimsiz',
               stream_icon: proxyImg(base_url, urlIcon || iv?.movie_image || iv?.cover_big || md2?.cover_big || iv?.cover || iv?.stream_icon || mapi?.stream_icon || ''),
@@ -71,11 +72,13 @@ export default function Detail() {
               category_id: catId || iv?.category_id || mapi?.category_id || '',
               cast: decodeField(md2?.cast || iv?.cast || ''),
               director: decodeField(md2?.director || iv?.director || ''),
-              youtube_trailer: '',
+              youtube_trailer: xtreamYt || '',
             })
-            searchTrailer(urlName || iv?.name || mapi?.name || '').then(vid => {
-              if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
-            })
+            if (!xtreamYt) {
+              searchTrailer(urlName || iv?.name || mapi?.name || '').then(vid => {
+                if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
+              })
+            }
             // Load similar from same category (silent, parallel)
             if (catId || info?.info?.category_id) {
               const cid = catId || info?.info?.category_id
@@ -99,6 +102,7 @@ export default function Detail() {
                 }))
               }
             }
+            const xtreamYt = getYoutubeId(si?.youtube_trailer || '')
             setData({
               id: parseInt(id), name: urlName || si?.name || 'İsimsiz',
               stream_icon: proxyImg(base_url, urlIcon || si?.cover_big || si?.movie_image || si?.cover || si?.thumbnail || ''),
@@ -112,11 +116,13 @@ export default function Detail() {
               cast: decodeField(si?.cast || ''),
               director: decodeField(si?.director || ''),
               episodes,
-              youtube_trailer: '',
+              youtube_trailer: xtreamYt || '',
             })
-            searchTrailer(urlName || si?.name || '').then(vid => {
-              if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
-            })
+            if (!xtreamYt) {
+              searchTrailer(urlName || si?.name || '').then(vid => {
+                if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
+              })
+            }
             // Load similar from same category (silent, parallel)
             if (catId || si?.category_id) {
               const cid = catId || si?.category_id

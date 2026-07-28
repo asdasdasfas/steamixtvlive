@@ -22,6 +22,15 @@ export async function searchTrailer(query: string): Promise<string | null> {
   if (memCache.has(key)) return memCache.get(key) ?? null
   const cached = getCache()[key]
   if (cached) { memCache.set(key, cached); return cached }
+  // Try TMDB proxy first (server-side, no API key exposed)
+  try {
+    const res = await fetch(`/api/trailer?name=${encodeURIComponent(query)}`)
+    if (res.ok) {
+      const data = await res.json()
+      if (data?.youtube_id) { setCache(key, data.youtube_id); memCache.set(key, data.youtube_id); return data.youtube_id }
+    }
+  } catch {}
+  // Fallback to YouTube Data API
   try {
     const q = encodeURIComponent(`${query} trailer`)
     const res = await fetch(
