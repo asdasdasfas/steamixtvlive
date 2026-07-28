@@ -34,7 +34,6 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
   const navigate = useNavigate()
   const [selectedSeason, setSelectedSeason] = useState('1')
   const trailerId = getYoutubeId(data.youtube_trailer || '')
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
   const [trailerMuted, setTrailerMuted] = useState(true)
   const playerRef = useRef<any>(null)
   const playerContainerRef = useRef<HTMLDivElement>(null)
@@ -81,11 +80,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
     }
   }
 
-  const fragmanUrl = trailerId
-    ? isMobile
-      ? `intent://www.youtube.com/watch?v=${trailerId}#Intent;scheme=https;package=com.google.android.youtube;end`
-      : `https://www.youtube.com/watch?v=${trailerId}`
-    : ''
+  const fragmanUrl = trailerId ? `https://www.youtube.com/watch?v=${trailerId}` : ''
 
   const similarRef = useRef<HTMLDivElement>(null)
   const handleDownload = () => {
