@@ -73,7 +73,7 @@ export default function Detail() {
               director: decodeField(md2?.director || iv?.director || ''),
               youtube_trailer: '',
             })
-            searchTrailer(iv?.tmdb_id || md2?.tmdb_id, iv?.imdb_id || md2?.imdb_id).then(vid => {
+            searchTrailer(urlName || iv?.name || mapi?.name || '').then(vid => {
               if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
             })
             // Load similar from same category (silent, parallel)
@@ -114,7 +114,7 @@ export default function Detail() {
               episodes,
               youtube_trailer: '',
             })
-            searchTrailer(si?.tmdb_id, si?.imdb_id).then(vid => {
+            searchTrailer(urlName || si?.name || '').then(vid => {
               if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
             })
             // Load similar from same category (silent, parallel)
