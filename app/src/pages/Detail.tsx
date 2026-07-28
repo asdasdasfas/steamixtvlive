@@ -19,6 +19,18 @@ function decodeField(v: string): string {
   return v
 }
 
+function cleanName(raw: string): string {
+  // Remove bracketed content [1080p] [TR] [BluRay] etc
+  let s = raw.replace(/\[.*?\]/g, '').replace(/[✓✔☑✗✘]/g, '').trim()
+  // Remove year-only parentheses at end: (2010), (2010), etc
+  s = s.replace(/[\({\[]?\d{4}[\)}\]]?\s*$/, '').trim()
+  // Remove resolution/quality tags that may not be in brackets
+  s = s.replace(/\b(1080p|720p|4K|HD|BluRay|WEB-DL|WEBRip|HDRip|x264|x265)\b/gi, '').trim()
+  // Remove trailing language codes
+  s = s.replace(/\s+(TR|EN|DE|FR|ES|IT|PT|JP|KR|CN)\s*$/, '').trim()
+  return s
+}
+
 function proxyImg(base: string | undefined, url: string): string {
   if (!url) return ''
   const path = url.replace(/^https?:\/\/[^\/]+/, '')
@@ -73,7 +85,7 @@ export default function Detail() {
               director: decodeField(md2?.director || iv?.director || ''),
               youtube_trailer: '',
             })
-            searchTrailer(urlName || iv?.name || mapi?.name || '').then(vid => {
+            searchTrailer(cleanName(urlName || iv?.name || mapi?.name || '')).then(vid => {
               if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
             })
             // Load similar from same category (silent, parallel)
@@ -114,7 +126,7 @@ export default function Detail() {
               episodes,
               youtube_trailer: '',
             })
-            searchTrailer(urlName || si?.name || '').then(vid => {
+            searchTrailer(cleanName(urlName || si?.name || '')).then(vid => {
               if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
             })
             // Load similar from same category (silent, parallel)
