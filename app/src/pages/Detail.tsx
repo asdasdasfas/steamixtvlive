@@ -22,11 +22,12 @@ function decodeField(v: string): string {
 function cleanName(raw: string): string {
   if (!raw) return ''
   let s = raw.replace(/\[.*?\]/g, '').replace(/[✓✔☑✗✘]/g, '').trim()
-  // Remove year at end only if preceded by a separator (so "1917" isn't eaten)
-  s = s.replace(/[\s\-_.,;:!?]+[\({\[]?\d{4}[\)}\]]?\s*$/, '').trim()
-  s = s.replace(/\b(1080p|720p|4K|HD|BluRay|WEB-DL|WEBRip|HDRip|x264|x265)\b/gi, '').trim()
+  // Remove known suffixes first (they may appear after year)
   s = s.replace(/\s+(Altyazili|Altyazılı|Subtitled|Dublaj|Dubbed)\s*$/i, '').trim()
   s = s.replace(/\s+(TR|EN|DE|FR|ES|IT|PT|JP|KR|CN)\s*$/i, '').trim()
+  s = s.replace(/\b(1080p|720p|4K|HD|BluRay|WEB-DL|WEBRip|HDRip|x264|x265)\b/gi, '').trim()
+  // Remove year at end only if preceded by a separator (so "1917" isn't eaten)
+  s = s.replace(/[\s\-_.,;:!?]+[\({\[]?\d{4}[\)}\]]?\s*$/, '').trim()
   return s || raw
 }
 
