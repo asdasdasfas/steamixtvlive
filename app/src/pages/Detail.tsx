@@ -6,7 +6,7 @@ import DetailView from '@/sections/DetailView'
 import { Loader2 } from 'lucide-react'
 import { isFavorite, toggleFavorite } from '@/lib/favorites'
 import { buildSteamixIntentUrl } from '@/lib/player-intents'
-import { searchTrailer } from '@/lib/youtube'
+import { searchTrailer, getYoutubeId } from '@/lib/youtube'
 
 function decodeField(v: string): string {
   if (!v) return ''
@@ -74,9 +74,15 @@ export default function Detail() {
               youtube_trailer: '',
             })
             const movieName = urlName || iv?.name || mapi?.name || ''
-            searchTrailer(iv?.tmdb_id || md2?.tmdb_id, iv?.imdb_id || md2?.imdb_id).then(vid => {
-              if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
-            })
+            const xtTrailer = iv?.youtube_trailer || md2?.youtube_trailer
+            if (xtTrailer) {
+              const id = getYoutubeId(xtTrailer)
+              if (id) setData((prev: any) => prev ? { ...prev, youtube_trailer: id } : prev)
+            } else {
+              searchTrailer(iv?.tmdb_id || md2?.tmdb_id, iv?.imdb_id || md2?.imdb_id).then(vid => {
+                if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
+              })
+            }
             // Load similar from same category (silent, parallel)
             if (catId || info?.info?.category_id) {
               const cid = catId || info?.info?.category_id
@@ -116,9 +122,15 @@ export default function Detail() {
               youtube_trailer: '',
             })
             const seriesName = urlName || si?.name || ''
-            searchTrailer(si?.tmdb_id, si?.imdb_id).then(vid => {
-              if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
-            })
+            const stTrailer = si?.youtube_trailer
+            if (stTrailer) {
+              const id = getYoutubeId(stTrailer)
+              if (id) setData((prev: any) => prev ? { ...prev, youtube_trailer: id } : prev)
+            } else {
+              searchTrailer(si?.tmdb_id, si?.imdb_id).then(vid => {
+                if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
+              })
+            }
             // Load similar from same category (silent, parallel)
             if (catId || si?.category_id) {
               const cid = catId || si?.category_id

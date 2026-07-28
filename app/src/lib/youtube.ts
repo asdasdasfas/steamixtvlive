@@ -1,3 +1,9 @@
+export function getYoutubeId(url: string): string | null {
+  if (!url) return null
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+  return m ? m[1] : /^[a-zA-Z0-9_-]{11}$/.test(url) ? url : null
+}
+
 const CACHE_KEY = 'kc_trailer_cache'
 
 function getCache(): Record<string, string> {
