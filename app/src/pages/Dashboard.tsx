@@ -10,6 +10,12 @@ import LiveTvScreen from '@/sections/LiveTvScreen'
 import Poster from '@/components/Poster'
 import { Loader2, Play, Info, Heart } from 'lucide-react'
 
+function parseTitle(raw: string) {
+  const m = raw.match(/^(.+?)\s*[\(\[{]?\s*(\d{4})\s*[\)\]}]?\s*(.*)$/)
+  if (m) return { title: m[1].trim(), year: m[2], extra: m[3].replace(/^[\s\-—–,;:]+/, '') }
+  return { title: raw, year: '', extra: '' }
+}
+
 function ArrowLeftIcon({ className }: { className?: string }) {
   return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
 }
@@ -474,7 +480,7 @@ export default function Dashboard() {
                     ÖNE <span className="text-[#0099ff]">ÇIKANLAR</span>
                   </h2>
                 </div>
-                <div className="relative overflow-hidden rounded-2xl shadow-2xl shadow-[#0099ff]/10 aspect-[1/1] md:aspect-[22/9]">
+                <div className="relative overflow-hidden rounded-2xl shadow-2xl shadow-[#0099ff]/10 aspect-[1/1] md:aspect-[20/9]">
                   {/* Left arrow */}
                   <button onClick={() => setCurrentSlide(prev => (prev - 1 + heroItems.length) % heroItems.length)}
                     className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all backdrop-blur-sm">
@@ -491,7 +497,9 @@ export default function Dashboard() {
                       ÖNE <span className="text-[#0099ff]">ÇIKANLAR</span>
                     </h2>
                   </div>
-                  {heroItems.map((item, i) => (
+                  {heroItems.map((item, i) => {
+                    const p = parseTitle(item.name)
+                    return (
                     <div key={`${item.stream_id}-${i}`}
                       className="absolute inset-0 transition-all duration-1000 ease-in-out"
                       style={{
@@ -502,11 +510,19 @@ export default function Dashboard() {
                       <Poster src={item.stream_icon} type="movie" className="object-top" />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/60 to-transparent" />
                       <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
-                        <p className="text-white font-bold text-xl md:text-3xl mb-2 drop-shadow-xl">{item.name}</p>
-                        <p className="text-gray-300 text-sm mb-4 line-clamp-2 max-w-xl drop-shadow-lg">
-                          {item.name} - Şimdi izleyin. {item.name} ve binlerce yapım Steamix TV'de izleyin
-                        </p>
-                        <div className="flex items-center gap-3">
+                        <div className="md:hidden">
+                          <p className="text-white font-bold text-xl mb-2 drop-shadow-xl">{item.name}</p>
+                          <p className="text-gray-300 text-sm mb-4 line-clamp-2 max-w-xl drop-shadow-lg">
+                            {item.name} - Şimdi izleyin. Steamix TV'de izleyin
+                          </p>
+                        </div>
+                        <div className="hidden md:block max-w-2xl">
+                          <p className="text-3xl lg:text-4xl font-bold text-white drop-shadow-xl leading-tight">{p.title}</p>
+                          {p.year && <p className="text-lg font-semibold text-[#0099ff] mt-1">({p.year})</p>}
+                          {p.extra && <p className="text-base text-gray-300 mt-2 font-normal leading-relaxed">{p.extra}</p>}
+                          {!p.extra && <p className="text-base text-gray-300 mt-3 font-normal leading-relaxed max-w-xl">Şimdi izleyin. Steamix TV'de izleyin</p>}
+                        </div>
+                        <div className="flex items-center gap-3 mt-3 md:mt-4">
                           <button onClick={() => gotoWatch(item, 'movie')}
                             className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#0099ff] text-white text-sm font-semibold hover:bg-[#0088ee] transition-all shadow-lg hover:shadow-[#0099ff]/30">
                             <Play className="w-4 h-4 fill-white" />Oynat
@@ -518,7 +534,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </div>
-                  ))}
+                    )})}
                 </div>
               </div>
             )}
