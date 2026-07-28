@@ -196,7 +196,18 @@ export default function Watch() {
             {rotationId ? (
               <LivePlayer channelId={rotationId} title={title} src={url} onEnded={() => navigate(-1)} onChannelChange={handleChannelChange} />
             ) : (
-              <VideoPlayer src={url} fallbackSrcs={fallbackUrls} title={title} onEnded={() => navigate(-1)} />
+              <VideoPlayer src={url} fallbackSrcs={fallbackUrls} title={title} onEnded={() => navigate(-1)}
+                onRefreshUrl={() => {
+                  if (streamId && server && type === 'live') {
+                    const sid = parseInt(streamId)
+                    return liveUrl(server.base_url, server.xtream_user, server.xtream_pass, sid)
+                  }
+                  if (rotationId) {
+                    const ch = getChannelById(rotationId)
+                    return ch?.urls[0] ? proxyExternalUrl(ch.urls[0]) : undefined
+                  }
+                  return undefined
+                }} />
             )}
           </div>
         </div>

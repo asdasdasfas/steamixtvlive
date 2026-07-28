@@ -11,6 +11,7 @@ interface VideoPlayerProps {
   onEnded?: () => void
   fallbackSrcs?: string[]
   onToggleFullscreen?: () => void
+  onRefreshUrl?: () => string | undefined
 }
 
 const IS_MOBILE = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
@@ -23,7 +24,7 @@ const isDirectFileUrl = (url: string) => {
   return ext.endsWith('.mkv')
 }
 
-export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs, onToggleFullscreen }: VideoPlayerProps) {
+export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs, onToggleFullscreen, onRefreshUrl }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const progressRef = useRef<HTMLDivElement>(null)
@@ -177,6 +178,8 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         fragLoadingMaxRetry: 5,
         fragLoadingRetryDelay: 1000,
         manifestLoadingTimeOut: 15000,
+        manifestLoadingMaxRetry: 5,
+        manifestLoadingRetryDelay: 2000,
         fetchSetup: (context, init) => {
           let url = context.url
           // Proxy Akamai URLs through our server for CORS
@@ -214,17 +217,28 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         }
       })
       hls.on(Hls.Events.ERROR, (_e, data) => {
-        if (data.fatal) {
-          if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-            hls.swapAudioCodec()
-            hls.recoverMediaError()
+        if (!data.fatal) return
+        if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+          hls.swapAudioCodec()
+          hls.recoverMediaError()
+          return
+        }
+        retryCountRef.current++
+        if (retryCountRef.current <= 3 && onRefreshUrl) {
+          const freshUrl = onRefreshUrl()
+          if (freshUrl && freshUrl !== currentSrc) {
+            clearInterval(watchdogRef.current)
+            hls.destroy(); hlsRef.current = null
+            allUrlsRef.current = [freshUrl, ...allUrlsRef.current.slice(1)]
+            urlIndexRef.current = 0
+            setTimeout(() => tryUrl(video), 1500)
             return
           }
-          clearInterval(watchdogRef.current)
-          hls.destroy(); hlsRef.current = null
-          urlIndexRef.current++
-          tryUrl(video)
         }
+        clearInterval(watchdogRef.current)
+        hls.destroy(); hlsRef.current = null
+        urlIndexRef.current++
+        tryUrl(video)
       })
     } else if (isHls && video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = currentSrc
