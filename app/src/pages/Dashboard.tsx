@@ -480,7 +480,7 @@ export default function Dashboard() {
                     ÖNE <span className="text-[#0099ff]">ÇIKANLAR</span>
                   </h2>
                 </div>
-                <div className="relative overflow-hidden rounded-2xl shadow-2xl shadow-[#0099ff]/10 aspect-[1/1] md:aspect-[24/9]">
+                <div className="relative overflow-hidden rounded-2xl shadow-2xl shadow-[#0099ff]/10 aspect-[1/1] md:aspect-[26/9]">
                   {/* Left arrow */}
                   <button onClick={() => setCurrentSlide(prev => (prev - 1 + heroItems.length) % heroItems.length)}
                     className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all backdrop-blur-sm">
@@ -519,8 +519,7 @@ export default function Dashboard() {
                         <div className="hidden md:block max-w-2xl">
                           <p className="text-3xl lg:text-4xl font-bold text-white drop-shadow-xl leading-tight">{p.title}</p>
                           {p.year && <p className="text-lg font-semibold text-[#0099ff] mt-1">({p.year})</p>}
-                          {p.extra && <p className="text-base text-gray-300 mt-2 font-normal leading-relaxed">{p.extra}</p>}
-                          {!p.extra && <p className="text-base text-gray-300 mt-3 font-normal leading-relaxed max-w-xl">{p.title} {p.year && `(${p.year})`} ve binlerce yapım Steamix TV'de izleyin</p>}
+                          <p className="text-base text-gray-300 mt-3 font-normal leading-relaxed max-w-xl">{p.title}{p.year ? ` (${p.year})` : ''} ve binlerce yapım Steamix TV'de izleyin</p>
                         </div>
                         <div className="flex items-center gap-3 mt-3 md:mt-4">
                           <button onClick={() => gotoWatch(item, 'movie')}
