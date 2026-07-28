@@ -517,7 +517,7 @@ export default function Dashboard() {
                           </p>
                         </div>
                         <div className="hidden md:block max-w-2xl">
-                          <p className="text-3xl lg:text-4xl font-bold text-white drop-shadow-xl leading-tight">{p.title}</p>
+                          <p className="text-4xl lg:text-5xl font-bold text-white drop-shadow-xl leading-tight">{p.title}</p>
                           {p.year && <p className="text-lg font-semibold text-[#0099ff] mt-1">({p.year})</p>}
                           <p className="text-base text-gray-300 mt-3 font-normal leading-relaxed max-w-xl">{p.title}{p.year ? ` (${p.year})` : ''} ve binlerce yapım Steamix TV'de izleyin</p>
                         </div>
