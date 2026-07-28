@@ -9,6 +9,20 @@ import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react'
 
 const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 
+function encBase(base: string): string {
+  return btoa(base).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+function proxyExternalUrl(url: string): string {
+  if (url.startsWith('/') || url.startsWith('blob:')) return url
+  try {
+    const u = new URL(url)
+    const base = u.protocol + '//' + u.hostname + (u.port ? ':' + u.port : '')
+    const path = u.pathname + (u.search || '')
+    return '/dyn/' + encBase(base) + path
+  } catch { return url }
+}
+
 const reorderUrls = (urls: string[]) => {
   if (!isMobile) return urls
   // Mobile: MKV first (Mediabunny AC3 decoder icin), HLS/MP4 sonra
@@ -50,7 +64,7 @@ export default function Watch() {
       if (rotationId) {
         const ch = getChannelById(rotationId)
         if (!ch || ch.urls.length === 0) throw new Error('Kanal bulunamadı')
-        if (!cancelled) { setUrl(ch.urls[0]); setFallbackUrls(ch.urls.slice(1)); setTitle(ch.name) }
+        if (!cancelled) { setUrl(proxyExternalUrl(ch.urls[0])); setFallbackUrls(ch.urls.slice(1).map(proxyExternalUrl)); setTitle(ch.name) }
       } else if (streamId) {
         const sid = parseInt(streamId)
         const { base_url, xtream_user, xtream_pass } = server
@@ -111,25 +125,33 @@ export default function Watch() {
   useEffect(() => { resolveStream() }, [resolveStream])
 
   useEffect(() => {
-    if (type !== 'live' || !streamId) return
+    if (!streamId && !rotationId) return
     refreshTimerRef.current = setInterval(() => {
       setRefreshKey(k => k + 1)
     }, 90000)
     return () => clearInterval(refreshTimerRef.current)
-  }, [type, streamId])
+  }, [streamId, rotationId])
 
   useEffect(() => {
-    if (!refreshKey || !server || !streamId || type !== 'live') return
-    const sid = parseInt(streamId)
-    const { base_url, xtream_user, xtream_pass } = server
-    const newUrl = liveUrl(base_url, xtream_user, xtream_pass, sid)
-    const newFb = proxyUrl(base_url, `/live/${xtream_user}/${xtream_pass}/${sid}.m3u8`)
-    setUrl(newUrl)
-    setFallbackUrls([newFb])
-  }, [refreshKey, server, streamId, type])
+    if (!refreshKey || !server) return
+    if (streamId && type === 'live') {
+      const sid = parseInt(streamId)
+      const { base_url, xtream_user, xtream_pass } = server
+      const newUrl = liveUrl(base_url, xtream_user, xtream_pass, sid)
+      const newFb = proxyUrl(base_url, `/live/${xtream_user}/${xtream_pass}/${sid}.m3u8`)
+      setUrl(newUrl)
+      setFallbackUrls([newFb])
+    } else if (rotationId) {
+      const ch = getChannelById(rotationId)
+      if (ch && ch.urls.length > 0) {
+        setUrl(proxyExternalUrl(ch.urls[0]))
+        setFallbackUrls(ch.urls.slice(1).map(proxyExternalUrl))
+      }
+    }
+  }, [refreshKey, server, streamId, rotationId, type])
 
   const handleChannelChange = (newId: string, newUrl: string, newTitle: string) => {
-    setUrl(newUrl); setTitle(newTitle); setLoading(false); setError(null)
+    setUrl(proxyExternalUrl(newUrl)); setTitle(newTitle); setLoading(false); setError(null)
     const sp = new URLSearchParams(params)
     sp.set('rotation_id', newId)
     sp.delete('stream_id')
