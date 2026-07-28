@@ -112,7 +112,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const urlIdx = urlIndexRef.current
     const total = allUrlsRef.current.length
     const currentSrc = allUrlsRef.current[urlIdx] || ''
-    const maxStuck = currentSrc.endsWith('.mkv') ? 15 : 5
+    const maxStuck = currentSrc.endsWith('.mkv') ? 30 : 20
     watchdogRef.current = setInterval(() => {
       if (!video || video.seeking) return
       if (video.readyState >= 2 && video.currentTime > lastProgressRef.current) {
@@ -131,7 +131,14 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         if (urlIndexRef.current < allUrlsRef.current.length) {
           tryUrl(video)
         } else {
-          setLoadError('Hiçbir yayın kaynağı çalışmadı')
+          urlIndexRef.current = 0
+          setTimeout(() => {
+            if (videoRef.current) {
+              setLoadError('')
+              tryUrl(videoRef.current)
+            }
+          }, 8000)
+          setLoadError('Yeniden bağlanıyor...')
         }
       }
     }, 1800)
@@ -166,10 +173,10 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       const isVirtualHls = currentSrc.startsWith('/v/')
       const hls = new Hls({
         enableWorker: false, lowLatencyMode: isVirtualHls, debug: false,
-        fragLoadingTimeOut: isVirtualHls ? 0 : 3000,
-        fragLoadingMaxRetry: 0,
-        fragLoadingRetryDelay: 0,
-        manifestLoadingTimeOut: 3000,
+        fragLoadingTimeOut: isVirtualHls ? 0 : 15000,
+        fragLoadingMaxRetry: 5,
+        fragLoadingRetryDelay: 1000,
+        manifestLoadingTimeOut: 15000,
         fetchSetup: (context, init) => {
           let url = context.url
           // Proxy Akamai URLs through our server for CORS
@@ -366,11 +373,13 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
 
       {title && <div className="absolute top-4 left-4 text-white text-sm font-medium drop-shadow-lg bg-black/40 px-3 py-1.5 rounded-lg">{title}</div>}
       {loadError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
+        <div className={`absolute inset-0 flex items-center justify-center z-10 ${loadError.includes('bağlanıyor') ? '' : 'bg-black/60'}`}>
           <div className="text-center max-w-xs">
-            <p className="text-sm text-gray-400 mb-3">{loadError}</p>
-            <button onClick={() => { setLoadError(''); urlIndexRef.current = 0; tryUrl(videoRef.current!) }}
-              className="px-4 py-2 rounded-lg bg-[#0099ff] text-white text-xs">Tekrar Dene</button>
+            <p className={`text-sm mb-3 ${loadError.includes('bağlanıyor') ? 'text-[#0099ff]' : 'text-gray-400'}`}>{loadError}</p>
+            {!loadError.includes('bağlanıyor') && (
+              <button onClick={() => { setLoadError(''); urlIndexRef.current = 0; tryUrl(videoRef.current!) }}
+                className="px-4 py-2 rounded-lg bg-[#0099ff] text-white text-xs">Tekrar Dene</button>
+            )}
           </div>
         </div>
       )}
