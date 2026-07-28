@@ -112,13 +112,16 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
             {year}
           </div>
         )}
+      </div>
+
+      {/* Mute button (outside backdrop) */}
+      <div className="relative max-w-5xl mx-auto px-4 md:px-8">
         {trailerId && (
           <button onClick={toggleMute}
-            className="absolute bottom-4 right-4 z-10 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors backdrop-blur-sm">
+            className="absolute -top-12 right-4 z-20 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors backdrop-blur-sm">
             {trailerMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
           </button>
         )}
-
       </div>
 
       {/* Content */}
