@@ -57,6 +57,8 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
     window.location.href = APK_DOWNLOAD_URL
   }
 
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  const fragmanUrl = trailerId ? `https://www.youtube.com/watch?v=${trailerId}` : ''
   const isSeries = data.stream_type === 'series'
   const episodes = data.episodes?.[selectedSeason] || []
   const seasons = data.episodes ? Object.keys(data.episodes) : []
@@ -101,7 +103,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
             {year}
           </div>
         )}
-        {trailerId && (
+        {trailerId && !isMobile && (
           <button onClick={toggleMute}
             className="absolute bottom-4 right-4 z-10 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors backdrop-blur-sm">
             {trailerMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
@@ -157,13 +159,20 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
               </div>
             )}
 
-            {/* Play + Favori */}
+            {/* Play + Fragman/Ses + Favori */}
             <div className="flex items-center gap-3 mb-6">
               {!isSeries && (
                 <button onClick={onPlay}
                   className="flex items-center gap-2.5 px-7 py-3 rounded-xl bg-[#0099ff] text-white font-semibold text-sm hover:bg-[#0088ee] transition-all shadow-lg shadow-[#0099ff]/20 hover:shadow-[#0099ff]/30">
                   <Play className="w-4 h-4 fill-white" />İzle
                 </button>
+              )}
+              {trailerId && isMobile && (
+                <a href={fragmanUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/10 text-white text-sm font-semibold hover:bg-white/20 transition-all">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+                  {trailerMuted ? 'Ses Aç' : 'Ses Kapa'}
+                </a>
               )}
               <button onClick={onToggleFav}
                 className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all">
