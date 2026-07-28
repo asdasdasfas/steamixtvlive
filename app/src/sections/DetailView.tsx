@@ -35,20 +35,22 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
   const [selectedSeason, setSelectedSeason] = useState('1')
   const trailerId = getYoutubeId(data.youtube_trailer || '')
   const [trailerMuted, setTrailerMuted] = useState(true)
-  const [iframeKey, setIframeKey] = useState(0)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
 
   const toggleMute = () => {
-    setTrailerMuted(!trailerMuted)
-    setIframeKey(k => k + 1) // force iframe reload with new mute state
+    if (!trailerId) return
+    const mute = !trailerMuted
+    const ns = `https://www.youtube.com/embed/${trailerId}?autoplay=1${mute ? '&mute=1' : ''}&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&fs=0&cc_load_policy=0&disablekb=1`
+    if (iframeRef.current) iframeRef.current.src = ns
+    setTrailerMuted(mute)
   }
 
   const playUnmuted = () => {
-    if (trailerMuted) { setTrailerMuted(false); setIframeKey(k => k + 1) }
+    if (!trailerId) return
+    const ns = `https://www.youtube.com/embed/${trailerId}?autoplay=1&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&fs=0&cc_load_policy=0&disablekb=1`
+    if (iframeRef.current) iframeRef.current.src = ns
+    setTrailerMuted(false)
   }
-
-  const trailerSrc = trailerId
-    ? `https://www.youtube.com/embed/${trailerId}?autoplay=1&${trailerMuted ? 'mute=1' : ''}&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&fs=0&cc_load_policy=0&disablekb=1`
-    : ''
 
   const similarRef = useRef<HTMLDivElement>(null)
   const handleDownload = () => {
@@ -74,8 +76,8 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
       <div className="relative h-[50vh] md:h-[80vh] overflow-hidden bg-black">
         {trailerId ? (
           <div className="absolute inset-0 overflow-hidden">
-            <iframe key={iframeKey}
-              src={trailerSrc}
+            <iframe ref={iframeRef}
+              src={`https://www.youtube.com/embed/${trailerId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&fs=0&cc_load_policy=0&disablekb=1`}
               className="absolute" style={{ top: '-50%', left: '-50%', width: '200%', height: '200%' }}
               allow="autoplay; encrypted-media"
               title="trailer" />
