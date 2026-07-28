@@ -78,8 +78,8 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const startHideTimer = useCallback(() => {
     clearTimeout(hideTimer.current)
     setShowControls(true)
-    hideTimer.current = setTimeout(() => { if (playing) setShowControls(false) }, 3000)
-  }, [playing])
+    hideTimer.current = setTimeout(() => { setShowControls(false) }, 4000)
+  }, [])
 
   const tryPlay = useCallback(async (video: HTMLVideoElement) => {
     try {
@@ -282,11 +282,15 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     if (!document.fullscreenElement) {
       await containerRef.current.requestFullscreen()
       setFullscreen(true)
-      try { (screen as any).orientation?.lock?.('landscape') } catch {}
+      if (IS_MOBILE) {
+        try { (screen as any).orientation?.lock?.('landscape') } catch {}
+      }
     } else {
       await document.exitFullscreen()
       setFullscreen(false)
-      try { (screen as any).orientation?.unlock?.() } catch {}
+      if (IS_MOBILE) {
+        try { (screen as any).orientation?.unlock?.() } catch {}
+      }
     }
   }
 
@@ -323,10 +327,13 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   }, [onEnded, startHideTimer])
 
   useEffect(() => {
-    const onFs = () => setFullscreen(!!document.fullscreenElement)
+    const onFs = () => {
+      setFullscreen(!!document.fullscreenElement)
+      startHideTimer()
+    }
     document.addEventListener('fullscreenchange', onFs)
     return () => document.removeEventListener('fullscreenchange', onFs)
-  }, [])
+  }, [startHideTimer])
 
 
 
@@ -350,8 +357,8 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   }
 
   return (
-    <div ref={containerRef} className="relative bg-black group cursor-pointer" onClick={togglePlay} onMouseMove={startHideTimer}>
-      <video ref={videoRef} className="w-full aspect-video object-contain" poster={poster} playsInline crossOrigin="anonymous" />
+    <div ref={containerRef} className="relative bg-black group cursor-pointer" onClick={togglePlay} onMouseMove={startHideTimer} onTouchStart={startHideTimer}>
+      <video ref={videoRef} className={`w-full ${fullscreen ? 'h-dvh w-dvw object-cover md:object-contain' : 'aspect-video object-contain'}`} poster={poster} playsInline crossOrigin="anonymous" />
 
       {title && <div className="absolute top-4 left-4 text-white text-sm font-medium drop-shadow-lg bg-black/40 px-3 py-1.5 rounded-lg">{title}</div>}
       {loadError && (

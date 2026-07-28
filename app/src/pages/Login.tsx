@@ -217,9 +217,9 @@ export default function Login() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
               {[
-                { name: '1 AYLIK', price: '300 TL', link: 'https://www.shopier.com/platool/45181977', features: ['4K Ultra HD', 'Sınırsız İzleme', 'Tüm Kategoriler', 'VOD + Arşiv', '7/24 Destek'] },
-                { name: '3 AYLIK', price: '600 TL', link: 'https://www.shopier.com/platool/45181945', popular: true, features: ['4K Ultra HD', 'Sınırsız İzleme', 'Tüm Kategoriler', 'VOD + Arşiv', '7/24 Destek', 'En Popüler Seçim'] },
-                { name: '12 AYLIK', price: '1.200 TL', original: '2.500 TL', link: 'https://www.shopier.com/platool/44083927', features: ['4K Ultra HD', 'Sınırsız İzleme', 'Tüm Kategoriler', 'VOD + Arşiv', '7/24 Destek', 'Kampanya Fiyatı!'] },
+                { name: '1 AYLIK', price: '164 TL', link: 'https://www.shopier.com/platool/45181977', features: ['4K Ultra HD', 'Sınırsız İzleme', 'Tüm Kategoriler', 'VOD + Arşiv', '7/24 Destek'] },
+                { name: '3 AYLIK', price: '336 TL', link: 'https://www.shopier.com/platool/45181945', popular: true, features: ['4K Ultra HD', 'Sınırsız İzleme', 'Tüm Kategoriler', 'VOD + Arşiv', '7/24 Destek', 'En Popüler Seçim'] },
+                { name: '12 AYLIK', price: '500 TL', original: '1.200 TL', link: 'https://www.shopier.com/platool/44083927', features: ['4K Ultra HD', 'Sınırsız İzleme', 'Tüm Kategoriler', 'VOD + Arşiv', '7/24 Destek', 'Kampanya Fiyatı!'] },
               ].map(p => (
                 <div key={p.name} className={`relative rounded-2xl p-5 border transition-all duration-300 hover:scale-[1.03] ${p.popular ? 'border-[#0099ff] bg-[#0099ff]/5 shadow-lg shadow-[#0099ff]/10' : 'border-white/10 bg-white/5'}`}>
                   {p.popular && (
