@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Play, Star, Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight, Eye, Heart, Volume2, VolumeX } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Poster from '@/components/Poster'
@@ -37,20 +37,26 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
   const [trailerMuted, setTrailerMuted] = useState(true)
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
-  const toggleMute = () => {
+  const replaceIframe = (mute: boolean) => {
     if (!trailerId) return
-    const mute = !trailerMuted
-    const ns = `https://www.youtube.com/embed/${trailerId}?autoplay=1${mute ? '&mute=1' : ''}&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&fs=0&cc_load_policy=0&disablekb=1`
-    if (iframeRef.current) iframeRef.current.src = ns
+    const q = `autoplay=1${mute ? '&mute=1' : ''}&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&rel=0&playsinline=1&fs=0`
+    const container = document.getElementById('yt-wrap')
+    if (container) {
+      container.innerHTML = ''
+      const f = document.createElement('iframe')
+      f.src = `https://www.youtube.com/embed/${trailerId}?${q}`
+      f.allow = 'autoplay; encrypted-media'
+      f.className = 'absolute'
+      f.style.cssText = 'top:-50%;left:-50%;width:200%;height:200%'
+      container.appendChild(f)
+    }
     setTrailerMuted(mute)
   }
 
-  const playUnmuted = () => {
-    if (!trailerId) return
-    const ns = `https://www.youtube.com/embed/${trailerId}?autoplay=1&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&fs=0&cc_load_policy=0&disablekb=1`
-    if (iframeRef.current) iframeRef.current.src = ns
-    setTrailerMuted(false)
-  }
+  const toggleMute = () => replaceIframe(!trailerMuted)
+  const playUnmuted = () => replaceIframe(false)
+
+  useEffect(() => { if (trailerId) replaceIframe(true) }, [trailerId])
 
   const similarRef = useRef<HTMLDivElement>(null)
   const handleDownload = () => {
@@ -77,13 +83,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
       {/* Backdrop */}
       <div className="relative h-[50vh] md:h-[80vh] overflow-hidden bg-black">
         {trailerId ? (
-          <div className="absolute inset-0 overflow-hidden">
-            <iframe ref={iframeRef}
-              src={`https://www.youtube.com/embed/${trailerId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&fs=0&cc_load_policy=0&disablekb=1`}
-              className="absolute" style={{ top: '-50%', left: '-50%', width: '200%', height: '200%' }}
-              allow="autoplay; encrypted-media"
-              title="trailer" />
-          </div>
+          <div id="yt-wrap" className="absolute inset-0 overflow-hidden"></div>
         ) : (
           data.backdrop_path?.[0] || data.stream_icon ? (
             <img src={data.backdrop_path?.[0] || data.stream_icon} alt=""
