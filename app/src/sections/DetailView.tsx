@@ -41,8 +41,9 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
   useEffect(() => {
     if (!trailerId) return
     let p: any = null
-    const done = () => {
-      if (!wrapRef.current) return
+    let timer: any = null
+    const create = () => {
+      if (!wrapRef.current || !(window as any).YT?.Player) { timer = setTimeout(create, 200); return }
       p = new (window as any).YT.Player(wrapRef.current, {
         height: '200%', width: '200%',
         videoId: trailerId,
@@ -50,13 +51,15 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
         events: { onReady: (e: any) => { e.target.mute(); e.target.playVideo(); playerRef.current = e.target } }
       })
     }
-    if (!(window as any).YT || !(window as any).YT.Player) {
-      const tag = document.createElement('script')
-      tag.src = 'https://www.youtube.com/iframe_api'
-      tag.onload = done
-      document.head.appendChild(tag)
-    } else { done() }
-    return () => { if (p) try { p.destroy() } catch {} }
+    if (!(window as any).YT?.Player) {
+      if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+        const tag = document.createElement('script')
+        tag.src = 'https://www.youtube.com/iframe_api'
+        document.head.appendChild(tag)
+      }
+      ;(window as any).onYouTubeIframeAPIReady = create
+    } else { create() }
+    return () => { if (p) try { p.destroy() } catch {}; clearTimeout(timer) }
   }, [trailerId])
 
   const toggleMute = () => {
