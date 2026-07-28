@@ -35,28 +35,43 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
   const [selectedSeason, setSelectedSeason] = useState('1')
   const trailerId = getYoutubeId(data.youtube_trailer || '')
   const [trailerMuted, setTrailerMuted] = useState(true)
-  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const playerRef = useRef<any>(null)
+  const wrapRef = useRef<HTMLDivElement>(null)
 
-  const replaceIframe = (mute: boolean) => {
+  useEffect(() => {
     if (!trailerId) return
-    const q = `autoplay=1${mute ? '&mute=1' : ''}&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&rel=0&playsinline=1&fs=0`
-    const container = document.getElementById('yt-wrap')
-    if (container) {
-      container.innerHTML = ''
-      const f = document.createElement('iframe')
-      f.src = `https://www.youtube.com/embed/${trailerId}?${q}`
-      f.allow = 'autoplay; encrypted-media'
-      f.className = 'absolute'
-      f.style.cssText = 'top:-50%;left:-50%;width:200%;height:200%'
-      container.appendChild(f)
+    let p: any = null
+    const done = () => {
+      if (!wrapRef.current) return
+      p = new (window as any).YT.Player(wrapRef.current, {
+        height: '200%', width: '200%',
+        videoId: trailerId,
+        playerVars: { autoplay: 1, mute: 1, controls: 0, loop: 1, playlist: trailerId, modestbranding: 1, rel: 0, playsinline: 1, fs: 0, cc_load_policy: 0, disablekb: 1 },
+        events: { onReady: (e: any) => { e.target.mute(); e.target.playVideo(); playerRef.current = e.target } }
+      })
     }
-    setTrailerMuted(mute)
+    if (!(window as any).YT || !(window as any).YT.Player) {
+      const tag = document.createElement('script')
+      tag.src = 'https://www.youtube.com/iframe_api'
+      tag.onload = done
+      document.head.appendChild(tag)
+    } else { done() }
+    return () => { if (p) try { p.destroy() } catch {} }
+  }, [trailerId])
+
+  const toggleMute = () => {
+    const p = playerRef.current
+    if (!p) return
+    if (trailerMuted) { p.unMute(); setTrailerMuted(false) }
+    else { p.mute(); setTrailerMuted(true) }
   }
 
-  const toggleMute = () => replaceIframe(!trailerMuted)
-  const playUnmuted = () => replaceIframe(false)
-
-  useEffect(() => { if (trailerId) replaceIframe(true) }, [trailerId])
+  const playUnmuted = () => {
+    const p = playerRef.current
+    if (!p) return
+    p.unMute()
+    setTrailerMuted(false)
+  }
 
   const similarRef = useRef<HTMLDivElement>(null)
   const handleDownload = () => {
@@ -83,7 +98,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
       {/* Backdrop */}
       <div className="relative h-[50vh] md:h-[80vh] overflow-hidden bg-black">
         {trailerId ? (
-          <div id="yt-wrap" className="absolute inset-0 overflow-hidden"></div>
+          <div ref={wrapRef} className="absolute inset-0 overflow-hidden" style={{ top: '-50%', left: '-50%', width: '200%', height: '200%' }}></div>
         ) : (
           data.backdrop_path?.[0] || data.stream_icon ? (
             <img src={data.backdrop_path?.[0] || data.stream_icon} alt=""
