@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { Play, Star, Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight, Eye, Heart, Volume2, VolumeX } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Poster from '@/components/Poster'
@@ -35,52 +35,20 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
   const [selectedSeason, setSelectedSeason] = useState('1')
   const trailerId = getYoutubeId(data.youtube_trailer || '')
   const [trailerMuted, setTrailerMuted] = useState(true)
-  const playerRef = useRef<any>(null)
-  const playerContainerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!trailerId) return
-    let player: any = null
-    function initPlayer() {
-      if (!(window as any).YT || !(window as any).YT.Player) {
-        const tag = document.createElement('script')
-        tag.src = 'https://www.youtube.com/iframe_api'
-        const first = document.getElementsByTagName('script')[0]
-        first.parentNode?.insertBefore(tag, first)
-        ;(window as any).onYouTubeIframeAPIReady = () => {
-          if (playerContainerRef.current) {
-            player = new (window as any).YT.Player(playerContainerRef.current, {
-              videoId: trailerId,
-              playerVars: { autoplay: 1, mute: 1, controls: 0, loop: 1, playlist: trailerId, modestbranding: 1, rel: 0, iv_load_policy: 3, playsinline: 1, fs: 0, cc_load_policy: 0, disablekb: 1 },
-              events: { onReady: (e: any) => { e.target.mute(); e.target.playVideo(); playerRef.current = e.target } }
-            })
-          }
-        }
-      } else {
-        if (playerContainerRef.current) {
-          player = new (window as any).YT.Player(playerContainerRef.current, {
-            videoId: trailerId,
-            playerVars: { autoplay: 1, mute: 1, controls: 0, loop: 1, playlist: trailerId, modestbranding: 1, rel: 0, iv_load_policy: 3, playsinline: 1, fs: 0, cc_load_policy: 0, disablekb: 1 },
-            events: { onReady: (e: any) => { e.target.mute(); e.target.playVideo(); playerRef.current = e.target } }
-          })
-        }
-      }
-    }
-    initPlayer()
-    return () => { if (player) { try { player.destroy() } catch {} } }
-  }, [trailerId])
+  const [iframeKey, setIframeKey] = useState(0)
 
   const toggleMute = () => {
-    const p = playerRef.current
-    if (p) {
-      if (trailerMuted) { p.unMute(); setTrailerMuted(false) }
-      else { p.mute(); setTrailerMuted(true) }
-    } else {
-      setTrailerMuted(!trailerMuted)
-    }
+    setTrailerMuted(!trailerMuted)
+    setIframeKey(k => k + 1) // force iframe reload with new mute state
   }
 
-  const fragmanUrl = trailerId ? `https://www.youtube.com/watch?v=${trailerId}` : ''
+  const playUnmuted = () => {
+    if (trailerMuted) { setTrailerMuted(false); setIframeKey(k => k + 1) }
+  }
+
+  const trailerSrc = trailerId
+    ? `https://www.youtube.com/embed/${trailerId}?autoplay=1&${trailerMuted ? 'mute=1' : ''}&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&fs=0&cc_load_policy=0&disablekb=1`
+    : ''
 
   const similarRef = useRef<HTMLDivElement>(null)
   const handleDownload = () => {
@@ -106,8 +74,11 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
       <div className="relative h-[50vh] md:h-[80vh] overflow-hidden bg-black">
         {trailerId ? (
           <div className="absolute inset-0 overflow-hidden">
-            <div ref={playerContainerRef} className="absolute" style={{ top: '-50%', left: '-50%', width: '200%', height: '200%' }}
-              id="yt-player" />
+            <iframe key={iframeKey}
+              src={trailerSrc}
+              className="absolute" style={{ top: '-50%', left: '-50%', width: '200%', height: '200%' }}
+              allow="autoplay; encrypted-media"
+              title="trailer" />
           </div>
         ) : (
           data.backdrop_path?.[0] || data.stream_icon ? (
@@ -193,11 +164,11 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
                 </button>
               )}
               {trailerId && (
-                <a href={fragmanUrl} target="_blank" rel="noopener noreferrer"
+                <button onClick={playUnmuted}
                   className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/10 text-white text-sm font-semibold hover:bg-white/20 transition-all">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
                   Fragman
-                </a>
+                </button>
               )}
               <button onClick={onToggleFav}
                 className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all">
