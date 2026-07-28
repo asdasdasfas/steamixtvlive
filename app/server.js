@@ -464,7 +464,7 @@ http.createServer((req, res) => {
     if (!name) { res.writeHead(400); res.end(JSON.stringify({ error: 'name required' })); return }
     const tmdbKey = '7c2cf8a6efe7bf9da7c1af5a3089fe50'
     let tmdbType = 'movie'; if (mediaType === 'series' || mediaType === 'tv') tmdbType = 'tv'
-    const searchUrl = `https://api.themoviedb.org/3/search/${tmdbType}?api_key=${tmdbKey}&query=${encodeURIComponent(name)}${year ? `&year=${year}` : ''}`
+    const searchUrl = `https://api.themoviedb.org/3/search/${tmdbType}?api_key=${tmdbKey}&query=${encodeURIComponent(name)}&language=tr-TR${year ? `&year=${year}` : ''}`
     https.get(searchUrl, searchRes => {
       let data = ''
       searchRes.on('data', c => data += c)
