@@ -280,10 +280,14 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     if (onToggleFullscreen) { onToggleFullscreen(); return }
     if (!containerRef.current) return
     if (!document.fullscreenElement) {
-      await containerRef.current.requestFullscreen()
+      try {
+        await containerRef.current.requestFullscreen()
+      } catch {
+        try { await document.documentElement.requestFullscreen() } catch {}
+      }
       setFullscreen(true)
       if (IS_MOBILE) {
-        try { (screen as any).orientation?.lock?.('landscape') } catch {}
+        try { (screen as any).orientation?.lock?.('landscape')?.catch(() => {}) } catch {}
       }
     } else {
       await document.exitFullscreen()
@@ -304,7 +308,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
-    const onTime = () => { setCurrentTime(video.currentTime); startHideTimer() }
+    const onTime = () => { setCurrentTime(video.currentTime) }
     const onDur = () => setDuration(video.duration || 0)
     const onPlay = () => setPlaying(true)
     const onPause = () => setPlaying(false)
@@ -358,7 +362,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
 
   return (
     <div ref={containerRef} className="relative bg-black group cursor-pointer" onClick={togglePlay} onMouseMove={startHideTimer} onTouchStart={startHideTimer}>
-      <video ref={videoRef} className={`w-full ${fullscreen ? 'h-dvh w-dvw object-cover md:object-contain' : 'aspect-video object-contain'}`} poster={poster} playsInline crossOrigin="anonymous" />
+      <video ref={videoRef} className={`w-full ${fullscreen ? 'h-screen w-screen object-cover md:object-contain' : 'aspect-video object-contain'}`} poster={poster} playsInline crossOrigin="anonymous" />
 
       {title && <div className="absolute top-4 left-4 text-white text-sm font-medium drop-shadow-lg bg-black/40 px-3 py-1.5 rounded-lg">{title}</div>}
       {loadError && (
