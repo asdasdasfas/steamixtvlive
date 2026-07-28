@@ -16,13 +16,13 @@ export function getYoutubeId(url: string): string | null {
   return m ? m[1] : /^[a-zA-Z0-9_-]{11}$/.test(url) ? url : null
 }
 
-export async function searchTrailer(query: string): Promise<string | null> {
-  const key = query.toLowerCase()
+export async function searchTrailer(query: string, mediaType = 'movie'): Promise<string | null> {
+  const key = `${mediaType}:${query.toLowerCase()}`
   if (memCache.has(key)) return memCache.get(key) ?? null
   const cached = getCache()[key]
   if (cached) { memCache.set(key, cached); return cached }
   try {
-    const res = await fetch(`/api/trailer?name=${encodeURIComponent(query)}`)
+    const res = await fetch(`/api/trailer?name=${encodeURIComponent(query)}&type=${mediaType}`)
     if (res.ok) {
       const data = await res.json()
       if (data?.youtube_id) { setCache(key, data.youtube_id); memCache.set(key, data.youtube_id); return data.youtube_id }

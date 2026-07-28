@@ -462,6 +462,26 @@ http.createServer((req, res) => {
     const year = u.searchParams.get('year') || ''
     const mediaType = u.searchParams.get('type') || 'movie'
     if (!name) { res.writeHead(400); res.end(JSON.stringify({ error: 'name required' })); return }
+
+    function ytFallback() {
+      const ytKey = 'AIzaSyDAivPXYp-wdmN2AmL7HUXvf4wHP2o9dHQ'
+      const ytUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(name + ' official trailer')}&type=video&maxResults=3&key=${ytKey}`
+      https.get(ytUrl, ytRes => {
+        let ytData = ''
+        ytRes.on('data', c => ytData += c)
+        ytRes.on('end', () => {
+          try {
+            const ytJson = JSON.parse(ytData)
+            if (ytJson.items && ytJson.items.length > 0) {
+              const id = ytJson.items[0].id.videoId
+              if (id) { res.setHeader('Content-Type', 'application/json'); res.setHeader('Access-Control-Allow-Origin', '*'); res.end(JSON.stringify({ youtube_id: id, source: 'yt' })); return }
+            }
+          } catch {}
+          res.writeHead(404); res.end(JSON.stringify({ error: 'no trailer' }))
+        })
+      }).on('error', () => { res.writeHead(404); res.end(JSON.stringify({ error: 'no trailer' })) })
+    }
+
     const tmdbKey = '7c2cf8a6efe7bf9da7c1af5a3089fe50'
     let tmdbType = 'movie'; if (mediaType === 'series' || mediaType === 'tv') tmdbType = 'tv'
     const searchUrl = `https://api.themoviedb.org/3/search/${tmdbType}?api_key=${tmdbKey}&query=${encodeURIComponent(name)}&language=tr-TR${year ? `&year=${year}` : ''}`
@@ -471,9 +491,7 @@ http.createServer((req, res) => {
       searchRes.on('end', () => {
         try {
           const searchJson = JSON.parse(data)
-          if (!searchJson.results || searchJson.results.length === 0) {
-            res.writeHead(404); res.end(JSON.stringify({ error: 'not found' })); return
-          }
+          if (!searchJson.results || searchJson.results.length === 0) { ytFallback(); return }
           const movieId = searchJson.results[0].id
           const videosUrl = `https://api.themoviedb.org/3/${tmdbType}/${movieId}/videos?api_key=${tmdbKey}&language=en`
           https.get(videosUrl, vidRes => {
@@ -483,20 +501,18 @@ http.createServer((req, res) => {
               try {
                 const vjson = JSON.parse(vdata)
                 const trailers = (vjson.results || []).filter((v) => v.type === 'Trailer' && v.site === 'YouTube')
-                if (trailers.length === 0) {
-                  res.writeHead(404); res.end(JSON.stringify({ error: 'no trailer' })); return
-                }
+                if (trailers.length === 0) { ytFallback(); return }
                 const official = trailers.filter((v) => v.official)
                 const first = official.length > 0 ? official[0] : trailers[0]
                 res.setHeader('Content-Type', 'application/json')
                 res.setHeader('Access-Control-Allow-Origin', '*')
                 res.end(JSON.stringify({ youtube_id: first.key, title: first.name, tmdb_id: movieId }))
-              } catch { res.writeHead(502); res.end(JSON.stringify({ error: 'videos parse error' })) }
+              } catch { ytFallback() }
             })
-          }).on('error', () => { res.writeHead(502); res.end(JSON.stringify({ error: 'videos fetch error' })) })
-        } catch { res.writeHead(502); res.end(JSON.stringify({ error: 'search parse error' })) }
+          }).on('error', () => { ytFallback() })
+        } catch { ytFallback() }
       })
-    }).on('error', () => { res.writeHead(502); res.end(JSON.stringify({ error: 'search fetch error' })) })
+    }).on('error', () => { ytFallback() })
     return
   }
 

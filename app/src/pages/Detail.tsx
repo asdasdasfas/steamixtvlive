@@ -85,7 +85,7 @@ export default function Detail() {
               director: decodeField(md2?.director || iv?.director || ''),
               youtube_trailer: '',
             })
-            searchTrailer(cleanName(urlName || iv?.name || mapi?.name || '')).then(vid => {
+            searchTrailer(cleanName(urlName || iv?.name || mapi?.name || ''), 'movie').then(vid => {
               if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
             })
             // Load similar from same category (silent, parallel)
@@ -126,7 +126,7 @@ export default function Detail() {
               episodes,
               youtube_trailer: '',
             })
-            searchTrailer(cleanName(urlName || si?.name || '')).then(vid => {
+            searchTrailer(cleanName(urlName || si?.name || ''), 'series').then(vid => {
               if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
             })
             // Load similar from same category (silent, parallel)
