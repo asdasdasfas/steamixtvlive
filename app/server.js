@@ -394,6 +394,10 @@ http.createServer((req, res) => {
         if (decoded.startsWith('http://') || decoded.startsWith('https://')) {
           const targetBase = decoded.replace(/\/+$/, '')
           const prefix = '/dyn/' + encoded
+          const pathNoQuery = (req.url.split('?')[0]).toLowerCase()
+          if (pathNoQuery.endsWith('.m3u8') || pathNoQuery.endsWith('.m3u')) {
+            return hlsFetchAndProxy(req, res, targetBase, prefix)
+          }
           return fetchAndProxy(req, res, targetBase, prefix)
         }
       } catch {}

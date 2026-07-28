@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { liveUrl, seriesUrls, fetchVodInfo, fetchSeriesInfo, fetchLiveStreams, vodUrlTesters, vodUrlWithExt, proxyUrl } from '@/lib/supabase'
@@ -29,6 +29,8 @@ export default function Watch() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState('')
+  const [refreshKey, setRefreshKey] = useState(0)
+  const refreshTimerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
 
 
   const streamId = params.get('stream_id')
@@ -108,6 +110,24 @@ export default function Watch() {
 
   useEffect(() => { resolveStream() }, [resolveStream])
 
+  useEffect(() => {
+    if (type !== 'live' || !streamId) return
+    refreshTimerRef.current = setInterval(() => {
+      setRefreshKey(k => k + 1)
+    }, 90000)
+    return () => clearInterval(refreshTimerRef.current)
+  }, [type, streamId])
+
+  useEffect(() => {
+    if (!refreshKey || !server || !streamId || type !== 'live') return
+    const sid = parseInt(streamId)
+    const { base_url, xtream_user, xtream_pass } = server
+    const newUrl = liveUrl(base_url, xtream_user, xtream_pass, sid)
+    const newFb = proxyUrl(base_url, `/live/${xtream_user}/${xtream_pass}/${sid}.m3u8`)
+    setUrl(newUrl)
+    setFallbackUrls([newFb])
+  }, [refreshKey, server, streamId, type])
+
   const handleChannelChange = (newId: string, newUrl: string, newTitle: string) => {
     setUrl(newUrl); setTitle(newTitle); setLoading(false); setError(null)
     const sp = new URLSearchParams(params)
@@ -154,7 +174,7 @@ export default function Watch() {
             {rotationId ? (
               <LivePlayer channelId={rotationId} title={title} src={url} onEnded={() => navigate(-1)} onChannelChange={handleChannelChange} />
             ) : (
-              <VideoPlayer key={url} src={url} fallbackSrcs={fallbackUrls} title={title} onEnded={() => navigate(-1)} />
+              <VideoPlayer src={url} fallbackSrcs={fallbackUrls} title={title} onEnded={() => navigate(-1)} />
             )}
           </div>
         </div>
