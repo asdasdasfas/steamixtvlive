@@ -92,7 +92,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
       {/* Backdrop */}
       <div className="relative h-[50vh] md:h-[80vh] overflow-hidden bg-black">
         {trailerId ? (
-          <div ref={wrapRef} className="absolute inset-0 overflow-hidden" style={{ top: '-50%', left: '-50%', width: '200%', height: '200%' }}></div>
+          <div ref={wrapRef} className="absolute inset-0 overflow-hidden pointer-events-none" style={{ top: '-50%', left: '-50%', width: '200%', height: '200%' }}></div>
         ) : (
           data.backdrop_path?.[0] || data.stream_icon ? (
             <img src={data.backdrop_path?.[0] || data.stream_icon} alt=""
@@ -112,7 +112,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
             {year}
           </div>
         )}
-        {trailerId && !isMobile && (
+        {trailerId && (
           <button onClick={toggleMute}
             className="absolute bottom-4 right-4 z-10 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors backdrop-blur-sm">
             {trailerMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
@@ -174,13 +174,6 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
                 <button onClick={onPlay}
                   className="flex items-center gap-2.5 px-7 py-3 rounded-xl bg-[#0099ff] text-white font-semibold text-sm hover:bg-[#0088ee] transition-all shadow-lg shadow-[#0099ff]/20 hover:shadow-[#0099ff]/30">
                   <Play className="w-4 h-4 fill-white" />İzle
-                </button>
-              )}
-              {trailerId && isMobile && (
-                <button onClick={toggleMute}
-                  className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/10 text-white text-sm font-semibold hover:bg-white/20 transition-all">
-                  {trailerMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                  {trailerMuted ? 'Ses Aç' : 'Ses Kapa'}
                 </button>
               )}
               <button onClick={onToggleFav}
