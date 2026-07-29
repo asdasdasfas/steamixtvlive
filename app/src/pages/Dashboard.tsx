@@ -78,16 +78,24 @@ export default function Dashboard() {
   const seriesKeywords = ['pazartesi', 'salı', 'çarşamba', 'perşembe', 'cuma', 'cumartesi', 'pazar', 'haftanın', 'günün dizisi', 'yerli dizi', 'yabancı dizi']
   const isSeriesCategory = (name: string) => seriesKeywords.some(k => name.toLowerCase().includes(k))
 
+  const moveToSeriesNames = ['TR ✦ TURKCELL TV+', 'EU ✦ MULTI DISNEY+ SERIES']
   const filteredVodCats = useMemo(() => vodCats.filter(vc => {
     const vcn = vc.category_name.toLowerCase()
     if (isSeriesCategory(vcn)) return false
+    if (moveToSeriesNames.includes(vc.category_name?.trim())) return false
     return true
   }), [vodCats])
 
+  const allSeriesCats = useMemo(() => {
+    const moved = vodCats.filter(vc => moveToSeriesNames.includes(vc.category_name?.trim()))
+    return [...moved, ...seriesCats]
+  }, [vodCats, seriesCats])
+  const movedSeriesCatIds = useMemo(() => new Set(allSeriesCats.filter(c => moveToSeriesNames.includes(c.category_name?.trim())).map(c => c.category_id)), [allSeriesCats])
+
   const showMovieCategory = tab === 'movies' && (selectedCat || filteredVodCats.length > 0)
-  const showSeriesCategory = tab === 'series' && (selectedSeriesCat || seriesCats.length > 0)
+  const showSeriesCategory = tab === 'series' && (selectedSeriesCat || allSeriesCats.length > 0)
   const activeMovieCat = selectedCat || filteredVodCats[0]?.category_id || ''
-  const activeSeriesCat = selectedSeriesCat || seriesCats[0]?.category_id || ''
+  const activeSeriesCat = selectedSeriesCat || allSeriesCats[0]?.category_id || ''
 
   // Basit yükleme: kategoriler + hero + ana sayfa 2+2 önizleme
   useEffect(() => {
@@ -230,7 +238,7 @@ export default function Dashboard() {
       if (firstCat) { sp.set('cat', firstCat); loadFullCategory(firstCat, 'movie') }
       sp.delete('scat')
     } else if (t === 'series') {
-      const firstCat = seriesCats[0]?.category_id
+      const firstCat = allSeriesCats[0]?.category_id
       if (firstCat) { sp.set('scat', firstCat); loadFullCategory(firstCat, 'series') }
       sp.delete('cat')
     } else {
@@ -434,12 +442,12 @@ export default function Dashboard() {
   }, [tab, filteredVodCats])
 
   useEffect(() => {
-    if (tab === 'series' && seriesCats.length > 0 && !selectedSeriesCat) {
-      const firstCat = seriesCats[0].category_id
+    if (tab === 'series' && allSeriesCats.length > 0 && !selectedSeriesCat) {
+      const firstCat = allSeriesCats[0].category_id
       navigate('/dashboard?tab=series&scat=' + firstCat, { replace: true })
       loadFullCategory(firstCat, 'series')
     }
-  }, [tab, seriesCats])
+  }, [tab, allSeriesCats])
 
   // Seçili kategori yoksa URL'den güncelle
   useEffect(() => {
@@ -516,11 +524,11 @@ export default function Dashboard() {
       return cat ? trName(cat.category_name) : ''
     }
     if (tab === 'series' && selectedSeriesCat) {
-      const cat = seriesCats.find(c => c.category_id === selectedSeriesCat)
+      const cat = allSeriesCats.find(c => c.category_id === selectedSeriesCat)
       return cat ? trName(cat.category_name) : ''
     }
     return ''
-  }, [tab, selectedCat, selectedSeriesCat, filteredVodCats, seriesCats])
+  }, [tab, selectedCat, selectedSeriesCat, filteredVodCats, allSeriesCats])
 
   return (
     <>
@@ -681,14 +689,19 @@ export default function Dashboard() {
         {/* SERIES TAB */}
         {tab === 'series' && (
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
-            <SlideCategoryPanel title="Dizi Kategorileri" items={seriesCats.slice(0, -3)} selected={selectedSeriesCat} onSelect={(id) => {
-              const cat = seriesCats.find(c => c.category_id === id)
+            <SlideCategoryPanel title="Dizi Kategorileri" items={allSeriesCats} selected={selectedSeriesCat} onSelect={(id) => {
+              const cat = allSeriesCats.find(c => c.category_id === id)
               if (cat && isAdultCat(cat.category_name)) { setAdultPrompt({ catId: id, type: 'series' }); return }
-              navigate('/dashboard?tab=series&scat=' + id, { replace: true }); loadFullCategory(id, 'series')
+              const isMoved = movedSeriesCatIds.has(id)
+              navigate('/dashboard?tab=series&scat=' + id, { replace: true }); loadFullCategory(id, isMoved ? 'movie' : 'series')
             }} />
             <div className="flex-1 overflow-y-auto min-h-0">
               {showSeriesCategory && activeSeriesCat ? (
-                <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} adultCover={adultCatIds.has(activeSeriesCat) ? adultCover : undefined} />
+                movedSeriesCatIds.has(activeSeriesCat) ? (
+                  <MovieCategoryGrid items={vodItems[activeSeriesCat]} loading={!allVods && !vodItems[activeSeriesCat]} categoryName={trName(allSeriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} adultCover={adultCatIds.has(activeSeriesCat) ? adultCover : undefined} />
+                ) : (
+                <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(allSeriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} adultCover={adultCatIds.has(activeSeriesCat) ? adultCover : undefined} />
+                )
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
               )}
