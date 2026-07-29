@@ -742,16 +742,23 @@ function MovieCategoryGrid({ items, loading, categoryName, adultCover }: any) {
     return url
   }
 
-  const realCover = (item: any) => adultCover || pImg(item.cover_big || item.stream_icon)
+  const realCover = (item: any) => adultCover ? undefined : pImg(item.cover_big || item.stream_icon)
 
   const handleDetail = (item: any) => {
     const sp = new URLSearchParams({ id: String(item.stream_id), type: 'movie', cat: item.category_id || '' })
-    if (adultCover) sp.set('icon', adultCover)
+    if (adultCover) sp.set('icon', 'adult')
     else if (item.cover_big || item.stream_icon) sp.set('icon', item.cover_big || item.stream_icon)
     if (item.container_extension) sp.set('ext', item.container_extension)
     if (item.name) sp.set('name', item.name.replace(/[✓✔☑✗✘]/g, ''))
     navigate(`/detail?${sp}`)
   }
+
+  const adultBadge = (adultCover ? (
+    <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col items-center justify-center">
+      <span className="text-2xl md:text-3xl font-black text-red-500 opacity-60" style={{ fontFamily: 'Orbitron, sans-serif' }}>18+</span>
+      <span className="text-[10px] text-gray-500 mt-1">YETİŞKİN</span>
+    </div>
+  ) : null)
 
   return (
     <div className="px-4 md:px-6 pt-3">
@@ -767,6 +774,7 @@ function MovieCategoryGrid({ items, loading, categoryName, adultCover }: any) {
               <button onClick={() => handleDetail(s)} className="w-full">
                 <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
                   <Poster src={realCover(s)} type="movie" />
+                  {adultBadge}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
                     <div className="w-14 h-14 rounded-full bg-[#0099ff] flex items-center justify-center shadow-[0_0_20px_rgba(0,153,255,0.6)] backdrop-blur-sm">
@@ -794,10 +802,16 @@ function SeriesCategoryGrid({ items, loading, categoryName, adultCover }: any) {
     if (url.startsWith('http://') && server?.base_url) return proxyUrl(server.base_url, path)
     return url
   }
-  const realCover = (item: any) => adultCover || pImg(item.cover_big || item.movie_image || item.cover || item.thumbnail)
+  const realCover = (item: any) => adultCover ? undefined : pImg(item.cover_big || item.movie_image || item.cover || item.thumbnail)
+  const adultBadge = adultCover ? (
+    <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col items-center justify-center">
+      <span className="text-2xl md:text-3xl font-black text-red-500 opacity-60" style={{ fontFamily: 'Orbitron, sans-serif' }}>18+</span>
+      <span className="text-[10px] text-gray-500 mt-1">YETİŞKİN</span>
+    </div>
+  ) : null
   const handleDetail = (item: any) => {
     const sp = new URLSearchParams({ id: String(item.series_id), type: 'series', cat: item.category_id || '' })
-    if (adultCover) sp.set('icon', adultCover)
+    if (adultCover) sp.set('icon', 'adult')
     else if (item.cover_big || item.movie_image || item.cover || item.thumbnail) sp.set('icon', item.cover_big || item.movie_image || item.cover || item.thumbnail)
     if (item.name) sp.set('name', item.name.replace(/[✓✔☑✗✘]/g, ''))
     navigate(`/detail?${sp}`)
@@ -817,6 +831,7 @@ function SeriesCategoryGrid({ items, loading, categoryName, adultCover }: any) {
               <button onClick={() => handleDetail(s)} className="w-full">
                 <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-2 group-hover:ring-[#14b8a6]/40">
                   <Poster src={realCover(s)} type="series" />
+                  {adultBadge}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
                     <div className="w-14 h-14 rounded-full bg-[#14b8a6] flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.6)] backdrop-blur-sm">
@@ -840,7 +855,7 @@ function SlideCategoryPanel({ title, items, selected, onSelect }: { title: strin
     const trimmed = name.trim()
     const n = trimmed.toLowerCase()
     if (n.includes('adult') || n.includes('yetişkin') || n.includes('18+') || n.includes('xxx') || n.includes('porno') || n.includes('erotik')) {
-      return 'YETİŞKİN +18'
+      return 'ADULT +18'
     }
     const categoryNameOverride: Record<string, string> = {
       'TR ✦ Pazartesi Dizi': 'PAZARTESİ DİZİLERİ', 'TR ✦ Salı Dizi': 'SALI DİZİLERİ', 'TR ✦ Çarşamba Dizi': 'ÇARŞAMBA DİZİLERİ',

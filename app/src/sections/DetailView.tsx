@@ -98,9 +98,15 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
           <div ref={wrapRef} className="absolute inset-0 overflow-hidden pointer-events-none" style={{ top: '-50%', left: '-50%', width: '200%', height: '200%' }}></div>
         ) : (
           data.backdrop_path?.[0] || data.stream_icon ? (
-            <img src={data.backdrop_path?.[0] || data.stream_icon} alt=""
-              className="w-full h-full object-cover"
-              onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+            data.stream_icon === 'adult' ? (
+              <div className="w-full h-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+                <span className="text-6xl font-black text-red-500 opacity-20" style={{ fontFamily: 'Orbitron, sans-serif' }}>18+</span>
+              </div>
+            ) : (
+              <img src={data.backdrop_path?.[0] || data.stream_icon} alt=""
+                className="w-full h-full object-cover"
+                onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+            )
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900" />
           )
@@ -133,7 +139,14 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
           {/* Poster */}
           <div className="w-28 md:w-56 shrink-0 mx-auto md:mx-0 -mt-8 md:mt-0">
             <div className="aspect-[2/3] rounded-2xl overflow-hidden bg-gray-800 shadow-2xl shadow-black/50 ring-1 ring-white/10 relative">
-              <Poster src={data.stream_icon} type={isSeries ? 'series' : 'movie'} />
+              {data.stream_icon === 'adult' ? (
+                <div className="w-full h-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col items-center justify-center">
+                  <span className="text-3xl md:text-5xl font-black text-red-500 opacity-60" style={{ fontFamily: 'Orbitron, sans-serif' }}>18+</span>
+                  <span className="text-xs text-gray-500 mt-2">YETİŞKİN</span>
+                </div>
+              ) : (
+                <Poster src={data.stream_icon} type={isSeries ? 'series' : 'movie'} />
+              )}
             </div>
           </div>
 
@@ -294,7 +307,13 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
                 }}
                   className="flex-shrink-0 w-28 md:w-36 group">
                   <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative shadow-lg shadow-black/30 ring-1 ring-white/[0.03] group-hover:ring-[#0099ff]/30 transition-all">
-                    <Poster src={(item as any).cover_big || item.stream_icon} type={item.stream_type === 'series' ? 'series' : 'movie'} />
+                    {item.stream_icon === 'adult' ? (
+                      <div className="w-full h-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col items-center justify-center">
+                        <span className="text-xl font-black text-red-500 opacity-50" style={{ fontFamily: 'Orbitron, sans-serif' }}>18+</span>
+                      </div>
+                    ) : (
+                      <Poster src={(item as any).cover_big || item.stream_icon} type={item.stream_type === 'series' ? 'series' : 'movie'} />
+                    )}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                       <Play className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
                     </div>
