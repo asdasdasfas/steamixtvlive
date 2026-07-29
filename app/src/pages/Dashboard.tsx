@@ -58,6 +58,22 @@ export default function Dashboard() {
   }, [vodCats, seriesCats])
   const adultCover = '/adult-placeholder.jpg'
 
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<{ movies: any[]; series: any[] }>({ movies: [], series: [] })
+
+  const doSearch = useCallback(async (q: string) => {
+    if (!q.trim() || !server) { setSearchResults({ movies: [], series: [] }); return }
+    const ql = q.toLowerCase()
+    const [mv, sr] = await Promise.all([
+      allVods ? Promise.resolve(allVods) : fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass).then(r => { setAllVods(r || []); return r || [] }),
+      allSeries ? Promise.resolve(allSeries) : fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass).then(r => { setAllSeries(r || []); return r || [] }),
+    ])
+    setSearchResults({
+      movies: (mv || []).filter((i: any) => i.name?.toLowerCase().includes(ql) && hasPoster(i, 'movie')),
+      series: (sr || []).filter((i: any) => i.name?.toLowerCase().includes(ql) && hasPoster(i, 'series')),
+    })
+  }, [server, allVods, allSeries])
+
   const selectedCat = params.get('cat') || ''
   const selectedSeriesCat = params.get('scat') || ''
   const selectedLiveCat = params.get('lcat') || ''
@@ -676,13 +692,26 @@ export default function Dashboard() {
             <SlideCategoryPanel title="Film Kategorileri" items={filteredVodCats} selected={selectedCat} onSelect={(id) => {
               const cat = filteredVodCats.find(c => c.category_id === id)
               if (cat && isAdultCat(cat.category_name)) { setAdultPrompt({ catId: id, type: 'movie' }); return }
+              setSearchQuery(''); setSearchResults({ movies: [], series: [] })
               navigate('/dashboard?tab=movies&cat=' + id, { replace: true }); loadFullCategory(id, 'movie')
             }} />
             <div className="flex-1 overflow-y-auto min-h-0">
-              {showMovieCategory && activeMovieCat ? (
+              <div className="sticky top-0 z-10 bg-[#0f172a]/95 backdrop-blur-sm px-4 py-2 border-b border-white/5">
+                <div className="flex gap-2 max-w-md">
+                  <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && doSearch(searchQuery)} placeholder="Film ara..." className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#0099ff]/50" />
+                  <button onClick={() => doSearch(searchQuery)} className="px-4 py-2 rounded-lg bg-[#0099ff] text-white text-sm font-semibold hover:bg-[#0099ff]/80 transition-colors">Ara</button>
+                </div>
+              </div>
+              {searchResults.movies.length > 0 ? (
+                <MovieCategoryGrid items={searchResults.movies} loading={false} categoryName="Arama Sonuçları" />
+              ) : searchQuery && searchResults.movies.length === 0 && allVods ? (
+                <div className="flex items-center justify-center h-32 text-gray-500 text-sm">Sonuç bulunamadı</div>
+              ) : (
+              showMovieCategory && activeMovieCat ? (
                 <MovieCategoryGrid items={vodItems[activeMovieCat]} loading={!allVods && !vodItems[activeMovieCat]} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} adultCover={adultCatIds.has(activeMovieCat) ? adultCover : undefined} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
+              )
               )}
             </div>
           </div>
@@ -693,6 +722,7 @@ export default function Dashboard() {
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
             <SlideCategoryPanel title="Dizi Kategorileri" items={allSeriesCats} selected={selectedSeriesCat} onSelect={(id) => {
               if (id === '__twd__') {
+                setSearchQuery(''); setSearchResults({ movies: [], series: [] })
                 navigate('/dashboard?tab=series&scat=' + id, { replace: true })
                 if (!seriesItems['__twd__'] && server) {
                   fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass).then(all => {
@@ -704,17 +734,30 @@ export default function Dashboard() {
               }
               const cat = seriesCats.find(c => c.category_id === id)
               if (cat && isAdultCat(cat.category_name)) { setAdultPrompt({ catId: id, type: 'series' }); return }
+              setSearchQuery(''); setSearchResults({ movies: [], series: [] })
               navigate('/dashboard?tab=series&scat=' + id, { replace: true }); loadFullCategory(id, 'series')
             }} />
             <div className="flex-1 overflow-y-auto min-h-0">
-              {showSeriesCategory && activeSeriesCat ? (
-                activeSeriesCat === '__twd__' ? (
-                  <SeriesCategoryGrid items={seriesItems['__twd__']} loading={!allSeries && !seriesItems['__twd__']} categoryName="THE WALKING DEAD" />
-                ) : (
+              <div className="sticky top-0 z-10 bg-[#0f172a]/95 backdrop-blur-sm px-4 py-2 border-b border-white/5">
+                <div className="flex gap-2 max-w-md">
+                  <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && doSearch(searchQuery)} placeholder="Dizi ara..." className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#0099ff]/50" />
+                  <button onClick={() => doSearch(searchQuery)} className="px-4 py-2 rounded-lg bg-[#0099ff] text-white text-sm font-semibold hover:bg-[#0099ff]/80 transition-colors">Ara</button>
+                </div>
+              </div>
+              {searchResults.series.length > 0 ? (
+                <SeriesCategoryGrid items={searchResults.series} loading={false} categoryName="Arama Sonuçları" />
+              ) : searchQuery && searchResults.series.length === 0 && allSeries ? (
+                <div className="flex items-center justify-center h-32 text-gray-500 text-sm">Sonuç bulunamadı</div>
+              ) : (
+              activeSeriesCat === '__twd__' ? (
+                <SeriesCategoryGrid items={seriesItems['__twd__']} loading={!allSeries && !seriesItems['__twd__']} categoryName="THE WALKING DEAD" />
+              ) : (
+              showSeriesCategory && activeSeriesCat ? (
                 <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} adultCover={adultCatIds.has(activeSeriesCat) ? adultCover : undefined} />
-                )
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
+              )
+              )
               )}
             </div>
           </div>
