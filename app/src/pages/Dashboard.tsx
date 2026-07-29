@@ -66,6 +66,7 @@ export default function Dashboard() {
     if (!q.trim() || !server) { setSearchResults({ movies: [], series: [] }); return }
     setSearching(true)
     const ql = q.toLowerCase()
+    const startMs = Date.now()
     const [mv, sr] = await Promise.all([
       allVods ? Promise.resolve(allVods) : fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass).then(r => { setAllVods(r || []); return r || [] }),
       allSeries ? Promise.resolve(allSeries) : fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass).then(r => { setAllSeries(r || []); return r || [] }),
@@ -74,6 +75,9 @@ export default function Dashboard() {
       movies: (mv || []).filter((i: any) => i.name?.toLowerCase().includes(ql) && hasPoster(i, 'movie')),
       series: (sr || []).filter((i: any) => i.name?.toLowerCase().includes(ql) && hasPoster(i, 'series')),
     })
+    const elapsed = Date.now() - startMs
+    const minShow = 4000
+    if (elapsed < minShow) await new Promise(r => setTimeout(r, minShow - elapsed))
     setSearching(false)
   }, [server, allVods, allSeries])
 
@@ -710,15 +714,25 @@ export default function Dashboard() {
                 </div>
               </div>
               {searching ? (
-                <div className="flex flex-col items-center justify-center h-full gap-5 px-4">
-                  <div className="relative w-16 h-16">
-                    <div className="absolute inset-0 rounded-full border-2 border-[#0099ff]/20" />
-                    <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#0099ff] animate-spin" />
-                    <div className="absolute inset-3 rounded-full border-2 border-transparent border-b-[#0099ff] animate-spin animation-delay-150" style={{ animationDuration: '1s' }} />
+                <div className="flex flex-col items-center justify-center h-full gap-6 px-4 select-none">
+                  <div className="relative w-20 h-20">
+                    <div className="absolute inset-0 rounded-full border-[3px] border-[#0099ff]/10" />
+                    <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-[#0099ff] border-r-[#0099ff]/30 animate-spin" style={{ animationDuration: '1.2s' }} />
+                    <div className="absolute inset-2 rounded-full border-[3px] border-transparent border-b-[#0099ff] border-l-[#0099ff]/30 animate-spin" style={{ animationDuration: '0.8s', animationDirection: 'reverse' }} />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-[#0099ff]/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm text-gray-400 font-medium tracking-wide">Aranıyor</p>
-                    <p className="text-xs text-gray-600 mt-1">"{searchQuery}" için tüm veriler taranıyor...</p>
+                  <div className="text-center space-y-1.5">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#0099ff] animate-pulse" />
+                      <span className="text-base font-bold text-white tracking-[0.2em]" style={{ fontFamily: 'Orbitron, sans-serif' }}>ARANIYOR</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#0099ff] animate-pulse" />
+                    </div>
+                    <p className="text-xs text-gray-500 tracking-wide">"{searchQuery}" taranıyor</p>
+                  </div>
+                  <div className="flex gap-1.5">
+                    {[0,1,2,3,4,5].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-[#0099ff]/40 animate-pulse" style={{ animationDelay: `${i * 200}ms`, animationDuration: '1.4s' }} />)}
                   </div>
                 </div>
               ) : searchResults.movies.length > 0 ? (
@@ -768,15 +782,25 @@ export default function Dashboard() {
                 </div>
               </div>
               {searching ? (
-                <div className="flex flex-col items-center justify-center h-full gap-5 px-4">
-                  <div className="relative w-16 h-16">
-                    <div className="absolute inset-0 rounded-full border-2 border-[#0099ff]/20" />
-                    <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#0099ff] animate-spin" />
-                    <div className="absolute inset-3 rounded-full border-2 border-transparent border-b-[#0099ff] animate-spin animation-delay-150" style={{ animationDuration: '1s' }} />
+                <div className="flex flex-col items-center justify-center h-full gap-6 px-4 select-none">
+                  <div className="relative w-20 h-20">
+                    <div className="absolute inset-0 rounded-full border-[3px] border-[#0099ff]/10" />
+                    <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-[#0099ff] border-r-[#0099ff]/30 animate-spin" style={{ animationDuration: '1.2s' }} />
+                    <div className="absolute inset-2 rounded-full border-[3px] border-transparent border-b-[#0099ff] border-l-[#0099ff]/30 animate-spin" style={{ animationDuration: '0.8s', animationDirection: 'reverse' }} />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-[#0099ff]/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm text-gray-400 font-medium tracking-wide">Aranıyor</p>
-                    <p className="text-xs text-gray-600 mt-1">"{searchQuery}" için tüm veriler taranıyor...</p>
+                  <div className="text-center space-y-1.5">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#0099ff] animate-pulse" />
+                      <span className="text-base font-bold text-white tracking-[0.2em]" style={{ fontFamily: 'Orbitron, sans-serif' }}>ARANIYOR</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#0099ff] animate-pulse" />
+                    </div>
+                    <p className="text-xs text-gray-500 tracking-wide">"{searchQuery}" taranıyor</p>
+                  </div>
+                  <div className="flex gap-1.5">
+                    {[0,1,2,3,4,5].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-[#0099ff]/40 animate-pulse" style={{ animationDelay: `${i * 200}ms`, animationDuration: '1.4s' }} />)}
                   </div>
                 </div>
               ) : searchResults.series.length > 0 ? (
