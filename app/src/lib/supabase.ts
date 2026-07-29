@@ -186,9 +186,16 @@ export async function fetchVodInfo(base: string, user: string, pass: string, vod
 
 
 export async function fetchSeriesInfo(base: string, user: string, pass: string, seriesId: number) {
-  const res = await fetch(`${xtUrl(base, user, pass)}&action=get_series_info&series_id=${seriesId}`)
+  let u = `${xtUrl(base, user, pass)}&action=get_series_info&series_id=${seriesId}`
+  let res = await fetch(u)
+  if (!res.ok) {
+    u = `${xtUrl(base, user, pass)}&action=get_series_info&series=${seriesId}`
+    res = await fetch(u)
+  }
   if (!res.ok) throw new Error('Failed to fetch series info')
-  return res.json() as Promise<XtreamSeriesInfo>
+  const text = await res.text()
+  if (!text || text === '[]' || text === '{}') throw new Error('Empty series info')
+  return JSON.parse(text) as XtreamSeriesInfo
 }
 
 export function liveUrl(base: string, user: string, pass: string, id: number) {
