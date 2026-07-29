@@ -110,7 +110,12 @@ export default function Dashboard() {
         ])
         const brandNames = ['netflix', 'disney', 'turkcell', 'apple tv', 'amazon prime', 'hbo', 'hulu', 'paramount', 'blu tv', 'blue tv', 'bein', 'vodafone', 'ttnet', 'milyonlar', 'digiturk', 'd-smart', 'tivibu', 'samsung tv', 'lg tv', 'philips', 'exxen', 'puhu tv', 'gain', 'youtube', 'mubi', 'taboo', 'netd', 'suncity']
         const banned = [...brandNames]
-        const filter = (items: any[]) => items.filter((i: any) => !banned.some(b => (i.category_name || '').toLowerCase().includes(b.toLowerCase())))
+        const allowNames = ['TR ✦ TURKCELL TV+', 'EU ✦ MULTI DISNEY+ SERIES']
+        const filter = (items: any[]) => items.filter((i: any) => {
+          const cn = (i.category_name || '').trim()
+          if (allowNames.includes(cn)) return true
+          return !banned.some(b => i.category_name?.toLowerCase().includes(b.toLowerCase()))
+        })
         const fvc = filter(vc || [])
         const fsc = filter(sc || [])
         setVodCats(fvc)
