@@ -467,9 +467,21 @@ export default function Dashboard() {
   const homeMovieCats = useMemo(() => vodCats.filter(c => !isSeriesCategory(c.category_name)).slice(0, 2), [vodCats])
   const homeSeriesCats = useMemo(() => seriesCats.slice(0, 2), [seriesCats])
 
+  const navCategoryName = useMemo(() => {
+    if (tab === 'movies' && selectedCat) {
+      const cat = filteredVodCats.find(c => c.category_id === selectedCat)
+      return cat ? trName(cat.category_name) : ''
+    }
+    if (tab === 'series' && selectedSeriesCat) {
+      const cat = seriesCats.find(c => c.category_id === selectedSeriesCat)
+      return cat ? trName(cat.category_name) : ''
+    }
+    return ''
+  }, [tab, selectedCat, selectedSeriesCat, filteredVodCats, seriesCats])
+
   return (
     <div className="min-h-screen bg-[#0f172a]">
-      <MemoNavbar />
+      <MemoNavbar categoryName={navCategoryName} />
       <div className="pt-16 md:pt-20">
         {/* ANA SAYFA */}
         {tab === 'home' && (

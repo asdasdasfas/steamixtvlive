@@ -192,6 +192,25 @@
   color: #60a5fa;
 }
 
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 153, 255, 0.25);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 153, 255, 0.45);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 153, 255, 0.25) transparent;
+}
+
 ::selection {
   background: rgba(0, 153, 255, 0.3);
   color: #fff;
