@@ -718,7 +718,6 @@ export default function Dashboard() {
                     {searchQuery && <button onClick={() => { setSearchQuery(''); setSearchResults({ movies: [], series: [] }) }} className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#0099ff]/20 hover:bg-[#0099ff]/40 flex items-center justify-center transition-all duration-200"><svg className="w-3.5 h-3.5 text-[#0099ff]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" /></svg></button>}
                   </div>
                   <button onClick={() => doSearch(searchQuery)} className="px-7 py-3 rounded-2xl bg-gradient-to-r from-[#0099ff] to-[#0077cc] text-white text-sm font-semibold hover:from-[#00aaff] hover:to-[#0088dd] hover:shadow-[0_0_25px_rgba(0,153,255,0.3)] active:scale-[0.97] transition-all duration-200 tracking-wide">Ara</button>
-                  <span className="text-xs text-gray-400 select-none">Sistemde olmayan filmleri ve dizileri de sorgulayabilirsiniz</span>
                 </div>
               </div>
               {searching ? (
