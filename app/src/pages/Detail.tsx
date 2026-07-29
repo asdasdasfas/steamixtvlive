@@ -85,9 +85,11 @@ export default function Detail() {
               director: decodeField(md2?.director || iv?.director || ''),
               youtube_trailer: '',
             })
-            searchTrailer(cleanName(urlName || iv?.name || mapi?.name || ''), 'movie').then(vid => {
-              if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
-            })
+            if (urlIcon !== 'adult') {
+              searchTrailer(cleanName(urlName || iv?.name || mapi?.name || ''), 'movie').then(vid => {
+                if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
+              })
+            }
             // Load similar from same category (silent, parallel)
             if (catId || info?.info?.category_id) {
               const cid = catId || info?.info?.category_id
@@ -127,9 +129,11 @@ export default function Detail() {
               episodes,
               youtube_trailer: '',
             })
-            searchTrailer(cleanName(urlName || si?.name || ''), 'series').then(vid => {
-              if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
-            })
+            if (urlIcon !== 'adult') {
+              searchTrailer(cleanName(urlName || si?.name || ''), 'series').then(vid => {
+                if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
+              })
+            }
             // Load similar from same category (silent, parallel)
             if (catId || si?.category_id) {
               const cid = catId || si?.category_id
