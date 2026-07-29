@@ -213,12 +213,7 @@
   scrollbar-width: thin;
   scrollbar-color: rgba(0,153,255,0.35) #0f172a;
 }
-html {
-  overflow-y: scroll;
-}
-body {
-  min-height: calc(100vh + 2px);
-}
+
 
 ::selection {
   background: rgba(0, 153, 255, 0.3);

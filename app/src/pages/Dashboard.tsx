@@ -618,13 +618,13 @@ export default function Dashboard() {
 
         {/* MOVIES TAB */}
         {tab === 'movies' && (
-          <div className="pb-8">
+          <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
             <SlideCategoryPanel title="Film Kategorileri" items={filteredVodCats} selected={selectedCat} onSelect={(id) => { navigate('/dashboard?tab=movies&cat=' + id, { replace: true }); loadFullCategory(id, 'movie') }} />
-            <div className="px-4 md:px-6 pt-3">
+            <div className="flex-1 overflow-y-auto min-h-0">
               {showMovieCategory && activeMovieCat ? (
                 <MovieCategoryGrid items={vodItems[activeMovieCat]} loading={!allVods && !vodItems[activeMovieCat]} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} />
               ) : (
-                <div className="flex items-center justify-center h-[60vh] text-gray-500 text-sm px-4">Yükleniyor...</div>
+                <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
               )}
             </div>
           </div>
@@ -632,13 +632,13 @@ export default function Dashboard() {
 
         {/* SERIES TAB */}
         {tab === 'series' && (
-          <div className="pb-8">
+          <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
             <SlideCategoryPanel title="Dizi Kategorileri" items={seriesCats} selected={selectedSeriesCat} onSelect={(id) => { navigate('/dashboard?tab=series&scat=' + id, { replace: true }); loadFullCategory(id, 'series') }} />
-            <div className="px-4 md:px-6 pt-3">
+            <div className="flex-1 overflow-y-auto min-h-0">
               {showSeriesCategory && activeSeriesCat ? (
                 <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} />
               ) : (
-                <div className="flex items-center justify-center h-[60vh] text-gray-500 text-sm px-4">Yükleniyor...</div>
+                <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
               )}
             </div>
           </div>
