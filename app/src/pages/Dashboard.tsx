@@ -223,36 +223,37 @@ export default function Dashboard() {
         }
         return all
       }
+      const skipPoster = adultCatIds.has(catId)
       if (type === 'movie') {
         if (allVods) {
-          setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId) && hasPoster(i, 'movie')) }))
+          setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId) && (skipPoster || hasPoster(i, 'movie'))) }))
           return
         }
         let items = await fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass)
         if (!items || items.length === 0) {
           items = await fetchAllCatsSequential('movie')
         }
-        const matched = (items || []).filter((i: any) => matchCat(i, catId) && hasPoster(i, 'movie'))
+        const matched = (items || []).filter((i: any) => matchCat(i, catId) && (skipPoster || hasPoster(i, 'movie')))
         setAllVods(items || [])
         setVodItems(prev => ({ ...prev, [catId]: matched }))
       } else {
         if (catId === '__twd__') return
         if (allSeries) {
-          setSeriesItems(prev => ({ ...prev, [catId]: allSeries.filter((i: any) => matchCat(i, catId) && hasPoster(i, 'series')) }))
+          setSeriesItems(prev => ({ ...prev, [catId]: allSeries.filter((i: any) => matchCat(i, catId) && (skipPoster || hasPoster(i, 'series'))) }))
           return
         }
         let items = await fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass)
         if (!items || items.length === 0) {
           items = await fetchAllCatsSequential('series')
         }
-        const matched = (items || []).filter((i: any) => matchCat(i, catId) && hasPoster(i, 'series'))
+        const matched = (items || []).filter((i: any) => matchCat(i, catId) && (skipPoster || hasPoster(i, 'series')))
         setAllSeries(items || [])
         setSeriesItems(prev => ({ ...prev, [catId]: matched }))
       }
     } catch {} finally {
       loadingRef.current[loadingKey] = false
     }
-  }, [server, allVods, allSeries, vodCats, seriesCats])
+  }, [server, allVods, allSeries, vodCats, seriesCats, adultCatIds])
 
   // Kategorilere tıklandığında grid açılsın
   const setTab = (t: string) => {
