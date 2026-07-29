@@ -111,18 +111,20 @@ export default function Dashboard() {
         // Hero
         const heroCat = fvc.find(c => !isSeriesCategory(c.category_name)) || fvc[0]
         if (heroCat) {
-          const heroData = await fetchVods(server.base_url, server.xtream_user, server.xtream_pass, heroCat.category_id).then(r => r || []).catch(() => [])
+          const heroData = await fetchVods(server.base_url, server.xtream_user, server.xtream_pass, heroCat.category_id).then(r => (r || []).filter((i: any) => hasPoster(i, 'movie'))).catch(() => [])
           setHeroItems(heroData)
         }
 
         // Ana sayfa 2+2 (tüm öğeler)
         const homeMovieCats = fvc.filter(c => !isSeriesCategory(c.category_name)).slice(0, 2)
         const homeSeriesCats = fsc.slice(0, 2)
+        const filterM = (r: any[]) => (r || []).filter((i: any) => hasPoster(i, 'movie'))
+        const filterS = (r: any[]) => (r || []).filter((i: any) => hasPoster(i, 'series'))
         const [m1, m2, s1, s2] = await Promise.all([
-          homeMovieCats[0] ? fetchVods(server.base_url, server.xtream_user, server.xtream_pass, homeMovieCats[0].category_id).then(r => r || []).catch(() => []) : Promise.resolve([]),
-          homeMovieCats[1] ? fetchVods(server.base_url, server.xtream_user, server.xtream_pass, homeMovieCats[1].category_id).then(r => r || []).catch(() => []) : Promise.resolve([]),
-          homeSeriesCats[0] ? fetchSeries(server.base_url, server.xtream_user, server.xtream_pass, homeSeriesCats[0].category_id).then(r => r || []).catch(() => []) : Promise.resolve([]),
-          homeSeriesCats[1] ? fetchSeries(server.base_url, server.xtream_user, server.xtream_pass, homeSeriesCats[1].category_id).then(r => r || []).catch(() => []) : Promise.resolve([]),
+          homeMovieCats[0] ? fetchVods(server.base_url, server.xtream_user, server.xtream_pass, homeMovieCats[0].category_id).then(filterM).catch(() => []) : Promise.resolve([]),
+          homeMovieCats[1] ? fetchVods(server.base_url, server.xtream_user, server.xtream_pass, homeMovieCats[1].category_id).then(filterM).catch(() => []) : Promise.resolve([]),
+          homeSeriesCats[0] ? fetchSeries(server.base_url, server.xtream_user, server.xtream_pass, homeSeriesCats[0].category_id).then(filterS).catch(() => []) : Promise.resolve([]),
+          homeSeriesCats[1] ? fetchSeries(server.base_url, server.xtream_user, server.xtream_pass, homeSeriesCats[1].category_id).then(filterS).catch(() => []) : Promise.resolve([]),
         ])
         const mv: Record<string, any[]> = {}
         if (homeMovieCats[0]) mv[homeMovieCats[0].category_id] = m1
@@ -144,6 +146,11 @@ export default function Dashboard() {
     }, 4000)
     return () => clearInterval(slideTimer.current)
   }, [heroItems])
+
+  const hasPoster = (item: any, type: 'movie' | 'series') => {
+    if (type === 'series') return !!(item.cover_big || item.movie_image || item.cover || item.thumbnail)
+    return !!(item.cover_big || item.stream_icon)
+  }
 
   const loadFullCategory = useCallback(async (catId: string, type: 'movie' | 'series') => {
     if (!server) return
@@ -178,26 +185,26 @@ export default function Dashboard() {
       }
       if (type === 'movie') {
         if (allVods) {
-          setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId)) }))
+          setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId) && hasPoster(i, 'movie')) }))
           return
         }
         let items = await fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass)
         if (!items || items.length === 0) {
           items = await fetchAllCatsSequential('movie')
         }
-        const matched = (items || []).filter((i: any) => matchCat(i, catId))
+        const matched = (items || []).filter((i: any) => matchCat(i, catId) && hasPoster(i, 'movie'))
         setAllVods(items || [])
         setVodItems(prev => ({ ...prev, [catId]: matched }))
       } else {
         if (allSeries) {
-          setSeriesItems(prev => ({ ...prev, [catId]: allSeries.filter((i: any) => matchCat(i, catId)) }))
+          setSeriesItems(prev => ({ ...prev, [catId]: allSeries.filter((i: any) => matchCat(i, catId) && hasPoster(i, 'series')) }))
           return
         }
         let items = await fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass)
         if (!items || items.length === 0) {
           items = await fetchAllCatsSequential('series')
         }
-        const matched = (items || []).filter((i: any) => matchCat(i, catId))
+        const matched = (items || []).filter((i: any) => matchCat(i, catId) && hasPoster(i, 'series'))
         setAllSeries(items || [])
         setSeriesItems(prev => ({ ...prev, [catId]: matched }))
       }
