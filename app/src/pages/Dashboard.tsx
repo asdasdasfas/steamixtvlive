@@ -181,12 +181,6 @@ export default function Dashboard() {
     if (loadingRef.current[loadingKey]) return
     loadingRef.current[loadingKey] = true
     try {
-      if (type === 'movie' && movedSeriesCatIds.has(catId)) {
-        const items = await fetchVods(server.base_url, server.xtream_user, server.xtream_pass, catId)
-        const filtered = (items || []).filter((i: any) => hasPoster(i, 'movie'))
-        setVodItems(prev => ({ ...prev, [catId]: filtered }))
-        return
-      }
       const matchCat = (item: any, id: string) => {
         const cid = item.category_id
         if (cid != null && String(cid).trim() !== '' && String(cid) !== '0' && String(cid) === id) return true
@@ -472,9 +466,16 @@ export default function Dashboard() {
   useEffect(() => {
     if (tab === 'series' && activeSeriesCat) {
       const isMoved = movedSeriesCatIds.has(activeSeriesCat)
-      const items = isMoved ? vodItems[activeSeriesCat] : seriesItems[activeSeriesCat]
-      if (!items) {
-        loadFullCategory(activeSeriesCat, isMoved ? 'movie' : 'series')
+      if (isMoved) {
+        if (!vodItems[activeSeriesCat] && server) {
+          fetchVods(server.base_url, server.xtream_user, server.xtream_pass, activeSeriesCat).then(r => {
+            setVodItems(prev => ({ ...prev, [activeSeriesCat]: (r || []).filter((i: any) => hasPoster(i, 'movie')) }))
+          })
+        }
+      } else {
+        if (!seriesItems[activeSeriesCat]) {
+          loadFullCategory(activeSeriesCat, 'series')
+        }
       }
     }
   }, [tab, activeSeriesCat])
@@ -710,8 +711,7 @@ export default function Dashboard() {
             <SlideCategoryPanel title="Dizi Kategorileri" items={allSeriesCats} selected={selectedSeriesCat} onSelect={(id) => {
               const cat = allSeriesCats.find(c => c.category_id === id)
               if (cat && isAdultCat(cat.category_name)) { setAdultPrompt({ catId: id, type: 'series' }); return }
-              const isMoved = movedSeriesCatIds.has(id)
-              navigate('/dashboard?tab=series&scat=' + id, { replace: true }); loadFullCategory(id, isMoved ? 'movie' : 'series')
+              navigate('/dashboard?tab=series&scat=' + id, { replace: true })
             }} />
             <div className="flex-1 overflow-y-auto min-h-0">
               {showSeriesCategory && activeSeriesCat ? (
