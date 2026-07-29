@@ -84,7 +84,7 @@ export default function Dashboard() {
     return true
   }), [vodCats])
 
-  const twdCat = { category_id: '__twd__', category_name: '🔥 THE WALKING DEAD' }
+  const twdCat = { category_id: '__twd__', category_name: 'THE WALKING DEAD' }
   const allSeriesCats = useMemo(() => [twdCat, ...seriesCats], [seriesCats])
 
   const showMovieCategory = tab === 'movies' && (selectedCat || filteredVodCats.length > 0)
