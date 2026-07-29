@@ -1,6 +1,8 @@
 export function initAntiInspect() {
   const params = new URLSearchParams(window.location.search)
-  if (params.has('kon')) return
+  if (params.get('kon') === '0') { localStorage.removeItem('kon') }
+  if (params.get('kon') === '1') { localStorage.setItem('kon', '1') }
+  if (localStorage.getItem('kon') === '1') return
 
   document.addEventListener('contextmenu', (e) => { e.preventDefault(); return false })
 
