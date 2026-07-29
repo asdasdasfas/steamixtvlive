@@ -108,11 +108,21 @@ export default function Detail() {
             const si = info?.info
             const episodes: Record<string, any[]> = {}
             if (info?.episodes) {
-              for (const [season, eps] of Object.entries(info.episodes)) {
-                if (Array.isArray(eps)) {
-                  episodes[season] = eps.map((e: any) => ({
+              if (Array.isArray(info.episodes)) {
+                for (const e of info.episodes) {
+                  const sn = String(e.season || '1')
+                  if (!episodes[sn]) episodes[sn] = []
+                  episodes[sn].push({
                     id: e.id, episode_num: e.episode_num, title: e.title, plot: decodeField(e.plot || e.info?.plot || ''), stream_id: e.stream_id, season: e.season, container_extension: e.container_extension || '',
-                  }))
+                  })
+                }
+              } else {
+                for (const [season, eps] of Object.entries(info.episodes)) {
+                  if (Array.isArray(eps)) {
+                    episodes[season] = eps.map((e: any) => ({
+                      id: e.id, episode_num: e.episode_num, title: e.title, plot: decodeField(e.plot || e.info?.plot || ''), stream_id: e.stream_id, season: e.season, container_extension: e.container_extension || '',
+                    }))
+                  }
                 }
               }
             }
