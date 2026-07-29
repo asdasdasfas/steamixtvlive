@@ -73,7 +73,7 @@ export default function Dashboard() {
     ])
     setSearchResults({
       movies: (mv || []).filter((i: any) => i.name?.toLowerCase().includes(ql)),
-      series: (sr || []).filter((i: any) => i.name?.toLowerCase().includes(ql) && hasPoster(i)),
+      series: (sr || []).filter((i: any) => i.name?.toLowerCase().includes(ql) && hasPoster(i, 'series')),
     })
     const elapsed = Date.now() - startMs
     const minShow = 3000
@@ -143,15 +143,15 @@ export default function Dashboard() {
         // Hero
         const heroCat = fvc.find(c => !isSeriesCategory(c.category_name)) || fvc[0]
         if (heroCat) {
-          const heroData = await fetchVods(server.base_url, server.xtream_user, server.xtream_pass, heroCat.category_id).then(r => (r || []).filter((i: any) => hasPoster(i))).catch(() => [])
+          const heroData = await fetchVods(server.base_url, server.xtream_user, server.xtream_pass, heroCat.category_id).then(r => (r || []).filter((i: any) => hasPoster(i, 'movie'))).catch(() => [])
           setHeroItems(heroData)
         }
 
         // Ana sayfa 2+2 (tüm öğeler)
         const homeMovieCats = fvc.filter(c => !isSeriesCategory(c.category_name)).slice(0, 2)
         const homeSeriesCats = fsc.slice(0, 2)
-        const filterM = (r: any[]) => (r || []).filter((i: any) => hasPoster(i))
-        const filterS = (r: any[]) => (r || []).filter((i: any) => hasPoster(i))
+        const filterM = (r: any[]) => (r || []).filter((i: any) => hasPoster(i, 'movie'))
+        const filterS = (r: any[]) => (r || []).filter((i: any) => hasPoster(i, 'series'))
         const [m1, m2, s1, s2] = await Promise.all([
           homeMovieCats[0] ? fetchVods(server.base_url, server.xtream_user, server.xtream_pass, homeMovieCats[0].category_id).then(filterM).catch(() => []) : Promise.resolve([]),
           homeMovieCats[1] ? fetchVods(server.base_url, server.xtream_user, server.xtream_pass, homeMovieCats[1].category_id).then(filterM).catch(() => []) : Promise.resolve([]),
@@ -179,17 +179,16 @@ export default function Dashboard() {
     return () => clearInterval(slideTimer.current)
   }, [heroItems])
 
-  const hasPoster = (item: any) => {
-    const imgKeys = ['cover_big','stream_icon','movie_image','cover','thumbnail','ico_tbn','poster','image','poster_path','backdrop_path','img','pic','photo','stream_icon_big','icon','logo','banner','screen1','screen2','screen3']
-    for (const k of imgKeys) {
-      const v = item[k]
-      if (v && typeof v === 'string') {
-        const t = v.trim()
-        if (t.length > 0 && t !== 'null' && t !== 'undefined' && t !== '/' && t !== '-' && !t.includes('default') && !t.includes('placeholder') && !t.includes('logo') && !t.includes('no_image'))
-          return true
-      }
+  const hasPoster = (item: any, type: 'movie' | 'series') => {
+    const valid = (v: any) => {
+      if (!v || typeof v !== 'string') return false
+      const t = v.trim()
+      if (t.length === 0) return false
+      if (t === 'null' || t === 'undefined' || t === '/' || t === '-') return false
+      return true
     }
-    return false
+    if (type === 'series') return valid(item.cover_big) || valid(item.movie_image) || valid(item.cover) || valid(item.thumbnail)
+    return valid(item.cover_big) || valid(item.stream_icon)
   }
 
   const loadFullCategory = useCallback(async (catId: string, type: 'movie' | 'series') => {
@@ -237,14 +236,14 @@ export default function Dashboard() {
         setVodItems(prev => ({ ...prev, [catId]: matched }))
       } else {
         if (allSeries) {
-          setSeriesItems(prev => ({ ...prev, [catId]: allSeries.filter((i: any) => matchCat(i, catId) && hasPoster(i)) }))
+          setSeriesItems(prev => ({ ...prev, [catId]: allSeries.filter((i: any) => matchCat(i, catId) && hasPoster(i, 'series')) }))
           return
         }
         let items = await fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass)
         if (!items || items.length === 0) {
           items = await fetchAllCatsSequential('series')
         }
-        const matched = (items || []).filter((i: any) => matchCat(i, catId) && hasPoster(i))
+        const matched = (items || []).filter((i: any) => matchCat(i, catId) && hasPoster(i, 'series'))
         setAllSeries(items || [])
         setSeriesItems(prev => ({ ...prev, [catId]: matched }))
       }
@@ -953,14 +952,12 @@ function SeriesCategoryGrid({ items, loading, categoryName, adultCover }: any) {
 }
 
 function GridItem({ item, adultCover, pImg, handleDetail, type, isSeries }: any) {
-  const [hide, setHide] = useState(false)
   const posterSrc = adultCover ? undefined : pImg(item.cover_big || item.stream_icon || item.movie_image || item.cover || item.thumbnail)
-  if (hide) return null
   return (
     <div className="group">
       <button onClick={() => handleDetail(item)} className="w-full">
         <div className={`aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40 ${isSeries ? 'group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-[#14b8a6]/40' : ''}`}>
-          <Poster src={posterSrc} type={type} onError={() => setHide(true)} />
+          <Poster src={posterSrc} type={type} />
           {adultCover ? (
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col items-center justify-center">
               <span className="text-2xl md:text-3xl font-black text-red-500 opacity-60" style={{ fontFamily: 'Orbitron, sans-serif' }}>18+</span>
