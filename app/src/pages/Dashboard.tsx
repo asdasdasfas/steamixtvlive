@@ -9,7 +9,7 @@ import Navbar from '@/sections/Navbar'
 const MemoNavbar = memo(Navbar)
 import LiveTvScreen from '@/sections/LiveTvScreen'
 import Poster from '@/components/Poster'
-import { Loader2, Play, Info, Heart } from 'lucide-react'
+import { Loader2, Play, Info, Heart, Lock } from 'lucide-react'
 
 function parseTitle(raw: string) {
   const m = raw.match(/^(.+?)\s*[\(\[{]?\s*(\d{4})\s*[\)\]}]?\s*(.*)$/)
@@ -43,6 +43,10 @@ export default function Dashboard() {
   const [allVods, setAllVods] = useState<any[] | null>(null)
   const [allSeries, setAllSeries] = useState<any[] | null>(null)
   const scrollContainers = useRef<Record<string, HTMLDivElement | null>>({})
+
+  const [adultPassword, setAdultPassword] = useState('')
+  const [adultPrompt, setAdultPrompt] = useState<{ catId: string; type: 'movie' | 'series' } | null>(null)
+  const isAdultCat = (name: string) => name.toLowerCase().includes('adult')
 
   const selectedCat = params.get('cat') || ''
   const selectedSeriesCat = params.get('scat') || ''
@@ -495,6 +499,7 @@ export default function Dashboard() {
   }, [tab, selectedCat, selectedSeriesCat, filteredVodCats, seriesCats])
 
   return (
+    <>
     <div className="min-h-screen bg-[#0f172a]">
       <MemoNavbar categoryName={navCategoryName} />
       <div className="pt-16 md:pt-20">
@@ -634,7 +639,11 @@ export default function Dashboard() {
         {/* MOVIES TAB */}
         {tab === 'movies' && (
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
-            <SlideCategoryPanel title="Film Kategorileri" items={filteredVodCats} selected={selectedCat} onSelect={(id) => { navigate('/dashboard?tab=movies&cat=' + id, { replace: true }); loadFullCategory(id, 'movie') }} />
+            <SlideCategoryPanel title="Film Kategorileri" items={filteredVodCats} selected={selectedCat} onSelect={(id) => {
+              const cat = filteredVodCats.find(c => c.category_id === id)
+              if (cat && isAdultCat(cat.category_name)) { setAdultPrompt({ catId: id, type: 'movie' }); return }
+              navigate('/dashboard?tab=movies&cat=' + id, { replace: true }); loadFullCategory(id, 'movie')
+            }} />
             <div className="flex-1 overflow-y-auto min-h-0">
               {showMovieCategory && activeMovieCat ? (
                 <MovieCategoryGrid items={vodItems[activeMovieCat]} loading={!allVods && !vodItems[activeMovieCat]} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} />
@@ -648,7 +657,11 @@ export default function Dashboard() {
         {/* SERIES TAB */}
         {tab === 'series' && (
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
-            <SlideCategoryPanel title="Dizi Kategorileri" items={seriesCats} selected={selectedSeriesCat} onSelect={(id) => { navigate('/dashboard?tab=series&scat=' + id, { replace: true }); loadFullCategory(id, 'series') }} />
+            <SlideCategoryPanel title="Dizi Kategorileri" items={seriesCats} selected={selectedSeriesCat} onSelect={(id) => {
+              const cat = seriesCats.find(c => c.category_id === id)
+              if (cat && isAdultCat(cat.category_name)) { setAdultPrompt({ catId: id, type: 'series' }); return }
+              navigate('/dashboard?tab=series&scat=' + id, { replace: true }); loadFullCategory(id, 'series')
+            }} />
             <div className="flex-1 overflow-y-auto min-h-0">
               {showSeriesCategory && activeSeriesCat ? (
                 <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} />
@@ -676,6 +689,35 @@ export default function Dashboard() {
         )}
       </div>
     </div>
+
+    {/* Adult password modal */}
+    {adultPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 w-80 max-w-[90vw] shadow-2xl shadow-black/50">
+            <div className="flex items-center gap-3 mb-4">
+              <Lock className="w-6 h-6 text-red-500" />
+              <h3 className="text-base font-bold text-white" style={{ fontFamily: 'Orbitron, sans-serif' }}>YETİŞKİN İÇERİK</h3>
+            </div>
+            <p className="text-sm text-gray-400 mb-4">Bu kategori yetişkinlere yönelik içerikler içerir. Devam etmek için şifreyi girin.</p>
+            <input type="password" value={adultPassword} onChange={e => setAdultPassword(e.target.value)}
+              placeholder="Şifre" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm mb-3 focus:outline-none focus:border-[#0099ff]/50" autoFocus />
+            <div className="flex gap-2">
+              <button onClick={() => { setAdultPrompt(null); setAdultPassword('') }}
+                className="flex-1 py-2.5 rounded-xl bg-white/5 text-white text-sm hover:bg-white/10 transition-colors">İptal</button>
+              <button onClick={() => {
+                if (adultPassword === '12345') {
+                  const p = adultPrompt
+                  setAdultPrompt(null); setAdultPassword('')
+                  if (p.type === 'movie') { navigate('/dashboard?tab=movies&cat=' + p.catId, { replace: true }); loadFullCategory(p.catId, 'movie') }
+                  else { navigate('/dashboard?tab=series&scat=' + p.catId, { replace: true }); loadFullCategory(p.catId, 'series') }
+                } else { setAdultPassword('') }
+              }}
+                className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm hover:bg-red-700 transition-colors">Giriş</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
