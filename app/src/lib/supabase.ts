@@ -149,13 +149,13 @@ async function tryFetchAll<T>(url: string): Promise<T[] | null> {
 }
 
 export async function fetchAllVods(base: string, user: string, pass: string): Promise<XtreamVod[]> {
-  const u = `${xtUrl(base, user, pass)}&action=get_vod_streams&limit=9999`
+  const u = `${xtUrl(base, user, pass)}&action=get_vod_streams`
   const result = await tryFetchAll<XtreamVod>(u)
   return result || []
 }
 
 export async function fetchAllSeries(base: string, user: string, pass: string): Promise<XtreamSeries[]> {
-  const u = `${xtUrl(base, user, pass)}&action=get_series&limit=9999`
+  const u = `${xtUrl(base, user, pass)}&action=get_series`
   const result = await tryFetchAll<XtreamSeries>(u)
   return result || []
 }
@@ -184,34 +184,6 @@ export async function fetchVodInfo(base: string, user: string, pass: string, vod
   return res.json() as Promise<XtreamVodInfo>
 }
 
-export async function fetchMoviesByActors(base: string, user: string, pass: string, actorNames: string[]) {
-  const all = await fetchAllVods(base, user, pass)
-  if (!all.length) return []
-  const matched: XtreamVod[] = []
-  const nameMatched = new Set<number>()
-  for (const vod of all) {
-    if (actorNames.some(a => vod.name?.toLowerCase().includes(a))) {
-      matched.push(vod)
-      nameMatched.add(vod.stream_id)
-    }
-  }
-  const unmatched = all.filter(v => !nameMatched.has(v.stream_id))
-  const BATCH = 20
-  for (let i = 0; i < unmatched.length; i += BATCH) {
-    const batch = unmatched.slice(i, i + BATCH)
-    const results = await Promise.allSettled(batch.map(v => fetchVodInfo(base, user, pass, v.stream_id)))
-    for (let j = 0; j < results.length; j++) {
-      const r = results[j]
-      if (r.status === 'fulfilled') {
-        const cast = r.value?.info?.movie_data?.info?.cast || ''
-        if (actorNames.some(a => cast.toLowerCase().includes(a))) {
-          matched.push(batch[j])
-        }
-      }
-    }
-  }
-  return matched
-}
 
 export async function fetchSeriesInfo(base: string, user: string, pass: string, seriesId: number) {
   const res = await fetch(`${xtUrl(base, user, pass)}&action=get_series_info&series_id=${seriesId}`)
