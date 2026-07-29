@@ -109,9 +109,19 @@ export default function Detail() {
             const episodes: Record<string, any[]> = {}
             if (info?.episodes) {
               for (const [season, eps] of Object.entries(info.episodes)) {
-                episodes[season] = (eps as any[]).map((e: any) => ({
-                  id: e.id, episode_num: e.episode_num, title: e.title, plot: decodeField(e.plot || e.info?.plot || ''), stream_id: e.stream_id, season: e.season, container_extension: e.container_extension || '',
-                }))
+                if (Array.isArray(eps)) {
+                  episodes[season] = eps.map((e: any) => ({
+                    id: e.id, episode_num: e.episode_num, title: e.title, plot: decodeField(e.plot || e.info?.plot || ''), stream_id: e.stream_id, season: e.season, container_extension: e.container_extension || '',
+                  }))
+                }
+              }
+            }
+            // Bazı sunucular episodes map'inde sadece bölümü olan sezonları döndürür,
+            // boş sezonları seasons array'inde ekler. Referans projedeki gibi birleştir.
+            if (info?.seasons && Array.isArray(info.seasons)) {
+              for (const s of info.seasons) {
+                const sn = s.season_number ?? s.season ?? String(Object.keys(episodes).length + 1)
+                if (sn && !episodes[String(sn)]) episodes[String(sn)] = []
               }
             }
             setData({
