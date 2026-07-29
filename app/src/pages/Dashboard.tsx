@@ -76,10 +76,16 @@ export default function Dashboard() {
       series: (sr || []).filter((i: any) => i.name?.toLowerCase().includes(ql) && hasPoster(i, 'series')),
     })
     const elapsed = Date.now() - startMs
-    const minShow = 4000
+    const minShow = 3000
     if (elapsed < minShow) await new Promise(r => setTimeout(r, minShow - elapsed))
     setSearching(false)
   }, [server, allVods, allSeries])
+
+  useEffect(() => {
+    if (!searchQuery.trim()) return
+    const t = setTimeout(() => doSearch(searchQuery), 400)
+    return () => clearTimeout(t)
+  }, [searchQuery])
 
   const selectedCat = params.get('cat') || ''
   const selectedSeriesCat = params.get('scat') || ''
