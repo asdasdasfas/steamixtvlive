@@ -232,7 +232,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
             {isSeries && seasons.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-sm font-semibold text-gray-200 mb-3">Sezonlar & Bölümler</h3>
-                <div className="flex gap-2 overflow-x-auto mb-4 scrollbar-hide pb-1">
+                <div className="flex flex-wrap gap-2 mb-4 pb-1">
                   {seasons.map(s => (
                     <button key={s} onClick={() => setSelectedSeason(s)}
                       className={`px-4 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
