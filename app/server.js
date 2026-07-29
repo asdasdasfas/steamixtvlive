@@ -207,20 +207,27 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
             const u = new URL(absUrl)
             const key = u.hostname + ':' + (u.port || (u.protocol === 'https:' ? 443 : 80))
             const proto = u.protocol // 'http:' or 'https:'
-            // Register ALL hosts in m3u8CdnMap so segment requests go through our proxy
-            // Without this, browser hits CDN directly and tokens in URL expire (~4min)
-            let hash = m3u8CdnMap[key]
-            if (!hash) {
-              hash = 'cdn' + (++m3u8Counter)
-              m3u8CdnMap[key] = hash
-              m3u8CdnMap[hash] = { base: proto + '//' + key, host: u.hostname, protocol: proto }
+            // Only rewrite URLs if they're on the same host as the M3U8 (same CDN serves both)
+            // If a different host (e.g. TRT CDN from daioncdn M3U8), keep absolute URL — browser hits CDN directly
+            if (u.host === m3u8Url.host) {
+              // Register in m3u8CdnMap with a short hash
+              let hash = m3u8CdnMap[key]
+              if (!hash) {
+                hash = 'cdn' + (++m3u8Counter)
+                m3u8CdnMap[key] = hash
+                m3u8CdnMap[hash] = { base: proto + '//' + key, host: u.hostname, protocol: proto }
+              }
+              // Update default targets
+              hlsDefaultTarget = proto + '//' + key
+              if (!hlsProxyKeys.includes(key)) hlsProxyKeys.push(key)
+              // Replace absolute URL with /hls/{hash}/path
+              const urlPath = u.pathname + (u.search || '')
+              const proxyPath = '/hls/' + hash + urlPath
+              bodyStr = bodyStr.replace(absUrl, proxyPath)
+              console.log(`[HLS-REWRITE] ${absUrl.substring(0,60)} -> ${proxyPath.substring(0,60)}`)
+            } else {
+              console.log(`[HLS-KEEP] ${absUrl.substring(0,60)} (different host, keeping absolute)`)
             }
-            hlsDefaultTarget = proto + '//' + key
-            if (!hlsProxyKeys.includes(key)) hlsProxyKeys.push(key)
-            const urlPath = u.pathname + (u.search || '')
-            const proxyPath = '/hls/' + hash + urlPath
-            bodyStr = bodyStr.replace(absUrl, proxyPath)
-            console.log(`[HLS-PROXY] ${absUrl.substring(0,60)} -> ${proxyPath.substring(0,60)}`)
           } catch (e) {
             console.log(`[HLS-REWRITE-ERR] ${e.message} for ${absUrl.substring(0,60)}`)
           }
@@ -387,10 +394,6 @@ http.createServer((req, res) => {
         if (decoded.startsWith('http://') || decoded.startsWith('https://')) {
           const targetBase = decoded.replace(/\/+$/, '')
           const prefix = '/dyn/' + encoded
-          const pathNoQuery = (req.url.split('?')[0]).toLowerCase()
-          if (pathNoQuery.endsWith('.m3u8') || pathNoQuery.endsWith('.m3u')) {
-            return hlsFetchAndProxy(req, res, targetBase, prefix)
-          }
           return fetchAndProxy(req, res, targetBase, prefix)
         }
       } catch {}

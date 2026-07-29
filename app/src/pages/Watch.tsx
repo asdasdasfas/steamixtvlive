@@ -64,7 +64,7 @@ export default function Watch() {
       if (rotationId) {
         const ch = getChannelById(rotationId)
         if (!ch || ch.urls.length === 0) throw new Error('Kanal bulunamadı')
-        if (!cancelled) { setUrl(proxyExternalUrl(ch.urls[0])); setFallbackUrls(ch.urls.slice(1).map(proxyExternalUrl)); setTitle(ch.name) }
+        if (!cancelled) { setUrl(ch.urls[0]); setFallbackUrls(ch.urls.slice(1)); setTitle(ch.name) }
       } else if (streamId) {
         const sid = parseInt(streamId)
         const { base_url, xtream_user, xtream_pass } = server
@@ -133,25 +133,17 @@ export default function Watch() {
   }, [streamId, rotationId])
 
   useEffect(() => {
-    if (!refreshKey || !server) return
-    if (streamId && type === 'live') {
-      const sid = parseInt(streamId)
-      const { base_url, xtream_user, xtream_pass } = server
-      const newUrl = liveUrl(base_url, xtream_user, xtream_pass, sid)
-      const newFb = proxyUrl(base_url, `/live/${xtream_user}/${xtream_pass}/${sid}.m3u8`)
-      setUrl(newUrl)
-      setFallbackUrls([newFb])
-    } else if (rotationId) {
-      const ch = getChannelById(rotationId)
-      if (ch && ch.urls.length > 0) {
-        setUrl(proxyExternalUrl(ch.urls[0]))
-        setFallbackUrls(ch.urls.slice(1).map(proxyExternalUrl))
-      }
-    }
-  }, [refreshKey, server, streamId, rotationId, type])
+    if (!refreshKey || !server || !streamId || type !== 'live') return
+    const sid = parseInt(streamId)
+    const { base_url, xtream_user, xtream_pass } = server
+    const newUrl = liveUrl(base_url, xtream_user, xtream_pass, sid)
+    const newFb = proxyUrl(base_url, `/live/${xtream_user}/${xtream_pass}/${sid}.m3u8`)
+    setUrl(newUrl)
+    setFallbackUrls([newFb])
+  }, [refreshKey, server, streamId, type])
 
   const handleChannelChange = (newId: string, newUrl: string, newTitle: string) => {
-    setUrl(proxyExternalUrl(newUrl)); setTitle(newTitle); setLoading(false); setError(null)
+    setUrl(newUrl); setTitle(newTitle); setLoading(false); setError(null)
     const sp = new URLSearchParams(params)
     sp.set('rotation_id', newId)
     sp.delete('stream_id')
@@ -204,7 +196,7 @@ export default function Watch() {
                   }
                   if (rotationId) {
                     const ch = getChannelById(rotationId)
-                    return ch?.urls[0] ? proxyExternalUrl(ch.urls[0]) : undefined
+                    return ch?.urls[0] || undefined
                   }
                   return undefined
                 }} />
