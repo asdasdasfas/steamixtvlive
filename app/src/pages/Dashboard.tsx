@@ -181,6 +181,12 @@ export default function Dashboard() {
     if (loadingRef.current[loadingKey]) return
     loadingRef.current[loadingKey] = true
     try {
+      if (type === 'movie' && movedSeriesCatIds.has(catId)) {
+        const items = await fetchVods(server.base_url, server.xtream_user, server.xtream_pass, catId)
+        const filtered = (items || []).filter((i: any) => hasPoster(i, 'movie'))
+        setVodItems(prev => ({ ...prev, [catId]: filtered }))
+        return
+      }
       const matchCat = (item: any, id: string) => {
         const cid = item.category_id
         if (cid != null && String(cid).trim() !== '' && String(cid) !== '0' && String(cid) === id) return true
@@ -234,7 +240,7 @@ export default function Dashboard() {
     } catch {} finally {
       loadingRef.current[loadingKey] = false
     }
-  }, [server, allVods, allSeries, vodCats, seriesCats])
+  }, [server, allVods, allSeries, vodCats, seriesCats, movedSeriesCatIds])
 
   // Kategorilere tıklandığında grid açılsın
   const setTab = (t: string) => {
