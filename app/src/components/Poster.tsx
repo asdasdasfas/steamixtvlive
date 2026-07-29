@@ -6,6 +6,7 @@ interface PosterProps {
   type?: 'movie' | 'series' | 'channel'
   className?: string
   onClick?: () => void
+  onError?: () => void
 }
 
 function fixUrl(src?: string): string | undefined {
@@ -15,7 +16,7 @@ function fixUrl(src?: string): string | undefined {
   return src
 }
 
-export default function Poster({ src, type, className, onClick }: PosterProps) {
+export default function Poster({ src, type, className, onClick, onError }: PosterProps) {
   const [failed, setFailed] = useState(false)
   const url = fixUrl(src)
 
@@ -30,7 +31,7 @@ export default function Poster({ src, type, className, onClick }: PosterProps) {
 
   return (
     <div className="w-full h-full relative" onClick={onClick}>
-      <img src={url} alt="" className={`w-full h-full object-cover saturate-[1.1] contrast-[1.05] ${className || ''}`} loading="lazy" onError={() => setFailed(true)} />
+      <img src={url} alt="" className={`w-full h-full object-cover saturate-[1.1] contrast-[1.05] ${className || ''}`} loading="lazy" onError={() => { setFailed(true); onError?.() }} />
     </div>
   )
 }
