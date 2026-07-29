@@ -784,7 +784,8 @@ export default function Dashboard() {
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
               )
-              ))
+              )
+              )}
             </div>
           </div>
         )}
