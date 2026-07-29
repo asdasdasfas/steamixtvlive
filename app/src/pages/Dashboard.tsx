@@ -474,6 +474,15 @@ export default function Dashboard() {
               return (cid != null && String(cid).trim() !== '' && String(cid) !== '0' && String(cid) === activeSeriesCat) || i.category_ids?.includes(Number(activeSeriesCat))
             }).filter((i: any) => hasPoster(i, 'movie'))
             setVodItems(prev => ({ ...prev, [activeSeriesCat]: matched }))
+            if (!matched.length) {
+              fetchVods(server.base_url, server.xtream_user, server.xtream_pass, activeSeriesCat).then(r => {
+                const raw = (r || []).filter((i: any) => {
+                  const cid = i.category_id
+                  return (cid != null && String(cid).trim() !== '' && String(cid) !== '0' && String(cid) === activeSeriesCat) || i.category_ids?.includes(Number(activeSeriesCat))
+                })
+                setVodItems(prev => ({ ...prev, [activeSeriesCat]: raw }))
+              })
+            }
           })
         }
       } else {
@@ -855,14 +864,12 @@ function SeriesCategoryGrid({ items, loading, categoryName, adultCover }: any) {
 }
 
 function GridItem({ item, adultCover, pImg, handleDetail, type, isSeries }: any) {
-  const [hide, setHide] = useState(false)
   const posterSrc = adultCover ? undefined : pImg(item.cover_big || item.stream_icon || item.movie_image || item.cover || item.thumbnail)
-  if (hide) return null
   return (
     <div className="group">
       <button onClick={() => handleDetail(item)} className="w-full">
         <div className={`aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40 ${isSeries ? 'group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-[#14b8a6]/40' : ''}`}>
-          <Poster src={posterSrc} type={type} onError={() => setHide(true)} />
+          <Poster src={posterSrc} type={type} />
           {adultCover ? (
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col items-center justify-center">
               <span className="text-2xl md:text-3xl font-black text-red-500 opacity-60" style={{ fontFamily: 'Orbitron, sans-serif' }}>18+</span>
