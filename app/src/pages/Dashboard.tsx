@@ -84,6 +84,15 @@ export default function Dashboard() {
     return true
   }), [vodCats])
 
+  const reorderedSeriesCats = useMemo(() => {
+    const targetNames = ['TR ✦ TURKCELL TV+', 'EU ✦ MULTI DISNEY+ SERIES']
+    const targets = seriesCats.filter(c => targetNames.includes(c.category_name?.trim()))
+    const rest = seriesCats.filter(c => !targetNames.includes(c.category_name?.trim()))
+    const afterIdx = rest.findIndex(c => c.category_name?.trim() === 'TR ✦ YABANCI DUBLAJ DİZİLER')
+    const insertAt = afterIdx >= 0 ? afterIdx + 1 : rest.length
+    rest.splice(insertAt, 0, ...targets)
+    return rest
+  }, [seriesCats])
   const showMovieCategory = tab === 'movies' && (selectedCat || filteredVodCats.length > 0)
   const showSeriesCategory = tab === 'series' && (selectedSeriesCat || seriesCats.length > 0)
   const activeMovieCat = selectedCat || filteredVodCats[0]?.category_id || ''
@@ -335,7 +344,7 @@ export default function Dashboard() {
     'TR ✦ EXXEN TV DİZİ': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
     'TR ✦ HBO MAX & BLUETV DİZİLER': 'DİJİTAL PLATFORM DİZİLERİ (ÖZEL)',
     'TR ✦ APPLE TV': 'DİJİTAL PLATFORM DİZİLERİ (ÖZEL)',
-    'TR ✦ TURKCELL TV+': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
+    'TR ✦ TURKCELL TV+': 'TR HOLLYWOOD DİZİLERİ',
     'TR ✦ BEIN TOD SERIES': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
     'TR ✦ TABİİ TV DİZİLER': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
     'TR ✦ GAIN TV DİZİLER': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
@@ -372,7 +381,7 @@ export default function Dashboard() {
     'EU ✦ MULTI NETFLIX SERIES': 'ULUSLARARASI DİZİLER',
     'EU ✦ MULTI NETFLIX KIDS SERIES': 'ULUSLARARASI ÇOCUK DİZİLERİ',
     'EU ✦ MULTI AMAZON PRIME SERIES': 'ULUSLARARASI DİZİLER',
-    'EU ✦ MULTI DISNEY+ SERIES': 'ULUSLARARASI DİZİLER',
+    'EU ✦ MULTI DISNEY+ SERIES': 'TR HOLLYWOOD DİZİLERİ II',
     'EU ✦ MULTI DISNEY+ KIDS SERIES': 'ULUSLARARASI ÇOCUK DİZİLERİ',
     'ADULT +18 ✦ 4K UHD': 'YETİŞKİN +18 4K ULTRA HD',
     'ADULT+ 18 ✦ AMATEUR': 'YETİŞKİN +18 AMATÖR',
@@ -681,7 +690,7 @@ export default function Dashboard() {
         {/* SERIES TAB */}
         {tab === 'series' && (
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
-            <SlideCategoryPanel title="Dizi Kategorileri" items={seriesCats.slice(0, -3)} selected={selectedSeriesCat} onSelect={(id) => {
+            <SlideCategoryPanel title="Dizi Kategorileri" items={reorderedSeriesCats.slice(0, -3)} selected={selectedSeriesCat} onSelect={(id) => {
               const cat = seriesCats.find(c => c.category_id === id)
               if (cat && isAdultCat(cat.category_name)) { setAdultPrompt({ catId: id, type: 'series' }); return }
               navigate('/dashboard?tab=series&scat=' + id, { replace: true }); loadFullCategory(id, 'series')
@@ -909,7 +918,7 @@ function SlideCategoryPanel({ title, items, selected, onSelect }: { title: strin
       'TR ✦ EXXEN TV DİZİ': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
       'TR ✦ HBO MAX & BLUETV DİZİLER': 'DİJİTAL PLATFORM DİZİLERİ (ÖZEL)',
       'TR ✦ APPLE TV': 'DİJİTAL PLATFORM DİZİLERİ (ÖZEL)',
-      'TR ✦ TURKCELL TV+': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
+    'TR ✦ TURKCELL TV+': 'TR HOLLYWOOD DİZİLERİ',
       'TR ✦ BEIN TOD SERIES': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
       'TR ✦ TABİİ TV DİZİLER': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
       'TR ✦ GAIN TV DİZİLER': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
@@ -933,7 +942,7 @@ function SlideCategoryPanel({ title, items, selected, onSelect }: { title: strin
       'ALB ✦ SERIALET TURKE': 'ARNAVUTÇA TÜRK DİZİLERİ', 'ALB ✦ SERIALE TË HUAJA': 'ARNAVUTÇA YABANCI DİZİLER',
       'EX-YU ✦ TURSKE SERIJE': 'BALKAN TÜRK DİZİLERİ', 'EU ✦ MULTI NETFLIX SERIES': 'ULUSLARARASI DİZİLER',
       'EU ✦ MULTI NETFLIX KIDS SERIES': 'ULUSLARARASI ÇOCUK DİZİLERİ',
-      'EU ✦ MULTI AMAZON PRIME SERIES': 'ULUSLARARASI DİZİLER', 'EU ✦ MULTI DISNEY+ SERIES': 'ULUSLARARASI DİZİLER',
+      'EU ✦ MULTI AMAZON PRIME SERIES': 'ULUSLARARASI DİZİLER', 'EU ✦ MULTI DISNEY+ SERIES': 'TR HOLLYWOOD DİZİLERİ II',
       'EU ✦ MULTI DISNEY+ KIDS SERIES': 'ULUSLARARASI ÇOCUK DİZİLERİ',
       'ADULT +18 ✦ 4K UHD': 'YETİŞKİN +18 4K ULTRA HD', 'ADULT+ 18 ✦ AMATEUR': 'YETİŞKİN +18 AMATÖR',
       'ADULT +18 ✦ ANAL': 'YETİŞKİN +18 ANAL', 'ADULT +18 ✦ ASIAN': 'YETİŞKİN +18 ASYA',
