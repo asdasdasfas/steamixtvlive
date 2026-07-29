@@ -216,6 +216,11 @@
 html {
   overflow-y: scroll;
 }
+body::after {
+  content: '';
+  display: block;
+  height: 120px;
+}
 
 ::selection {
   background: rgba(0, 153, 255, 0.3);
