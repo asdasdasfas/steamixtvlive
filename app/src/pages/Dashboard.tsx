@@ -696,13 +696,14 @@ export default function Dashboard() {
               navigate('/dashboard?tab=movies&cat=' + id, { replace: true }); loadFullCategory(id, 'movie')
             }} />
             <div className="flex-1 overflow-y-auto min-h-0">
-              <div className="sticky top-0 z-10 bg-[#0f172a]/80 backdrop-blur-xl px-3 md:px-6 py-3 border-b border-white/5">
-                <div className="flex items-center gap-2 max-w-lg mx-auto">
+              <div className="sticky top-0 z-10 bg-[#0f172a]/60 backdrop-blur-xl px-4 md:px-8 py-4 border-b border-white/[0.04]">
+                <div className="flex items-center gap-3 max-w-2xl mx-auto">
                   <div className="relative flex-1 group">
-                    <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && doSearch(searchQuery)} placeholder="Dizi veya Film Ara" className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#0099ff]/40 focus:bg-white/[0.08] focus:shadow-[0_0_20px_rgba(0,153,255,0.08)] transition-all duration-300 group-hover:border-white/20" />
-                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-[#0099ff] transition-colors duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+                    <input type="text" value={searchQuery} onChange={e => { setSearchQuery(e.target.value); if (!e.target.value.trim()) setSearchResults({ movies: [], series: [] }) }} onKeyDown={e => e.key === 'Enter' && doSearch(searchQuery)} placeholder="Dizi veya Film Ara" className="w-full pl-12 pr-5 py-3 rounded-2xl bg-white/[0.04] border border-white/[0.06] text-white/90 text-sm placeholder:text-gray-600/60 focus:outline-none focus:border-white/10 focus:bg-white/[0.06] focus:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)] transition-all duration-400 group-hover:bg-white/[0.06] group-hover:border-white/10 tracking-wide" />
+                    <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600/50 group-focus-within:text-gray-400 transition-all duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+                    {searchQuery && <button onClick={() => { setSearchQuery(''); setSearchResults({ movies: [], series: [] }) }} className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-200 opacity-0 group-hover:opacity-100"><svg className="w-3 h-3 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" /></svg></button>}
                   </div>
-                  <button onClick={() => doSearch(searchQuery)} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0099ff] to-[#0088ee] text-white text-sm font-semibold hover:shadow-[0_0_20px_rgba(0,153,255,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">Ara</button>
+                  <button onClick={() => doSearch(searchQuery)} className="px-6 py-3 rounded-2xl bg-white/10 text-white/80 text-sm font-medium hover:bg-white/15 hover:text-white hover:shadow-[0_0_30px_rgba(255,255,255,0.04)] active:scale-[0.97] transition-all duration-200 tracking-wide">Ara</button>
                 </div>
               </div>
               {searchResults.movies.length > 0 ? (
@@ -741,13 +742,14 @@ export default function Dashboard() {
               navigate('/dashboard?tab=series&scat=' + id, { replace: true }); loadFullCategory(id, 'series')
             }} />
             <div className="flex-1 overflow-y-auto min-h-0">
-              <div className="sticky top-0 z-10 bg-[#0f172a]/80 backdrop-blur-xl px-3 md:px-6 py-3 border-b border-white/5">
-                <div className="flex items-center gap-2 max-w-lg mx-auto">
+              <div className="sticky top-0 z-10 bg-[#0f172a]/60 backdrop-blur-xl px-4 md:px-8 py-4 border-b border-white/[0.04]">
+                <div className="flex items-center gap-3 max-w-2xl mx-auto">
                   <div className="relative flex-1 group">
-                    <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && doSearch(searchQuery)} placeholder="Dizi veya Film Ara" className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#0099ff]/40 focus:bg-white/[0.08] focus:shadow-[0_0_20px_rgba(0,153,255,0.08)] transition-all duration-300 group-hover:border-white/20" />
-                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-[#0099ff] transition-colors duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+                    <input type="text" value={searchQuery} onChange={e => { setSearchQuery(e.target.value); if (!e.target.value.trim()) setSearchResults({ movies: [], series: [] }) }} onKeyDown={e => e.key === 'Enter' && doSearch(searchQuery)} placeholder="Dizi veya Film Ara" className="w-full pl-12 pr-5 py-3 rounded-2xl bg-white/[0.04] border border-white/[0.06] text-white/90 text-sm placeholder:text-gray-600/60 focus:outline-none focus:border-white/10 focus:bg-white/[0.06] focus:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)] transition-all duration-400 group-hover:bg-white/[0.06] group-hover:border-white/10 tracking-wide" />
+                    <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600/50 group-focus-within:text-gray-400 transition-all duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+                    {searchQuery && <button onClick={() => { setSearchQuery(''); setSearchResults({ movies: [], series: [] }) }} className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-200 opacity-0 group-hover:opacity-100"><svg className="w-3 h-3 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" /></svg></button>}
                   </div>
-                  <button onClick={() => doSearch(searchQuery)} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0099ff] to-[#0088ee] text-white text-sm font-semibold hover:shadow-[0_0_20px_rgba(0,153,255,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">Ara</button>
+                  <button onClick={() => doSearch(searchQuery)} className="px-6 py-3 rounded-2xl bg-white/10 text-white/80 text-sm font-medium hover:bg-white/15 hover:text-white hover:shadow-[0_0_30px_rgba(255,255,255,0.04)] active:scale-[0.97] transition-all duration-200 tracking-wide">Ara</button>
                 </div>
               </div>
               {searchResults.series.length > 0 ? (
