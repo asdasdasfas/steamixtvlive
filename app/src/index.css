@@ -216,10 +216,8 @@
 html {
   overflow-y: scroll;
 }
-body::after {
-  content: '';
-  display: block;
-  height: 120px;
+body {
+  min-height: calc(100vh + 2px);
 }
 
 ::selection {
