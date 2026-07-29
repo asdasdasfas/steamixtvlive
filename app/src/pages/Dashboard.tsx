@@ -696,16 +696,19 @@ export default function Dashboard() {
               navigate('/dashboard?tab=movies&cat=' + id, { replace: true }); loadFullCategory(id, 'movie')
             }} />
             <div className="flex-1 overflow-y-auto min-h-0">
-              <div className="sticky top-0 z-10 bg-[#0f172a]/95 backdrop-blur-sm px-4 py-2 border-b border-white/5">
-                <div className="flex gap-2 max-w-md">
-                  <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && doSearch(searchQuery)} placeholder="Film ara..." className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#0099ff]/50" />
-                  <button onClick={() => doSearch(searchQuery)} className="px-4 py-2 rounded-lg bg-[#0099ff] text-white text-sm font-semibold hover:bg-[#0099ff]/80 transition-colors">Ara</button>
+              <div className="sticky top-0 z-10 bg-[#0f172a]/80 backdrop-blur-xl px-3 md:px-6 py-3 border-b border-white/5">
+                <div className="flex items-center gap-2 max-w-lg mx-auto">
+                  <div className="relative flex-1 group">
+                    <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && doSearch(searchQuery)} placeholder="Dizi veya Film Ara" className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#0099ff]/40 focus:bg-white/[0.08] focus:shadow-[0_0_20px_rgba(0,153,255,0.08)] transition-all duration-300 group-hover:border-white/20" />
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-[#0099ff] transition-colors duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+                  </div>
+                  <button onClick={() => doSearch(searchQuery)} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0099ff] to-[#0088ee] text-white text-sm font-semibold hover:shadow-[0_0_20px_rgba(0,153,255,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">Ara</button>
                 </div>
               </div>
               {searchResults.movies.length > 0 ? (
-                <MovieCategoryGrid items={searchResults.movies} loading={false} categoryName="Arama Sonuçları" />
+                <MovieCategoryGrid items={searchResults.movies} loading={false} categoryName={`"${searchQuery}" için sonuçlar`} />
               ) : searchQuery && searchResults.movies.length === 0 && allVods ? (
-                <div className="flex items-center justify-center h-32 text-gray-500 text-sm">Sonuç bulunamadı</div>
+                <div className="flex flex-col items-center justify-center h-48 text-gray-500 text-sm gap-2"><svg className="w-8 h-8 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>Sonuç bulunamadı</div>
               ) : (
               showMovieCategory && activeMovieCat ? (
                 <MovieCategoryGrid items={vodItems[activeMovieCat]} loading={!allVods && !vodItems[activeMovieCat]} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} adultCover={adultCatIds.has(activeMovieCat) ? adultCover : undefined} />
@@ -738,16 +741,19 @@ export default function Dashboard() {
               navigate('/dashboard?tab=series&scat=' + id, { replace: true }); loadFullCategory(id, 'series')
             }} />
             <div className="flex-1 overflow-y-auto min-h-0">
-              <div className="sticky top-0 z-10 bg-[#0f172a]/95 backdrop-blur-sm px-4 py-2 border-b border-white/5">
-                <div className="flex gap-2 max-w-md">
-                  <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && doSearch(searchQuery)} placeholder="Dizi ara..." className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#0099ff]/50" />
-                  <button onClick={() => doSearch(searchQuery)} className="px-4 py-2 rounded-lg bg-[#0099ff] text-white text-sm font-semibold hover:bg-[#0099ff]/80 transition-colors">Ara</button>
+              <div className="sticky top-0 z-10 bg-[#0f172a]/80 backdrop-blur-xl px-3 md:px-6 py-3 border-b border-white/5">
+                <div className="flex items-center gap-2 max-w-lg mx-auto">
+                  <div className="relative flex-1 group">
+                    <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && doSearch(searchQuery)} placeholder="Dizi veya Film Ara" className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#0099ff]/40 focus:bg-white/[0.08] focus:shadow-[0_0_20px_rgba(0,153,255,0.08)] transition-all duration-300 group-hover:border-white/20" />
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-[#0099ff] transition-colors duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+                  </div>
+                  <button onClick={() => doSearch(searchQuery)} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0099ff] to-[#0088ee] text-white text-sm font-semibold hover:shadow-[0_0_20px_rgba(0,153,255,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">Ara</button>
                 </div>
               </div>
               {searchResults.series.length > 0 ? (
-                <SeriesCategoryGrid items={searchResults.series} loading={false} categoryName="Arama Sonuçları" />
+                <SeriesCategoryGrid items={searchResults.series} loading={false} categoryName={`"${searchQuery}" için sonuçlar`} />
               ) : searchQuery && searchResults.series.length === 0 && allSeries ? (
-                <div className="flex items-center justify-center h-32 text-gray-500 text-sm">Sonuç bulunamadı</div>
+                <div className="flex flex-col items-center justify-center h-48 text-gray-500 text-sm gap-2"><svg className="w-8 h-8 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>Sonuç bulunamadı</div>
               ) : (
               activeSeriesCat === '__twd__' ? (
                 <SeriesCategoryGrid items={seriesItems['__twd__']} loading={!allSeries && !seriesItems['__twd__']} categoryName="THE WALKING DEAD" />
