@@ -186,7 +186,7 @@ export async function fetchVodInfo(base: string, user: string, pass: string, vod
 
 
 export async function fetchSeriesInfo(base: string, user: string, pass: string, seriesId: number) {
-  const res = await fetch(`${xtUrl(base, user, pass)}&action=get_series_info&series_id=${seriesId}&limit=9999`)
+  const res = await fetch(`${xtUrl(base, user, pass)}&action=get_series_info&series_id=${seriesId}`)
   if (!res.ok) throw new Error('Failed to fetch series info')
   return res.json() as Promise<XtreamSeriesInfo>
 }

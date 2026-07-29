@@ -236,6 +236,7 @@ export default function Dashboard() {
         setAllVods(items || [])
         setVodItems(prev => ({ ...prev, [catId]: matched }))
       } else {
+        if (catId === '__twd__') return
         if (allSeries) {
           setSeriesItems(prev => ({ ...prev, [catId]: allSeries.filter((i: any) => matchCat(i, catId) && hasPoster(i, 'series')) }))
           return
@@ -470,7 +471,7 @@ export default function Dashboard() {
     if (tab === 'series' && allSeriesCats.length > 1 && !selectedSeriesCat) {
       const firstCat = allSeriesCats[0].category_id
       navigate('/dashboard?tab=series&scat=' + firstCat, { replace: true })
-      loadFullCategory(firstCat, firstCat === '__twd__' ? 'series' : 'series')
+      if (firstCat !== '__twd__') loadFullCategory(firstCat, 'series')
     }
   }, [tab, allSeriesCats])
 
