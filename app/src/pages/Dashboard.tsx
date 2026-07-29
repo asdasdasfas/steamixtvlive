@@ -72,7 +72,7 @@ export default function Dashboard() {
       allSeries ? Promise.resolve(allSeries) : fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass).then(r => { setAllSeries(r || []); return r || [] }),
     ])
     setSearchResults({
-      movies: (mv || []).filter((i: any) => i.name?.toLowerCase().includes(ql) && hasPoster(i, 'movie')),
+      movies: (mv || []).filter((i: any) => i.name?.toLowerCase().includes(ql)),
       series: (sr || []).filter((i: any) => i.name?.toLowerCase().includes(ql) && hasPoster(i, 'series')),
     })
     const elapsed = Date.now() - startMs
@@ -228,14 +228,14 @@ export default function Dashboard() {
       }
       if (type === 'movie') {
         if (allVods) {
-          setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId) && hasPoster(i, 'movie')) }))
+          setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId)) }))
           return
         }
         let items = await fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass)
         if (!items || items.length === 0) {
           items = await fetchAllCatsSequential('movie')
         }
-        const matched = (items || []).filter((i: any) => matchCat(i, catId) && hasPoster(i, 'movie'))
+        const matched = (items || []).filter((i: any) => matchCat(i, catId))
         setAllVods(items || [])
         setVodItems(prev => ({ ...prev, [catId]: matched }))
       } else {
@@ -467,7 +467,7 @@ export default function Dashboard() {
       navigate('/dashboard?tab=movies&cat=' + firstCat, { replace: true })
       if (firstCat === '__actors__' && server) {
         fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass).then(all => {
-          const matched = (all || []).filter((i: any) => actorNames.some(a => i.name?.toLowerCase().includes(a)) && hasPoster(i, 'movie'))
+          const matched = (all || []).filter((i: any) => actorNames.some(a => i.name?.toLowerCase().includes(a)))
           setVodItems(prev => ({ ...prev, '__actors__': matched }))
         })
       } else {
@@ -489,7 +489,7 @@ export default function Dashboard() {
     if (tab === 'movies' && activeMovieCat && !vodItems[activeMovieCat]) {
       if (activeMovieCat === '__actors__' && server) {
         fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass).then(all => {
-          const matched = (all || []).filter((i: any) => actorNames.some(a => i.name?.toLowerCase().includes(a)) && hasPoster(i, 'movie'))
+          const matched = (all || []).filter((i: any) => actorNames.some(a => i.name?.toLowerCase().includes(a)))
           setVodItems(prev => ({ ...prev, '__actors__': matched }))
         })
       } else {
@@ -727,7 +727,7 @@ export default function Dashboard() {
                 navigate('/dashboard?tab=movies&cat=' + id, { replace: true })
                 if (!vodItems['__actors__'] && server) {
                   fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass).then(all => {
-                    const matched = (all || []).filter((i: any) => actorNames.some(a => i.name?.toLowerCase().includes(a)) && hasPoster(i, 'movie'))
+                    const matched = (all || []).filter((i: any) => actorNames.some(a => i.name?.toLowerCase().includes(a)))
                     setVodItems(prev => ({ ...prev, '__actors__': matched }))
                   })
                 }
