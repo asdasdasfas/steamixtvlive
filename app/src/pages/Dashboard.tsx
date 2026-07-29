@@ -115,6 +115,7 @@ export default function Dashboard() {
 
   const twdCat = { category_id: '__twd__', category_name: 'THE WALKING DEAD' }
   const allSeriesCats = useMemo(() => [twdCat, ...seriesCats], [seriesCats])
+  const displaySeriesCats = useMemo(() => allSeriesCats.slice(0, -3), [allSeriesCats])
 
   const showMovieCategory = tab === 'movies' && (selectedCat || filteredVodCats.length > 0)
   const showSeriesCategory = tab === 'series' && (selectedSeriesCat || allSeriesCats.length > 1)
@@ -759,7 +760,7 @@ export default function Dashboard() {
         {/* SERIES TAB */}
         {tab === 'series' && (
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
-            <SlideCategoryPanel title="Dizi Kategorileri" items={allSeriesCats} selected={selectedSeriesCat} onSelect={(id) => {
+            <SlideCategoryPanel title="Dizi Kategorileri" items={displaySeriesCats} selected={selectedSeriesCat} onSelect={(id) => {
               if (id === '__twd__') {
                 setSearchQuery(''); setSearchResults({ movies: [], series: [] })
                 navigate('/dashboard?tab=series&scat=' + id, { replace: true })
