@@ -46,7 +46,10 @@ export default function Dashboard() {
 
   const [adultPassword, setAdultPassword] = useState('')
   const [adultPrompt, setAdultPrompt] = useState<{ catId: string; type: 'movie' | 'series' } | null>(null)
-  const isAdultCat = (name: string) => name.toLowerCase().includes('adult')
+  const isAdultCat = (name: string) => {
+    const n = name.toLowerCase()
+    return n.includes('adult') || n.includes('yetişkin') || n.includes('18+') || n.includes('xxx') || n.includes('porno') || n.includes('erotik')
+  }
 
   const selectedCat = params.get('cat') || ''
   const selectedSeriesCat = params.get('scat') || ''
@@ -91,7 +94,7 @@ export default function Dashboard() {
           fetchCategories(server.base_url, server.xtream_user, server.xtream_pass, 'series'),
         ])
         const brandNames = ['netflix', 'disney', 'turkcell', 'apple tv', 'amazon prime', 'hbo', 'hulu', 'paramount', 'blu tv', 'blue tv', 'bein', 'vodafone', 'ttnet', 'milyonlar', 'digiturk', 'd-smart', 'tivibu', 'samsung tv', 'lg tv', 'philips', 'exxen', 'puhu tv', 'gain', 'youtube', 'mubi', 'taboo', 'netd', 'suncity']
-        const banned = ['XXX', '18+', 'Adult', 'Yetişkin', 'Porno', 'Sex', ...brandNames]
+        const banned = [...brandNames]
         const filter = (items: any[]) => items.filter((i: any) => !banned.some(b => (i.category_name || '').toLowerCase().includes(b.toLowerCase())))
         const fvc = filter(vc || [])
         const fsc = filter(sc || [])
