@@ -373,9 +373,8 @@ export default function Dashboard() {
 
   const proxyImg = (url: string) => {
     if (!url) return url
-    if (url.startsWith('/t/p/')) return `https://image.tmdb.org${url}`
     const path = url.replace(/^https?:\/\/[^\/]+/, '')
-    if (path.startsWith('/t/p/')) return `https://image.tmdb.org${path}`
+    if (path.startsWith('/t/p/')) return proxyUrl('https://image.tmdb.org', path)
     if (url.startsWith('http://') && server?.base_url) return proxyUrl(server.base_url, path)
     if (url.startsWith('http://')) return url.replace('http://', 'https://')
     return url
@@ -670,7 +669,7 @@ function MovieCategoryGrid({ items, loading, categoryName }: any) {
   const pImg = (url: string) => {
     if (!url) return url
     const path = url.replace(/^https?:\/\/[^\/]+/, '')
-    if (path.startsWith('/t/p/')) return `https://image.tmdb.org${path}`
+    if (path.startsWith('/t/p/')) return proxyUrl('https://image.tmdb.org', path)
     if (url.startsWith('http://') && server?.base_url) return proxyUrl(server.base_url, path)
     return url
   }
@@ -720,7 +719,7 @@ function SeriesCategoryGrid({ items, loading, categoryName }: any) {
   const pImg = (url: string) => {
     if (!url) return url
     const path = url.replace(/^https?:\/\/[^\/]+/, '')
-    if (path.startsWith('/t/p/')) return `https://image.tmdb.org${path}`
+    if (path.startsWith('/t/p/')) return proxyUrl('https://image.tmdb.org', path)
     if (url.startsWith('http://') && server?.base_url) return proxyUrl(server.base_url, path)
     return url
   }
