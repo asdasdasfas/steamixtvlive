@@ -468,8 +468,12 @@ export default function Dashboard() {
       const isMoved = movedSeriesCatIds.has(activeSeriesCat)
       if (isMoved) {
         if (!vodItems[activeSeriesCat] && server) {
-          fetchVods(server.base_url, server.xtream_user, server.xtream_pass, activeSeriesCat).then(r => {
-            setVodItems(prev => ({ ...prev, [activeSeriesCat]: (r || []).filter((i: any) => hasPoster(i, 'movie')) }))
+          fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass).then(all => {
+            const matched = (all || []).filter((i: any) => {
+              const cid = i.category_id
+              return (cid != null && String(cid).trim() !== '' && String(cid) !== '0' && String(cid) === activeSeriesCat) || i.category_ids?.includes(Number(activeSeriesCat))
+            }).filter((i: any) => hasPoster(i, 'movie'))
+            setVodItems(prev => ({ ...prev, [activeSeriesCat]: matched }))
           })
         }
       } else {
