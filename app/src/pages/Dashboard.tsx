@@ -838,6 +838,10 @@ function SlideCategoryPanel({ title, items, selected, onSelect }: { title: strin
   const catName = (cat: any) => {
     const name = cat.category_name || cat.name || ''
     const trimmed = name.trim()
+    const n = trimmed.toLowerCase()
+    if (n.includes('adult') || n.includes('yetişkin') || n.includes('18+') || n.includes('xxx') || n.includes('porno') || n.includes('erotik')) {
+      return 'YETİŞKİN +18'
+    }
     const categoryNameOverride: Record<string, string> = {
       'TR ✦ Pazartesi Dizi': 'PAZARTESİ DİZİLERİ', 'TR ✦ Salı Dizi': 'SALI DİZİLERİ', 'TR ✦ Çarşamba Dizi': 'ÇARŞAMBA DİZİLERİ',
       'TR ✦ Perşembe Dizi': 'PERŞEMBE DİZİLERİ', 'TR ✦ Cuma Dizi': 'CUMA DİZİLERİ', 'TR ✦ Cumartesi Dizi': 'CUMARTESİ DİZİLERİ',
