@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo, memo } from 'react'
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
-import { fetchCategories, fetchVods, fetchSeries, fetchAllVods, fetchAllSeries, fetchMoviesByActors, posterUrl, proxyUrl } from '@/lib/supabase'
+import { fetchCategories, fetchVods, fetchSeries, fetchAllVods, fetchAllSeries, posterUrl, proxyUrl } from '@/lib/supabase'
 import { parseRotationData } from '@/lib/rotation'
 import { getFavorites, removeFavorite } from '@/lib/favorites'
 import type { FavoriteItem } from '@/lib/favorites'
@@ -116,13 +116,9 @@ export default function Dashboard() {
   const twdCat = { category_id: '__twd__', category_name: 'THE WALKING DEAD' }
   const allSeriesCats = useMemo(() => [twdCat, ...seriesCats], [seriesCats])
 
-  const actorNames = ['sylvester stallone','jason statham','vin diesel','dwayne johnson','tom hardy','scott adkins','gerard butler','liam neeson','jean-claude van damme','arnold schwarzenegger','bruce willis','mel gibson','donnie yen','michael jai white','dave bautista','keanu reeves','jackie chan','jet li','nicolas cage','matt damon','tom cruise','will smith','ryan reynolds','hugh jackman','christian bale','mark wahlberg','wesley snipes','dolph lundgren','steven seagal','chuck norris','kurt russell','harrison ford','daniel craig','pierce brosnan','sean connery','russell crowe','brad pitt','edward norton','bruce lee','tony jaa']
-  const actorsCat = { category_id: '__actors__', category_name: 'ÜNLÜ AKTÖRLER HOLLYWOOD' }
-  const allMovieCats = useMemo(() => [actorsCat, ...filteredVodCats], [filteredVodCats])
-
-  const showMovieCategory = tab === 'movies' && (selectedCat || allMovieCats.length > 1)
+  const showMovieCategory = tab === 'movies' && (selectedCat || filteredVodCats.length > 0)
   const showSeriesCategory = tab === 'series' && (selectedSeriesCat || allSeriesCats.length > 1)
-  const activeMovieCat = selectedCat || allMovieCats[0]?.category_id || ''
+  const activeMovieCat = selectedCat || filteredVodCats[0]?.category_id || ''
   const activeSeriesCat = selectedSeriesCat || allSeriesCats[0]?.category_id || ''
 
   // Basit yükleme: kategoriler + hero + ana sayfa 2+2 önizleme
@@ -462,18 +458,12 @@ export default function Dashboard() {
 
   // Kategoriler yüklendiğinde veya tab değiştiğinde ilk kategori otomatik seçilsin
   useEffect(() => {
-    if (tab === 'movies' && allMovieCats.length > 1 && !selectedCat) {
-      const firstCat = allMovieCats[0].category_id
+    if (tab === 'movies' && filteredVodCats.length > 0 && !selectedCat) {
+      const firstCat = filteredVodCats[0].category_id
       navigate('/dashboard?tab=movies&cat=' + firstCat, { replace: true })
-      if (firstCat === '__actors__' && server) {
-        fetchMoviesByActors(server.base_url, server.xtream_user, server.xtream_pass, actorNames).then(matched => {
-          setVodItems(prev => ({ ...prev, '__actors__': matched || [] }))
-        })
-      } else {
-        loadFullCategory(firstCat, 'movie')
-      }
+      loadFullCategory(firstCat, 'movie')
     }
-  }, [tab, allMovieCats])
+  }, [tab, filteredVodCats])
 
   useEffect(() => {
     if (tab === 'series' && allSeriesCats.length > 1 && !selectedSeriesCat) {
@@ -486,13 +476,7 @@ export default function Dashboard() {
   // Seçili kategori yoksa URL'den güncelle
   useEffect(() => {
     if (tab === 'movies' && activeMovieCat && !vodItems[activeMovieCat]) {
-      if (activeMovieCat === '__actors__' && server) {
-        fetchMoviesByActors(server.base_url, server.xtream_user, server.xtream_pass, actorNames).then(matched => {
-          setVodItems(prev => ({ ...prev, '__actors__': matched || [] }))
-        })
-      } else {
-        loadFullCategory(activeMovieCat, 'movie')
-      }
+      loadFullCategory(activeMovieCat, 'movie')
     }
   }, [tab, activeMovieCat])
   useEffect(() => {
@@ -567,7 +551,6 @@ export default function Dashboard() {
 
   const navCategoryName = useMemo(() => {
     if (tab === 'movies' && selectedCat) {
-      if (selectedCat === '__actors__') return 'ÜNLÜ AKTÖRLER HOLLYWOOD'
       const cat = filteredVodCats.find(c => c.category_id === selectedCat)
       return cat ? trName(cat.category_name) : ''
     }
@@ -719,17 +702,7 @@ export default function Dashboard() {
         {/* MOVIES TAB */}
         {tab === 'movies' && (
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
-            <SlideCategoryPanel title="Film Kategorileri" items={allMovieCats} selected={selectedCat} onSelect={(id) => {
-              if (id === '__actors__') {
-                setSearchQuery(''); setSearchResults({ movies: [], series: [] })
-                navigate('/dashboard?tab=movies&cat=' + id, { replace: true })
-                if (!vodItems['__actors__'] && server) {
-                  fetchMoviesByActors(server.base_url, server.xtream_user, server.xtream_pass, actorNames).then(matched => {
-                    setVodItems(prev => ({ ...prev, '__actors__': matched || [] }))
-                  })
-                }
-                return
-              }
+            <SlideCategoryPanel title="Film Kategorileri" items={filteredVodCats} selected={selectedCat} onSelect={(id) => {
               const cat = filteredVodCats.find(c => c.category_id === id)
               if (cat && isAdultCat(cat.category_name)) { setAdultPrompt({ catId: id, type: 'movie' }); return }
               setSearchQuery(''); setSearchResults({ movies: [], series: [] })
@@ -744,6 +717,7 @@ export default function Dashboard() {
                     {searchQuery && <button onClick={() => { setSearchQuery(''); setSearchResults({ movies: [], series: [] }) }} className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#0099ff]/20 hover:bg-[#0099ff]/40 flex items-center justify-center transition-all duration-200"><svg className="w-3.5 h-3.5 text-[#0099ff]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" /></svg></button>}
                   </div>
                   <button onClick={() => doSearch(searchQuery)} className="px-7 py-3 rounded-2xl bg-gradient-to-r from-[#0099ff] to-[#0077cc] text-white text-sm font-semibold hover:from-[#00aaff] hover:to-[#0088dd] hover:shadow-[0_0_25px_rgba(0,153,255,0.3)] active:scale-[0.97] transition-all duration-200 tracking-wide">Ara</button>
+                  <span className="text-[10px] text-gray-500/60 italic hidden md:block select-none">Sistemde olmayan filmleri ve dizileri de sorgulayabilirsiniz</span>
                 </div>
               </div>
               {searching ? (
@@ -773,14 +747,10 @@ export default function Dashboard() {
               ) : searchQuery && searchResults.movies.length === 0 && allVods ? (
                 <div className="flex flex-col items-center justify-center h-48 text-gray-500 text-sm gap-2"><svg className="w-8 h-8 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>Sonuç bulunamadı</div>
               ) : (
-              activeMovieCat === '__actors__' ? (
-                <MovieCategoryGrid items={vodItems['__actors__']} loading={!allVods && !vodItems['__actors__']} categoryName="ÜNLÜ AKTÖRLER HOLLYWOOD" />
-              ) : (
               showMovieCategory && activeMovieCat ? (
                 <MovieCategoryGrid items={vodItems[activeMovieCat]} loading={!allVods && !vodItems[activeMovieCat]} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} adultCover={adultCatIds.has(activeMovieCat) ? adultCover : undefined} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
-              )
               )
               )}
             </div>
