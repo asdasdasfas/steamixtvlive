@@ -149,13 +149,13 @@ async function tryFetchAll<T>(url: string): Promise<T[] | null> {
 }
 
 export async function fetchAllVods(base: string, user: string, pass: string): Promise<XtreamVod[]> {
-  const u = `${xtUrl(base, user, pass)}&action=get_vod_streams`
+  const u = `${xtUrl(base, user, pass)}&action=get_vod_streams&limit=9999`
   const result = await tryFetchAll<XtreamVod>(u)
   return result || []
 }
 
 export async function fetchAllSeries(base: string, user: string, pass: string): Promise<XtreamSeries[]> {
-  const u = `${xtUrl(base, user, pass)}&action=get_series`
+  const u = `${xtUrl(base, user, pass)}&action=get_series&limit=9999`
   const result = await tryFetchAll<XtreamSeries>(u)
   return result || []
 }
