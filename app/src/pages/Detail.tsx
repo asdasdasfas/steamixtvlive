@@ -94,7 +94,8 @@ export default function Detail() {
               fetchVods(base_url, xtream_user, xtream_pass, cid).then(allVods => {
                 if (!cancelled && allVods) {
                   const sim = allVods.filter((m: any) => String(m.stream_id) !== id).slice(0, 10)
-                  setSimilar(sim.map((s: any) => ({ id: s.stream_id, name: s.name, stream_icon: s.cover_big || s.stream_icon, cover_big: s.cover_big, stream_type: 'movie' })))
+                  const icon0 = urlIcon || iv?.movie_image || iv?.cover_big || md2?.cover_big || iv?.cover || iv?.stream_icon || mapi?.stream_icon || ''
+                  setSimilar(sim.map((s: any) => ({ id: s.stream_id, name: s.name, stream_icon: icon0 === '/adult-placeholder.jpg' ? icon0 : s.cover_big || s.stream_icon, cover_big: s.cover_big, stream_type: 'movie' })))
                 }
               }).catch(() => {})
             }
@@ -135,7 +136,8 @@ export default function Detail() {
               fetchSeries(base_url, xtream_user, xtream_pass, cid).then(allSeries => {
                 if (!cancelled && allSeries) {
                   const sim = allSeries.filter((s: any) => String(s.series_id) !== id).slice(0, 10)
-                  setSimilar(sim.map((s: any) => ({ id: s.series_id, name: s.name, stream_icon: s.cover_big || s.movie_image || s.cover || s.thumbnail, cover_big: s.cover_big, stream_type: 'series' })))
+                  const icon0 = urlIcon || si?.cover_big || si?.movie_image || si?.cover || si?.thumbnail || ''
+                  setSimilar(sim.map((s: any) => ({ id: s.series_id, name: s.name, stream_icon: icon0 === '/adult-placeholder.jpg' ? icon0 : s.cover_big || s.movie_image || s.cover || s.thumbnail, cover_big: s.cover_big, stream_type: 'series' })))
                 }
               }).catch(() => {})
             }
