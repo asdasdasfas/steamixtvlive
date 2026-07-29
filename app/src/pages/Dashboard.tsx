@@ -715,7 +715,7 @@ export default function Dashboard() {
               <button onClick={() => { setAdultPrompt(null); setAdultPassword('') }}
                 className="flex-1 py-2.5 rounded-xl bg-white/5 text-white text-sm hover:bg-white/10 transition-colors">İptal</button>
               <button onClick={() => {
-                if (adultPassword === '12345') {
+                if (adultPassword === 'bgV7rQk') {
                   const p = adultPrompt
                   setAdultPrompt(null); setAdultPassword('')
                   if (p.type === 'movie') { navigate('/dashboard?tab=movies&cat=' + p.catId, { replace: true }); loadFullCategory(p.catId, 'movie') }
