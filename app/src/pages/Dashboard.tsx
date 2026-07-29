@@ -78,26 +78,17 @@ export default function Dashboard() {
   const seriesKeywords = ['pazartesi', 'salı', 'çarşamba', 'perşembe', 'cuma', 'cumartesi', 'pazar', 'haftanın', 'günün dizisi', 'yerli dizi', 'yabancı dizi']
   const isSeriesCategory = (name: string) => seriesKeywords.some(k => name.toLowerCase().includes(k))
 
-  const hollywoodNames = ['TR ✦ TURKCELL TV+', 'EU ✦ MULTI DISNEY+ SERIES']
-  const filteredVodCats = useMemo(() => {
-    const rest: any[] = []
-    vodCats.forEach(vc => {
-      const vcn = vc.category_name.toLowerCase()
-      if (isSeriesCategory(vcn)) return
-      if (hollywoodNames.includes(vc.category_name?.trim())) return
-      rest.push(vc)
-    })
-    return rest
-  }, [vodCats])
+  const filteredVodCats = useMemo(() => vodCats.filter(vc => {
+    const vcn = vc.category_name.toLowerCase()
+    if (isSeriesCategory(vcn)) return false
+    return true
+  }), [vodCats])
 
-  const allSeriesCats = useMemo(() => {
-    const moved = vodCats.filter(vc => hollywoodNames.includes(vc.category_name?.trim()))
-    return [...moved, ...seriesCats]
-  }, [vodCats, seriesCats])
-  const movedSeriesCatIds = useMemo(() => new Set(allSeriesCats.filter(c => hollywoodNames.includes(c.category_name?.trim())).map(c => c.category_id)), [allSeriesCats])
+  const twdCat = { category_id: '__twd__', category_name: '🔥 THE WALKING DEAD' }
+  const allSeriesCats = useMemo(() => [twdCat, ...seriesCats], [seriesCats])
 
   const showMovieCategory = tab === 'movies' && (selectedCat || filteredVodCats.length > 0)
-  const showSeriesCategory = tab === 'series' && (selectedSeriesCat || allSeriesCats.length > 0)
+  const showSeriesCategory = tab === 'series' && (selectedSeriesCat || allSeriesCats.length > 1)
   const activeMovieCat = selectedCat || filteredVodCats[0]?.category_id || ''
   const activeSeriesCat = selectedSeriesCat || allSeriesCats[0]?.category_id || ''
 
@@ -114,11 +105,7 @@ export default function Dashboard() {
         ])
         const brandNames = ['netflix', 'disney', 'turkcell', 'apple tv', 'amazon prime', 'hbo', 'hulu', 'paramount', 'blu tv', 'blue tv', 'bein', 'vodafone', 'ttnet', 'milyonlar', 'digiturk', 'd-smart', 'tivibu', 'samsung tv', 'lg tv', 'philips', 'exxen', 'puhu tv', 'gain', 'youtube', 'mubi', 'taboo', 'netd', 'suncity']
         const banned = [...brandNames]
-        const filter = (items: any[]) => items.filter((i: any) => {
-          const cn = (i.category_name || '').trim()
-          if (['TR ✦ TURKCELL TV+', 'EU ✦ MULTI DISNEY+ SERIES'].includes(cn)) return true
-          return !banned.some(b => i.category_name?.toLowerCase().includes(b.toLowerCase()))
-        })
+        const filter = (items: any[]) => items.filter((i: any) => !banned.some(b => (i.category_name || '').toLowerCase().includes(b.toLowerCase())))
         const fvc = filter(vc || [])
         const fsc = filter(sc || [])
         setVodCats(fvc)
@@ -234,7 +221,7 @@ export default function Dashboard() {
     } catch {} finally {
       loadingRef.current[loadingKey] = false
     }
-  }, [server, allVods, allSeries, vodCats, seriesCats, movedSeriesCatIds])
+  }, [server, allVods, allSeries, vodCats, seriesCats])
 
   // Kategorilere tıklandığında grid açılsın
   const setTab = (t: string) => {
@@ -247,7 +234,7 @@ export default function Dashboard() {
       sp.delete('scat')
     } else if (t === 'series') {
       const firstCat = allSeriesCats[0]?.category_id
-      if (firstCat) { sp.set('scat', firstCat); loadFullCategory(firstCat, movedSeriesCatIds.has(firstCat) ? 'movie' : 'series') }
+      if (firstCat) { sp.set('scat', firstCat); loadFullCategory(firstCat, 'series') }
       sp.delete('cat')
     } else {
       sp.delete('cat')
@@ -450,10 +437,10 @@ export default function Dashboard() {
   }, [tab, filteredVodCats])
 
   useEffect(() => {
-    if (tab === 'series' && allSeriesCats.length > 0 && !selectedSeriesCat) {
+    if (tab === 'series' && allSeriesCats.length > 1 && !selectedSeriesCat) {
       const firstCat = allSeriesCats[0].category_id
       navigate('/dashboard?tab=series&scat=' + firstCat, { replace: true })
-      loadFullCategory(firstCat, movedSeriesCatIds.has(firstCat) ? 'movie' : 'series')
+      loadFullCategory(firstCat, firstCat === '__twd__' ? 'series' : 'series')
     }
   }, [tab, allSeriesCats])
 
@@ -464,31 +451,14 @@ export default function Dashboard() {
     }
   }, [tab, activeMovieCat])
   useEffect(() => {
-    if (tab === 'series' && activeSeriesCat) {
-      const isMoved = movedSeriesCatIds.has(activeSeriesCat)
-      if (isMoved) {
-        if (!vodItems[activeSeriesCat] && server) {
-          fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass).then(all => {
-            const matched = (all || []).filter((i: any) => {
-              const cid = i.category_id
-              return (cid != null && String(cid).trim() !== '' && String(cid) !== '0' && String(cid) === activeSeriesCat) || i.category_ids?.includes(Number(activeSeriesCat))
-            }).filter((i: any) => hasPoster(i, 'movie'))
-            setVodItems(prev => ({ ...prev, [activeSeriesCat]: matched }))
-            if (!matched.length) {
-              fetchVods(server.base_url, server.xtream_user, server.xtream_pass, activeSeriesCat).then(r => {
-                const raw = (r || []).filter((i: any) => {
-                  const cid = i.category_id
-                  return (cid != null && String(cid).trim() !== '' && String(cid) !== '0' && String(cid) === activeSeriesCat) || i.category_ids?.includes(Number(activeSeriesCat))
-                })
-                setVodItems(prev => ({ ...prev, [activeSeriesCat]: raw }))
-              })
-            }
-          })
-        }
+    if (tab === 'series' && activeSeriesCat && !seriesItems[activeSeriesCat]) {
+      if (activeSeriesCat === '__twd__' && server) {
+        fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass).then(all => {
+          const twd = (all || []).filter((s: any) => s.name?.toLowerCase().includes('the walking dead'))
+          setSeriesItems(prev => ({ ...prev, '__twd__': twd }))
+        })
       } else {
-        if (!seriesItems[activeSeriesCat]) {
-          loadFullCategory(activeSeriesCat, 'series')
-        }
+        loadFullCategory(activeSeriesCat, 'series')
       }
     }
   }, [tab, activeSeriesCat])
@@ -722,16 +692,26 @@ export default function Dashboard() {
         {tab === 'series' && (
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
             <SlideCategoryPanel title="Dizi Kategorileri" items={allSeriesCats} selected={selectedSeriesCat} onSelect={(id) => {
-              const cat = allSeriesCats.find(c => c.category_id === id)
+              if (id === '__twd__') {
+                navigate('/dashboard?tab=series&scat=' + id, { replace: true })
+                if (!seriesItems['__twd__'] && server) {
+                  fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass).then(all => {
+                    const twd = (all || []).filter((s: any) => s.name?.toLowerCase().includes('the walking dead'))
+                    setSeriesItems(prev => ({ ...prev, '__twd__': twd }))
+                  })
+                }
+                return
+              }
+              const cat = seriesCats.find(c => c.category_id === id)
               if (cat && isAdultCat(cat.category_name)) { setAdultPrompt({ catId: id, type: 'series' }); return }
-              navigate('/dashboard?tab=series&scat=' + id, { replace: true })
+              navigate('/dashboard?tab=series&scat=' + id, { replace: true }); loadFullCategory(id, 'series')
             }} />
             <div className="flex-1 overflow-y-auto min-h-0">
               {showSeriesCategory && activeSeriesCat ? (
-                movedSeriesCatIds.has(activeSeriesCat) ? (
-                  <MovieCategoryGrid items={vodItems[activeSeriesCat]} loading={!allVods && !vodItems[activeSeriesCat]} categoryName={trName(allSeriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} adultCover={adultCatIds.has(activeSeriesCat) ? adultCover : undefined} />
+                activeSeriesCat === '__twd__' ? (
+                  <SeriesCategoryGrid items={seriesItems['__twd__']} loading={!allSeries && !seriesItems['__twd__']} categoryName="THE WALKING DEAD" />
                 ) : (
-                <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(allSeriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} adultCover={adultCatIds.has(activeSeriesCat) ? adultCover : undefined} />
+                <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} adultCover={adultCatIds.has(activeSeriesCat) ? adultCover : undefined} />
                 )
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
@@ -864,12 +844,14 @@ function SeriesCategoryGrid({ items, loading, categoryName, adultCover }: any) {
 }
 
 function GridItem({ item, adultCover, pImg, handleDetail, type, isSeries }: any) {
+  const [hide, setHide] = useState(false)
   const posterSrc = adultCover ? undefined : pImg(item.cover_big || item.stream_icon || item.movie_image || item.cover || item.thumbnail)
+  if (hide) return null
   return (
     <div className="group">
       <button onClick={() => handleDetail(item)} className="w-full">
         <div className={`aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40 ${isSeries ? 'group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-[#14b8a6]/40' : ''}`}>
-          <Poster src={posterSrc} type={type} />
+          <Poster src={posterSrc} type={type} onError={() => setHide(true)} />
           {adultCover ? (
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col items-center justify-center">
               <span className="text-2xl md:text-3xl font-black text-red-500 opacity-60" style={{ fontFamily: 'Orbitron, sans-serif' }}>18+</span>
