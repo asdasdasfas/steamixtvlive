@@ -78,19 +78,23 @@ export default function Dashboard() {
   const seriesKeywords = ['pazartesi', 'salı', 'çarşamba', 'perşembe', 'cuma', 'cumartesi', 'pazar', 'haftanın', 'günün dizisi', 'yerli dizi', 'yabancı dizi']
   const isSeriesCategory = (name: string) => seriesKeywords.some(k => name.toLowerCase().includes(k))
 
-  const moveToSeriesNames = ['TR ✦ TURKCELL TV+', 'EU ✦ MULTI DISNEY+ SERIES']
-  const filteredVodCats = useMemo(() => vodCats.filter(vc => {
-    const vcn = vc.category_name.toLowerCase()
-    if (isSeriesCategory(vcn)) return false
-    if (moveToSeriesNames.includes(vc.category_name?.trim())) return false
-    return true
-  }), [vodCats])
+  const hollywoodNames = ['TR ✦ TURKCELL TV+', 'EU ✦ MULTI DISNEY+ SERIES']
+  const filteredVodCats = useMemo(() => {
+    const rest: any[] = []
+    vodCats.forEach(vc => {
+      const vcn = vc.category_name.toLowerCase()
+      if (isSeriesCategory(vcn)) return
+      if (hollywoodNames.includes(vc.category_name?.trim())) return
+      rest.push(vc)
+    })
+    return rest
+  }, [vodCats])
 
   const allSeriesCats = useMemo(() => {
-    const moved = vodCats.filter(vc => moveToSeriesNames.includes(vc.category_name?.trim()))
+    const moved = vodCats.filter(vc => hollywoodNames.includes(vc.category_name?.trim()))
     return [...moved, ...seriesCats]
   }, [vodCats, seriesCats])
-  const movedSeriesCatIds = useMemo(() => new Set(allSeriesCats.filter(c => moveToSeriesNames.includes(c.category_name?.trim())).map(c => c.category_id)), [allSeriesCats])
+  const movedSeriesCatIds = useMemo(() => new Set(allSeriesCats.filter(c => hollywoodNames.includes(c.category_name?.trim())).map(c => c.category_id)), [allSeriesCats])
 
   const showMovieCategory = tab === 'movies' && (selectedCat || filteredVodCats.length > 0)
   const showSeriesCategory = tab === 'series' && (selectedSeriesCat || allSeriesCats.length > 0)
@@ -110,10 +114,9 @@ export default function Dashboard() {
         ])
         const brandNames = ['netflix', 'disney', 'turkcell', 'apple tv', 'amazon prime', 'hbo', 'hulu', 'paramount', 'blu tv', 'blue tv', 'bein', 'vodafone', 'ttnet', 'milyonlar', 'digiturk', 'd-smart', 'tivibu', 'samsung tv', 'lg tv', 'philips', 'exxen', 'puhu tv', 'gain', 'youtube', 'mubi', 'taboo', 'netd', 'suncity']
         const banned = [...brandNames]
-        const allowNames = ['TR ✦ TURKCELL TV+', 'EU ✦ MULTI DISNEY+ SERIES']
         const filter = (items: any[]) => items.filter((i: any) => {
           const cn = (i.category_name || '').trim()
-          if (allowNames.includes(cn)) return true
+          if (['TR ✦ TURKCELL TV+', 'EU ✦ MULTI DISNEY+ SERIES'].includes(cn)) return true
           return !banned.some(b => i.category_name?.toLowerCase().includes(b.toLowerCase()))
         })
         const fvc = filter(vc || [])
@@ -244,7 +247,7 @@ export default function Dashboard() {
       sp.delete('scat')
     } else if (t === 'series') {
       const firstCat = allSeriesCats[0]?.category_id
-      if (firstCat) { sp.set('scat', firstCat); loadFullCategory(firstCat, 'series') }
+      if (firstCat) { sp.set('scat', firstCat); loadFullCategory(firstCat, movedSeriesCatIds.has(firstCat) ? 'movie' : 'series') }
       sp.delete('cat')
     } else {
       sp.delete('cat')
@@ -450,7 +453,7 @@ export default function Dashboard() {
     if (tab === 'series' && allSeriesCats.length > 0 && !selectedSeriesCat) {
       const firstCat = allSeriesCats[0].category_id
       navigate('/dashboard?tab=series&scat=' + firstCat, { replace: true })
-      loadFullCategory(firstCat, 'series')
+      loadFullCategory(firstCat, movedSeriesCatIds.has(firstCat) ? 'movie' : 'series')
     }
   }, [tab, allSeriesCats])
 
@@ -461,8 +464,12 @@ export default function Dashboard() {
     }
   }, [tab, activeMovieCat])
   useEffect(() => {
-    if (tab === 'series' && activeSeriesCat && !seriesItems[activeSeriesCat]) {
-      loadFullCategory(activeSeriesCat, 'series')
+    if (tab === 'series' && activeSeriesCat) {
+      const isMoved = movedSeriesCatIds.has(activeSeriesCat)
+      const items = isMoved ? vodItems[activeSeriesCat] : seriesItems[activeSeriesCat]
+      if (!items) {
+        loadFullCategory(activeSeriesCat, isMoved ? 'movie' : 'series')
+      }
     }
   }, [tab, activeSeriesCat])
 
