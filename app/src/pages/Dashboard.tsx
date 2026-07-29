@@ -50,6 +50,13 @@ export default function Dashboard() {
     const n = name.toLowerCase()
     return n.includes('adult') || n.includes('yetişkin') || n.includes('18+') || n.includes('xxx') || n.includes('porno') || n.includes('erotik')
   }
+  const adultCatIds = useMemo(() => {
+    const ids = new Set<string>()
+    vodCats.forEach(c => { if (isAdultCat(c.category_name)) ids.add(c.category_id) })
+    seriesCats.forEach(c => { if (isAdultCat(c.category_name)) ids.add(c.category_id) })
+    return ids
+  }, [vodCats, seriesCats])
+  const adultCover = '/adult-placeholder.jpg'
 
   const selectedCat = params.get('cat') || ''
   const selectedSeriesCat = params.get('scat') || ''
@@ -649,7 +656,7 @@ export default function Dashboard() {
             }} />
             <div className="flex-1 overflow-y-auto min-h-0">
               {showMovieCategory && activeMovieCat ? (
-                <MovieCategoryGrid items={vodItems[activeMovieCat]} loading={!allVods && !vodItems[activeMovieCat]} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} />
+                <MovieCategoryGrid items={vodItems[activeMovieCat]} loading={!allVods && !vodItems[activeMovieCat]} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} adultCover={adultCatIds.has(activeMovieCat) ? adultCover : undefined} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
               )}
@@ -667,7 +674,7 @@ export default function Dashboard() {
             }} />
             <div className="flex-1 overflow-y-auto min-h-0">
               {showSeriesCategory && activeSeriesCat ? (
-                <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} />
+                <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} adultCover={adultCatIds.has(activeSeriesCat) ? adultCover : undefined} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
               )}
@@ -724,7 +731,7 @@ export default function Dashboard() {
   )
 }
 
-function MovieCategoryGrid({ items, loading, categoryName }: any) {
+function MovieCategoryGrid({ items, loading, categoryName, adultCover }: any) {
   const navigate = useNavigate()
   const { server } = useAuth()
   const pImg = (url: string) => {
@@ -735,9 +742,12 @@ function MovieCategoryGrid({ items, loading, categoryName }: any) {
     return url
   }
 
+  const realCover = (item: any) => adultCover || pImg(item.cover_big || item.stream_icon)
+
   const handleDetail = (item: any) => {
     const sp = new URLSearchParams({ id: String(item.stream_id), type: 'movie', cat: item.category_id || '' })
-    if (item.cover_big || item.stream_icon) sp.set('icon', item.cover_big || item.stream_icon)
+    if (adultCover) sp.set('icon', adultCover)
+    else if (item.cover_big || item.stream_icon) sp.set('icon', item.cover_big || item.stream_icon)
     if (item.container_extension) sp.set('ext', item.container_extension)
     if (item.name) sp.set('name', item.name.replace(/[✓✔☑✗✘]/g, ''))
     navigate(`/detail?${sp}`)
@@ -756,7 +766,7 @@ function MovieCategoryGrid({ items, loading, categoryName }: any) {
             <div key={s.stream_id} className="group">
               <button onClick={() => handleDetail(s)} className="w-full">
                 <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
-                  <Poster src={pImg(s.cover_big || s.stream_icon)} type="movie" />
+                  <Poster src={realCover(s)} type="movie" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
                     <div className="w-14 h-14 rounded-full bg-[#0099ff] flex items-center justify-center shadow-[0_0_20px_rgba(0,153,255,0.6)] backdrop-blur-sm">
@@ -774,7 +784,7 @@ function MovieCategoryGrid({ items, loading, categoryName }: any) {
   )
 }
 
-function SeriesCategoryGrid({ items, loading, categoryName }: any) {
+function SeriesCategoryGrid({ items, loading, categoryName, adultCover }: any) {
   const navigate = useNavigate()
   const { server } = useAuth()
   const pImg = (url: string) => {
@@ -784,9 +794,11 @@ function SeriesCategoryGrid({ items, loading, categoryName }: any) {
     if (url.startsWith('http://') && server?.base_url) return proxyUrl(server.base_url, path)
     return url
   }
+  const realCover = (item: any) => adultCover || pImg(item.cover_big || item.movie_image || item.cover || item.thumbnail)
   const handleDetail = (item: any) => {
     const sp = new URLSearchParams({ id: String(item.series_id), type: 'series', cat: item.category_id || '' })
-    if (item.cover_big || item.movie_image || item.cover || item.thumbnail) sp.set('icon', item.cover_big || item.movie_image || item.cover || item.thumbnail)
+    if (adultCover) sp.set('icon', adultCover)
+    else if (item.cover_big || item.movie_image || item.cover || item.thumbnail) sp.set('icon', item.cover_big || item.movie_image || item.cover || item.thumbnail)
     if (item.name) sp.set('name', item.name.replace(/[✓✔☑✗✘]/g, ''))
     navigate(`/detail?${sp}`)
   }
@@ -804,7 +816,7 @@ function SeriesCategoryGrid({ items, loading, categoryName }: any) {
             <div key={s.series_id} className="group">
               <button onClick={() => handleDetail(s)} className="w-full">
                 <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-2 group-hover:ring-[#14b8a6]/40">
-                  <Poster src={pImg(s.cover_big || s.movie_image || s.cover || s.thumbnail)} type="series" />
+                  <Poster src={realCover(s)} type="series" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
                     <div className="w-14 h-14 rounded-full bg-[#14b8a6] flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.6)] backdrop-blur-sm">
