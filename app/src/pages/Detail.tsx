@@ -34,7 +34,7 @@ function cleanName(raw: string): string {
 function proxyImg(base: string | undefined, url: string): string {
   if (!url) return ''
   const path = url.replace(/^https?:\/\/[^\/]+/, '')
-  if (path.startsWith('/t/p/')) return proxyUrl('https://image.tmdb.org', path)
+  if (path.startsWith('/t/p/')) return `https://image.tmdb.org${path}`
   if (url.startsWith('http://') && base) return proxyUrl(base, path)
   if (url.startsWith('http://')) return url.replace('http://', 'https://')
   return url

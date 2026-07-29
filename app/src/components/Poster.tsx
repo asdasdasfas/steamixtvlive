@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Film, Tv } from 'lucide-react'
-import { proxyUrl } from '@/lib/supabase'
 
 interface PosterProps {
   src?: string
@@ -11,7 +10,7 @@ interface PosterProps {
 
 function fixUrl(src?: string): string | undefined {
   if (!src) return src
-  if (src.startsWith('/t/p/')) return proxyUrl('https://image.tmdb.org', src)
+  if (src.startsWith('/t/p/')) return `https://image.tmdb.org${src}`
   if (src.startsWith('http://')) return src.replace('http://', 'https://')
   return src
 }

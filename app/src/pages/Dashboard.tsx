@@ -61,21 +61,15 @@ export default function Dashboard() {
     }
   }, [tab, liveDisabled])
 
-  // Series keyword filter (for homepage 2+2)
-  const seriesKeywords = ['pazartesi', 'salı', 'çarşamba', 'perşembe', 'cuma', 'cumartesi', 'pazar', 'haftanın', 'günün dizisi', 'yerli dizi', 'yabancı dizi']
-  const isSeriesCategory = (name: string) => seriesKeywords.some(k => name.toLowerCase().includes(k))
+  const isForeign = (name: string) => /^(?:eu|de|nl|alb|no|ex-yu)\s/.test(name.toLowerCase())
 
-  const filteredVodCats = useMemo(() => vodCats.filter(vc => {
-    const vcn = vc.category_name.toLowerCase()
-    if (seriesCats.some(sc => vcn.includes(sc.category_name.toLowerCase()) || sc.category_name.toLowerCase().includes(vcn))) return false
-    if (isSeriesCategory(vcn)) return false
-    return true
-  }), [vodCats, seriesCats])
+  const filteredVodCats = useMemo(() => vodCats.filter(vc => !isForeign(vc.category_name)), [vodCats])
+  const filteredSeriesCats = useMemo(() => seriesCats.filter(sc => !isForeign(sc.category_name)), [seriesCats])
 
   const showMovieCategory = tab === 'movies' && (selectedCat || filteredVodCats.length > 0)
-  const showSeriesCategory = tab === 'series' && (selectedSeriesCat || seriesCats.length > 0)
+  const showSeriesCategory = tab === 'series' && (selectedSeriesCat || filteredSeriesCats.length > 0)
   const activeMovieCat = selectedCat || filteredVodCats[0]?.category_id || ''
-  const activeSeriesCat = selectedSeriesCat || seriesCats[0]?.category_id || ''
+  const activeSeriesCat = selectedSeriesCat || filteredSeriesCats[0]?.category_id || ''
 
   // Basit yükleme: kategoriler + hero + ana sayfa 2+2 önizleme
   useEffect(() => {
@@ -97,14 +91,14 @@ export default function Dashboard() {
         setSeriesCats(fsc)
 
         // Hero
-        const heroCat = fvc.find(c => !isSeriesCategory(c.category_name)) || fvc[0]
+        const heroCat = fvc[0]
         if (heroCat) {
           const heroData = await fetchVods(server.base_url, server.xtream_user, server.xtream_pass, heroCat.category_id).then(r => r || []).catch(() => [])
           setHeroItems(heroData)
         }
 
         // Ana sayfa 2+2 (tüm öğeler)
-        const homeMovieCats = fvc.filter(c => !isSeriesCategory(c.category_name)).slice(0, 2)
+        const homeMovieCats = fvc.slice(0, 2)
         const homeSeriesCats = fsc.slice(0, 2)
         const [m1, m2, s1, s2] = await Promise.all([
           homeMovieCats[0] ? fetchVods(server.base_url, server.xtream_user, server.xtream_pass, homeMovieCats[0].category_id).then(r => r || []).catch(() => []) : Promise.resolve([]),
@@ -145,7 +139,7 @@ export default function Dashboard() {
         return item.category_ids?.includes(Number(id))
       }
       const fetchAllCatsSequential = async (type2: string): Promise<any[]> => {
-        const cats = type2 === 'movie' ? vodCats : seriesCats
+        const cats = type2 === 'movie' ? vodCats : filteredSeriesCats
         const fetcher = type2 === 'movie' ? fetchVods : fetchSeries
         const idField = type2 === 'movie' ? 'stream_id' : 'series_id'
         const all: any[] = []
@@ -192,7 +186,7 @@ export default function Dashboard() {
     } catch {} finally {
       loadingRef.current[loadingKey] = false
     }
-  }, [server, allVods, allSeries, vodCats, seriesCats])
+  }, [server, allVods, allSeries, vodCats, filteredSeriesCats])
 
   // Kategorilere tıklandığında grid açılsın
   const setTab = (t: string) => {
@@ -204,7 +198,7 @@ export default function Dashboard() {
       if (firstCat) { sp.set('cat', firstCat); loadFullCategory(firstCat, 'movie') }
       sp.delete('scat')
     } else if (t === 'series') {
-      const firstCat = seriesCats[0]?.category_id
+      const firstCat = filteredSeriesCats[0]?.category_id
       if (firstCat) { sp.set('scat', firstCat); loadFullCategory(firstCat, 'series') }
       sp.delete('cat')
     } else {
@@ -373,8 +367,9 @@ export default function Dashboard() {
 
   const proxyImg = (url: string) => {
     if (!url) return url
+    if (url.startsWith('/t/p/')) return `https://image.tmdb.org${url}`
     const path = url.replace(/^https?:\/\/[^\/]+/, '')
-    if (path.startsWith('/t/p/')) return proxyUrl('https://image.tmdb.org', path)
+    if (path.startsWith('/t/p/')) return `https://image.tmdb.org${path}`
     if (url.startsWith('http://') && server?.base_url) return proxyUrl(server.base_url, path)
     if (url.startsWith('http://')) return url.replace('http://', 'https://')
     return url
@@ -390,12 +385,12 @@ export default function Dashboard() {
   }, [tab, filteredVodCats])
 
   useEffect(() => {
-    if (tab === 'series' && seriesCats.length > 0 && !selectedSeriesCat) {
-      const firstCat = seriesCats[0].category_id
+    if (tab === 'series' && filteredSeriesCats.length > 0 && !selectedSeriesCat) {
+      const firstCat = filteredSeriesCats[0].category_id
       navigate('/dashboard?tab=series&scat=' + firstCat, { replace: true })
       loadFullCategory(firstCat, 'series')
     }
-  }, [tab, seriesCats])
+  }, [tab, filteredSeriesCats])
 
   // Seçili kategori yoksa URL'den güncelle
   useEffect(() => {
@@ -463,8 +458,8 @@ export default function Dashboard() {
   }
 
   // Determine which categories to show on homepage (2+2)
-  const homeMovieCats = useMemo(() => vodCats.filter(c => !isSeriesCategory(c.category_name)).slice(0, 2), [vodCats])
-  const homeSeriesCats = useMemo(() => seriesCats.slice(0, 2), [seriesCats])
+  const homeMovieCats = useMemo(() => filteredVodCats.slice(0, 2), [filteredVodCats])
+  const homeSeriesCats = useMemo(() => filteredSeriesCats.slice(0, 2), [filteredSeriesCats])
 
   const navCategoryName = useMemo(() => {
     if (tab === 'movies' && selectedCat) {
@@ -472,11 +467,11 @@ export default function Dashboard() {
       return cat ? trName(cat.category_name) : ''
     }
     if (tab === 'series' && selectedSeriesCat) {
-      const cat = seriesCats.find(c => c.category_id === selectedSeriesCat)
+      const cat = filteredSeriesCats.find(c => c.category_id === selectedSeriesCat)
       return cat ? trName(cat.category_name) : ''
     }
     return ''
-  }, [tab, selectedCat, selectedSeriesCat, filteredVodCats, seriesCats])
+  }, [tab, selectedCat, selectedSeriesCat, filteredVodCats, filteredSeriesCats])
 
   return (
     <div className="min-h-screen bg-[#0f172a]">
@@ -632,10 +627,10 @@ export default function Dashboard() {
         {/* SERIES TAB */}
         {tab === 'series' && (
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
-            <SlideCategoryPanel title="Dizi Kategorileri" items={seriesCats} selected={selectedSeriesCat} onSelect={(id) => { navigate('/dashboard?tab=series&scat=' + id, { replace: true }); loadFullCategory(id, 'series') }} />
+            <SlideCategoryPanel title="Dizi Kategorileri" items={filteredSeriesCats} selected={selectedSeriesCat} onSelect={(id) => { navigate('/dashboard?tab=series&scat=' + id, { replace: true }); loadFullCategory(id, 'series') }} />
             <div className="flex-1 overflow-y-auto min-h-0">
               {showSeriesCategory && activeSeriesCat ? (
-                <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} />
+                <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(filteredSeriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
               )}
@@ -669,7 +664,7 @@ function MovieCategoryGrid({ items, loading, categoryName }: any) {
   const pImg = (url: string) => {
     if (!url) return url
     const path = url.replace(/^https?:\/\/[^\/]+/, '')
-    if (path.startsWith('/t/p/')) return proxyUrl('https://image.tmdb.org', path)
+    if (path.startsWith('/t/p/')) return `https://image.tmdb.org${path}`
     if (url.startsWith('http://') && server?.base_url) return proxyUrl(server.base_url, path)
     return url
   }
@@ -719,7 +714,7 @@ function SeriesCategoryGrid({ items, loading, categoryName }: any) {
   const pImg = (url: string) => {
     if (!url) return url
     const path = url.replace(/^https?:\/\/[^\/]+/, '')
-    if (path.startsWith('/t/p/')) return proxyUrl('https://image.tmdb.org', path)
+    if (path.startsWith('/t/p/')) return `https://image.tmdb.org${path}`
     if (url.startsWith('http://') && server?.base_url) return proxyUrl(server.base_url, path)
     return url
   }
