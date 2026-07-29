@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { fetchCategories, fetchVods, fetchSeries, fetchAllVods, fetchAllSeries, posterUrl, proxyUrl } from '@/lib/supabase'
 import { parseRotationData } from '@/lib/rotation'
@@ -29,6 +29,8 @@ export default function Dashboard() {
   const [params, setParams] = useSearchParams()
   const tab = params.get('tab') || 'home'
   const initRef = useRef(false)
+  const location = useLocation()
+  const loadingRef = useRef<Record<string, boolean>>({})
 
   const { categories: rotCategories } = parseRotationData()
 
@@ -53,9 +55,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (tab === 'live' && liveDisabled) {
-      const sp = new URLSearchParams(params)
-      sp.delete('tab')
-      setParams(sp, { replace: true })
+      navigate('/dashboard', { replace: true })
     }
   }, [tab, liveDisabled])
 
@@ -133,6 +133,9 @@ export default function Dashboard() {
 
   const loadFullCategory = useCallback(async (catId: string, type: 'movie' | 'series') => {
     if (!server) return
+    const loadingKey = type + '-' + catId
+    if (loadingRef.current[loadingKey]) return
+    loadingRef.current[loadingKey] = true
     try {
       const matchCat = (item: any, id: string) => {
         const cid = item.category_id
@@ -184,12 +187,14 @@ export default function Dashboard() {
         setAllSeries(items || [])
         setSeriesItems(prev => ({ ...prev, [catId]: matched }))
       }
-    } catch {}
+    } catch {} finally {
+      loadingRef.current[loadingKey] = false
+    }
   }, [server, allVods, allSeries, vodCats, seriesCats])
 
   // Kategorilere tıklandığında grid açılsın
   const setTab = (t: string) => {
-    const sp = new URLSearchParams(params)
+    const sp = new URLSearchParams(location.search)
     if (t === 'home') sp.delete('tab')
     else sp.set('tab', t)
     if (t === 'movies') {
@@ -204,7 +209,7 @@ export default function Dashboard() {
       sp.delete('cat')
       sp.delete('scat')
     }
-    setParams(sp, { replace: true })
+    navigate('/dashboard?' + sp.toString(), { replace: true })
   }
 
   // APK'daki birebir kategori adı dönüşümleri
@@ -378,9 +383,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (tab === 'movies' && filteredVodCats.length > 0 && !selectedCat) {
       const firstCat = filteredVodCats[0].category_id
-      const sp = new URLSearchParams(params)
-      sp.set('cat', firstCat)
-      setParams(sp, { replace: true })
+      navigate('/dashboard?tab=movies&cat=' + firstCat, { replace: true })
       loadFullCategory(firstCat, 'movie')
     }
   }, [tab, filteredVodCats])
@@ -388,9 +391,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (tab === 'series' && seriesCats.length > 0 && !selectedSeriesCat) {
       const firstCat = seriesCats[0].category_id
-      const sp = new URLSearchParams(params)
-      sp.set('scat', firstCat)
-      setParams(sp, { replace: true })
+      navigate('/dashboard?tab=series&scat=' + firstCat, { replace: true })
       loadFullCategory(firstCat, 'series')
     }
   }, [tab, seriesCats])
@@ -599,7 +600,7 @@ export default function Dashboard() {
         )}
 
         {/* LIVE TV TAB */}
-        {tab === 'live' && <LiveTvScreen categories={rotCategories} selectedCat={selectedLiveCat} onSelectCategory={(id) => { const sp = new URLSearchParams(params); sp.set('lcat', id); setParams(sp, { replace: true }) }} />}
+        {tab === 'live' && <LiveTvScreen categories={rotCategories} selectedCat={selectedLiveCat} onSelectCategory={(id) => { navigate('/dashboard?tab=live&lcat=' + id, { replace: true }) }} />}
 
         {/* MOVIES TAB */}
         {tab === 'movies' && (
@@ -611,7 +612,7 @@ export default function Dashboard() {
               </div>
               {filteredVodCats.map(cat => (
                 <button key={cat.category_id}
-                  onClick={() => { const sp = new URLSearchParams(params); sp.set('cat', cat.category_id); sp.delete('scat'); setParams(sp, { replace: true }); loadFullCategory(cat.category_id, 'movie') }}
+                  onClick={() => { navigate('/dashboard?tab=movies&cat=' + cat.category_id, { replace: true }); loadFullCategory(cat.category_id, 'movie') }}
                   className={`w-full text-left px-3 md:px-4 py-2.5 text-base md:text-lg transition-colors uppercase tracking-wide ${
                     selectedCat === cat.category_id
                       ? 'bg-[#0099ff]/10 text-white border-r-2 border-[#0099ff] font-bold'
@@ -642,7 +643,7 @@ export default function Dashboard() {
               </div>
               {seriesCats.map(cat => (
                 <button key={cat.category_id}
-                  onClick={() => { const sp = new URLSearchParams(params); sp.set('scat', cat.category_id); sp.delete('cat'); setParams(sp, { replace: true }); loadFullCategory(cat.category_id, 'series') }}
+                  onClick={() => { navigate('/dashboard?tab=series&scat=' + cat.category_id, { replace: true }); loadFullCategory(cat.category_id, 'series') }}
                   className={`w-full text-left px-3 md:px-4 py-2.5 text-base md:text-lg transition-colors uppercase tracking-wide ${
                     selectedSeriesCat === cat.category_id
                       ? 'bg-[#0099ff]/10 text-white border-r-2 border-[#0099ff] font-bold'
