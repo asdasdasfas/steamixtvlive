@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo, memo } from 'react'
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { fetchCategories, fetchVods, fetchSeries, fetchAllVods, fetchAllSeries, posterUrl, proxyUrl } from '@/lib/supabase'
@@ -6,6 +6,7 @@ import { parseRotationData } from '@/lib/rotation'
 import { getFavorites, removeFavorite } from '@/lib/favorites'
 import type { FavoriteItem } from '@/lib/favorites'
 import Navbar from '@/sections/Navbar'
+const MemoNavbar = memo(Navbar)
 import LiveTvScreen from '@/sections/LiveTvScreen'
 import Poster from '@/components/Poster'
 import { Loader2, Play, Info, Heart } from 'lucide-react'
@@ -32,7 +33,8 @@ export default function Dashboard() {
   const location = useLocation()
   const loadingRef = useRef<Record<string, boolean>>({})
 
-  const { categories: rotCategories } = parseRotationData()
+  const rotData = useMemo(() => parseRotationData(), [])
+  const rotCategories = rotData.categories
 
   const [vodCats, setVodCats] = useState<any[]>([])
   const [seriesCats, setSeriesCats] = useState<any[]>([])
@@ -63,12 +65,12 @@ export default function Dashboard() {
   const seriesKeywords = ['pazartesi', 'salı', 'çarşamba', 'perşembe', 'cuma', 'cumartesi', 'pazar', 'haftanın', 'günün dizisi', 'yerli dizi', 'yabancı dizi']
   const isSeriesCategory = (name: string) => seriesKeywords.some(k => name.toLowerCase().includes(k))
 
-  const filteredVodCats = vodCats.filter(vc => {
+  const filteredVodCats = useMemo(() => vodCats.filter(vc => {
     const vcn = vc.category_name.toLowerCase()
     if (seriesCats.some(sc => vcn.includes(sc.category_name.toLowerCase()) || sc.category_name.toLowerCase().includes(vcn))) return false
     if (isSeriesCategory(vcn)) return false
     return true
-  })
+  }), [vodCats, seriesCats])
 
   const showMovieCategory = tab === 'movies' && (selectedCat || filteredVodCats.length > 0)
   const showSeriesCategory = tab === 'series' && (selectedSeriesCat || seriesCats.length > 0)
@@ -462,12 +464,12 @@ export default function Dashboard() {
   }
 
   // Determine which categories to show on homepage (2+2)
-  const homeMovieCats = vodCats.filter(c => !isSeriesCategory(c.category_name)).slice(0, 2)
-  const homeSeriesCats = seriesCats.slice(0, 2)
+  const homeMovieCats = useMemo(() => vodCats.filter(c => !isSeriesCategory(c.category_name)).slice(0, 2), [vodCats])
+  const homeSeriesCats = useMemo(() => seriesCats.slice(0, 2), [seriesCats])
 
   return (
     <div className="min-h-screen bg-[#0f172a]">
-      <Navbar />
+      <MemoNavbar />
       <div className="pt-16 md:pt-20">
         {/* ANA SAYFA */}
         {tab === 'home' && (
