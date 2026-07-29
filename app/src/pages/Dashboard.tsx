@@ -943,11 +943,11 @@ function SlideCategoryPanel({ title, items, selected, onSelect }: { title: strin
       {open && <div className="fixed inset-0 z-20 bg-black/40" onClick={() => scheduleHide()} />}
       {/* Panel */}
       <div onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}
-        className={`fixed left-0 top-16 md:top-20 bottom-0 z-20 w-56 bg-[#0f172a]/95 backdrop-blur-xl border-r border-white/10 transition-transform duration-300 ease-out ${open ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="px-4 py-3 border-b border-white/10">
+        className={`fixed left-0 top-16 md:top-20 bottom-0 z-20 w-56 bg-[#0f172a]/95 backdrop-blur-xl border-r border-white/10 transition-transform duration-300 ease-out ${open ? 'translate-x-0' : '-translate-x-full'} flex flex-col`}>
+        <div className="px-4 py-3 border-b border-white/10 flex-shrink-0">
           <h3 className="text-xs font-semibold text-[#0099ff] tracking-widest uppercase" style={{ fontFamily: 'Orbitron, sans-serif' }}>{title}</h3>
         </div>
-        <div className="overflow-y-auto h-full pb-16">
+        <div className="overflow-y-auto flex-1 pb-16">
           {items.map(cat => (
             <button key={cat.category_id}
               onClick={() => handleSelect(cat.category_id)}
