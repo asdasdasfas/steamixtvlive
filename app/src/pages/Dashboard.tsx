@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo, memo } from 'react'
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
-import { fetchCategories, fetchVods, fetchSeries, fetchAllVods, fetchAllSeries, posterUrl, proxyUrl } from '@/lib/supabase'
+import { fetchCategories, fetchVods, fetchSeries, fetchAllVods, fetchAllSeries, fetchMoviesByActors, posterUrl, proxyUrl } from '@/lib/supabase'
 import { parseRotationData } from '@/lib/rotation'
 import { getFavorites, removeFavorite } from '@/lib/favorites'
 import type { FavoriteItem } from '@/lib/favorites'
@@ -466,9 +466,8 @@ export default function Dashboard() {
       const firstCat = allMovieCats[0].category_id
       navigate('/dashboard?tab=movies&cat=' + firstCat, { replace: true })
       if (firstCat === '__actors__' && server) {
-        fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass).then(all => {
-          const matched = (all || []).filter((i: any) => actorNames.some(a => i.name?.toLowerCase().includes(a)))
-          setVodItems(prev => ({ ...prev, '__actors__': matched }))
+        fetchMoviesByActors(server.base_url, server.xtream_user, server.xtream_pass, actorNames).then(matched => {
+          setVodItems(prev => ({ ...prev, '__actors__': matched || [] }))
         })
       } else {
         loadFullCategory(firstCat, 'movie')
@@ -488,9 +487,8 @@ export default function Dashboard() {
   useEffect(() => {
     if (tab === 'movies' && activeMovieCat && !vodItems[activeMovieCat]) {
       if (activeMovieCat === '__actors__' && server) {
-        fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass).then(all => {
-          const matched = (all || []).filter((i: any) => actorNames.some(a => i.name?.toLowerCase().includes(a)))
-          setVodItems(prev => ({ ...prev, '__actors__': matched }))
+        fetchMoviesByActors(server.base_url, server.xtream_user, server.xtream_pass, actorNames).then(matched => {
+          setVodItems(prev => ({ ...prev, '__actors__': matched || [] }))
         })
       } else {
         loadFullCategory(activeMovieCat, 'movie')
@@ -726,9 +724,8 @@ export default function Dashboard() {
                 setSearchQuery(''); setSearchResults({ movies: [], series: [] })
                 navigate('/dashboard?tab=movies&cat=' + id, { replace: true })
                 if (!vodItems['__actors__'] && server) {
-                  fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass).then(all => {
-                    const matched = (all || []).filter((i: any) => actorNames.some(a => i.name?.toLowerCase().includes(a)))
-                    setVodItems(prev => ({ ...prev, '__actors__': matched }))
+                  fetchMoviesByActors(server.base_url, server.xtream_user, server.xtream_pass, actorNames).then(matched => {
+                    setVodItems(prev => ({ ...prev, '__actors__': matched || [] }))
                   })
                 }
                 return

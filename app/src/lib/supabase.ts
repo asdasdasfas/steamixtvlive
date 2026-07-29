@@ -149,33 +149,15 @@ async function tryFetchAll<T>(url: string): Promise<T[] | null> {
 }
 
 export async function fetchAllVods(base: string, user: string, pass: string): Promise<XtreamVod[]> {
-  const PAGE_SIZE = 500
-  let all: XtreamVod[] = []
-  let offset = 0
-  while (true) {
-    const u = `${xtUrl(base, user, pass)}&action=get_vod_streams&offset=${offset}&limit=${PAGE_SIZE}`
-    const page = await tryFetchAll<XtreamVod>(u)
-    if (!page || page.length === 0) break
-    all = all.concat(page)
-    if (page.length < PAGE_SIZE) break
-    offset += PAGE_SIZE
-  }
-  return all
+  const u = `${xtUrl(base, user, pass)}&action=get_vod_streams&limit=9999`
+  const result = await tryFetchAll<XtreamVod>(u)
+  return result || []
 }
 
 export async function fetchAllSeries(base: string, user: string, pass: string): Promise<XtreamSeries[]> {
-  const PAGE_SIZE = 500
-  let all: XtreamSeries[] = []
-  let offset = 0
-  while (true) {
-    const u = `${xtUrl(base, user, pass)}&action=get_series&offset=${offset}&limit=${PAGE_SIZE}`
-    const page = await tryFetchAll<XtreamSeries>(u)
-    if (!page || page.length === 0) break
-    all = all.concat(page)
-    if (page.length < PAGE_SIZE) break
-    offset += PAGE_SIZE
-  }
-  return all
+  const u = `${xtUrl(base, user, pass)}&action=get_series&limit=9999`
+  const result = await tryFetchAll<XtreamSeries>(u)
+  return result || []
 }
 
 export async function fetchVods(base: string, user: string, pass: string, catId?: string) {
@@ -200,6 +182,35 @@ export async function fetchVodInfo(base: string, user: string, pass: string, vod
   const res = await fetch(`${xtUrl(base, user, pass)}&action=get_vod_info&vod_id=${vodId}`)
   if (!res.ok) throw new Error('Failed to fetch VOD info')
   return res.json() as Promise<XtreamVodInfo>
+}
+
+export async function fetchMoviesByActors(base: string, user: string, pass: string, actorNames: string[]) {
+  const all = await fetchAllVods(base, user, pass)
+  if (!all.length) return []
+  const matched: XtreamVod[] = []
+  const nameMatched = new Set<number>()
+  for (const vod of all) {
+    if (actorNames.some(a => vod.name?.toLowerCase().includes(a))) {
+      matched.push(vod)
+      nameMatched.add(vod.stream_id)
+    }
+  }
+  const unmatched = all.filter(v => !nameMatched.has(v.stream_id))
+  const BATCH = 20
+  for (let i = 0; i < unmatched.length; i += BATCH) {
+    const batch = unmatched.slice(i, i + BATCH)
+    const results = await Promise.allSettled(batch.map(v => fetchVodInfo(base, user, pass, v.stream_id)))
+    for (let j = 0; j < results.length; j++) {
+      const r = results[j]
+      if (r.status === 'fulfilled') {
+        const cast = r.value?.info?.movie_data?.info?.cast || ''
+        if (actorNames.some(a => cast.toLowerCase().includes(a))) {
+          matched.push(batch[j])
+        }
+      }
+    }
+  }
+  return matched
 }
 
 export async function fetchSeriesInfo(base: string, user: string, pass: string, seriesId: number) {
