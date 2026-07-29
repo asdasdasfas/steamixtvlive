@@ -60,9 +60,11 @@ export default function Dashboard() {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<{ movies: any[]; series: any[] }>({ movies: [], series: [] })
+  const [searching, setSearching] = useState(false)
 
   const doSearch = useCallback(async (q: string) => {
     if (!q.trim() || !server) { setSearchResults({ movies: [], series: [] }); return }
+    setSearching(true)
     const ql = q.toLowerCase()
     const [mv, sr] = await Promise.all([
       allVods ? Promise.resolve(allVods) : fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass).then(r => { setAllVods(r || []); return r || [] }),
@@ -72,6 +74,7 @@ export default function Dashboard() {
       movies: (mv || []).filter((i: any) => i.name?.toLowerCase().includes(ql) && hasPoster(i, 'movie')),
       series: (sr || []).filter((i: any) => i.name?.toLowerCase().includes(ql) && hasPoster(i, 'series')),
     })
+    setSearching(false)
   }, [server, allVods, allSeries])
 
   const selectedCat = params.get('cat') || ''
@@ -706,7 +709,19 @@ export default function Dashboard() {
                   <button onClick={() => doSearch(searchQuery)} className="px-7 py-3 rounded-2xl bg-gradient-to-r from-[#0099ff] to-[#0077cc] text-white text-sm font-semibold hover:from-[#00aaff] hover:to-[#0088dd] hover:shadow-[0_0_25px_rgba(0,153,255,0.3)] active:scale-[0.97] transition-all duration-200 tracking-wide">Ara</button>
                 </div>
               </div>
-              {searchResults.movies.length > 0 ? (
+              {searching ? (
+                <div className="flex flex-col items-center justify-center h-full gap-5 px-4">
+                  <div className="relative w-16 h-16">
+                    <div className="absolute inset-0 rounded-full border-2 border-[#0099ff]/20" />
+                    <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#0099ff] animate-spin" />
+                    <div className="absolute inset-3 rounded-full border-2 border-transparent border-b-[#0099ff] animate-spin animation-delay-150" style={{ animationDuration: '1s' }} />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-400 font-medium tracking-wide">Aranıyor</p>
+                    <p className="text-xs text-gray-600 mt-1">"{searchQuery}" için tüm veriler taranıyor...</p>
+                  </div>
+                </div>
+              ) : searchResults.movies.length > 0 ? (
                 <MovieCategoryGrid items={searchResults.movies} loading={false} categoryName={`"${searchQuery}" için sonuçlar`} />
               ) : searchQuery && searchResults.movies.length === 0 && allVods ? (
                 <div className="flex flex-col items-center justify-center h-48 text-gray-500 text-sm gap-2"><svg className="w-8 h-8 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>Sonuç bulunamadı</div>
@@ -752,7 +767,19 @@ export default function Dashboard() {
                   <button onClick={() => doSearch(searchQuery)} className="px-7 py-3 rounded-2xl bg-gradient-to-r from-[#0099ff] to-[#0077cc] text-white text-sm font-semibold hover:from-[#00aaff] hover:to-[#0088dd] hover:shadow-[0_0_25px_rgba(0,153,255,0.3)] active:scale-[0.97] transition-all duration-200 tracking-wide">Ara</button>
                 </div>
               </div>
-              {searchResults.series.length > 0 ? (
+              {searching ? (
+                <div className="flex flex-col items-center justify-center h-full gap-5 px-4">
+                  <div className="relative w-16 h-16">
+                    <div className="absolute inset-0 rounded-full border-2 border-[#0099ff]/20" />
+                    <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#0099ff] animate-spin" />
+                    <div className="absolute inset-3 rounded-full border-2 border-transparent border-b-[#0099ff] animate-spin animation-delay-150" style={{ animationDuration: '1s' }} />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-400 font-medium tracking-wide">Aranıyor</p>
+                    <p className="text-xs text-gray-600 mt-1">"{searchQuery}" için tüm veriler taranıyor...</p>
+                  </div>
+                </div>
+              ) : searchResults.series.length > 0 ? (
                 <SeriesCategoryGrid items={searchResults.series} loading={false} categoryName={`"${searchQuery}" için sonuçlar`} />
               ) : searchQuery && searchResults.series.length === 0 && allSeries ? (
                 <div className="flex flex-col items-center justify-center h-48 text-gray-500 text-sm gap-2"><svg className="w-8 h-8 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>Sonuç bulunamadı</div>
