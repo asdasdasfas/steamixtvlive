@@ -84,15 +84,6 @@ export default function Dashboard() {
     return true
   }), [vodCats])
 
-  const reorderedSeriesCats = useMemo(() => {
-    const targetNames = ['TR ✦ TURKCELL TV+', 'EU ✦ MULTI DISNEY+ SERIES']
-    const targets = seriesCats.filter(c => targetNames.includes(c.category_name?.trim()))
-    const rest = seriesCats.filter(c => !targetNames.includes(c.category_name?.trim()))
-    const afterIdx = rest.findIndex(c => c.category_name?.trim() === 'TR ✦ YABANCI DUBLAJ DİZİLER')
-    const insertAt = afterIdx >= 0 ? afterIdx + 1 : rest.length
-    rest.splice(insertAt, 0, ...targets)
-    return rest
-  }, [seriesCats])
   const showMovieCategory = tab === 'movies' && (selectedCat || filteredVodCats.length > 0)
   const showSeriesCategory = tab === 'series' && (selectedSeriesCat || seriesCats.length > 0)
   const activeMovieCat = selectedCat || filteredVodCats[0]?.category_id || ''
@@ -690,7 +681,7 @@ export default function Dashboard() {
         {/* SERIES TAB */}
         {tab === 'series' && (
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
-            <SlideCategoryPanel title="Dizi Kategorileri" items={reorderedSeriesCats.slice(0, -3)} selected={selectedSeriesCat} onSelect={(id) => {
+            <SlideCategoryPanel title="Dizi Kategorileri" items={seriesCats.slice(0, -3)} selected={selectedSeriesCat} onSelect={(id) => {
               const cat = seriesCats.find(c => c.category_id === id)
               if (cat && isAdultCat(cat.category_name)) { setAdultPrompt({ catId: id, type: 'series' }); return }
               navigate('/dashboard?tab=series&scat=' + id, { replace: true }); loadFullCategory(id, 'series')
