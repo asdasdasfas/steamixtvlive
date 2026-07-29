@@ -149,15 +149,33 @@ async function tryFetchAll<T>(url: string): Promise<T[] | null> {
 }
 
 export async function fetchAllVods(base: string, user: string, pass: string): Promise<XtreamVod[]> {
-  const u = `${xtUrl(base, user, pass)}&action=get_vod_streams`
-  const result = await tryFetchAll<XtreamVod>(u)
-  return result || []
+  const PAGE_SIZE = 500
+  let all: XtreamVod[] = []
+  let offset = 0
+  while (true) {
+    const u = `${xtUrl(base, user, pass)}&action=get_vod_streams&offset=${offset}&limit=${PAGE_SIZE}`
+    const page = await tryFetchAll<XtreamVod>(u)
+    if (!page || page.length === 0) break
+    all = all.concat(page)
+    if (page.length < PAGE_SIZE) break
+    offset += PAGE_SIZE
+  }
+  return all
 }
 
 export async function fetchAllSeries(base: string, user: string, pass: string): Promise<XtreamSeries[]> {
-  const u = `${xtUrl(base, user, pass)}&action=get_series`
-  const result = await tryFetchAll<XtreamSeries>(u)
-  return result || []
+  const PAGE_SIZE = 500
+  let all: XtreamSeries[] = []
+  let offset = 0
+  while (true) {
+    const u = `${xtUrl(base, user, pass)}&action=get_series&offset=${offset}&limit=${PAGE_SIZE}`
+    const page = await tryFetchAll<XtreamSeries>(u)
+    if (!page || page.length === 0) break
+    all = all.concat(page)
+    if (page.length < PAGE_SIZE) break
+    offset += PAGE_SIZE
+  }
+  return all
 }
 
 export async function fetchVods(base: string, user: string, pass: string, catId?: string) {
