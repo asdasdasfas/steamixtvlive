@@ -607,24 +607,7 @@ export default function Dashboard() {
         {/* MOVIES TAB */}
         {tab === 'movies' && (
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
-            {/* Sol panel - kategoriler */}
-            <div className="w-48 md:w-60 shrink-0 border-r border-white/10 overflow-y-auto pt-3 pb-4 scrollbar-hide min-h-0">
-              <div className="px-3 md:px-4 pb-2 mb-2 border-b border-white/10">
-                <h3 className="text-xs font-semibold text-[#0099ff] tracking-widest uppercase" style={{ fontFamily: 'Orbitron, sans-serif' }}>Film Kategorileri</h3>
-              </div>
-              {filteredVodCats.map(cat => (
-                <button key={cat.category_id}
-                  onClick={() => { navigate('/dashboard?tab=movies&cat=' + cat.category_id, { replace: true }); loadFullCategory(cat.category_id, 'movie') }}
-                  className={`w-full text-left px-3 md:px-4 py-2.5 text-base md:text-lg transition-colors uppercase tracking-wide ${
-                    selectedCat === cat.category_id
-                      ? 'bg-[#0099ff]/10 text-white border-r-2 border-[#0099ff] font-bold'
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
-                  }`}>
-                  {trName(cat.category_name)}
-                </button>
-              ))}
-            </div>
-            {/* Sağ panel - içerik */}
+            <SlideCategoryPanel title="Film Kategorileri" items={filteredVodCats} selected={selectedCat} onSelect={(id) => { navigate('/dashboard?tab=movies&cat=' + id, { replace: true }); loadFullCategory(id, 'movie') }} />
             <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0" data-scroll="grid">
               {showMovieCategory && activeMovieCat ? (
                 <MovieCategoryGrid items={vodItems[activeMovieCat]} loading={!allVods && !vodItems[activeMovieCat]} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} />
@@ -638,24 +621,7 @@ export default function Dashboard() {
         {/* SERIES TAB */}
         {tab === 'series' && (
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
-            {/* Sol panel - kategoriler */}
-            <div className="w-48 md:w-60 shrink-0 border-r border-white/10 overflow-y-auto pt-3 pb-4 scrollbar-hide min-h-0">
-              <div className="px-3 md:px-4 pb-2 mb-2 border-b border-white/10">
-                <h3 className="text-xs font-semibold text-[#0099ff] tracking-widest uppercase" style={{ fontFamily: 'Orbitron, sans-serif' }}>Dizi Kategorileri</h3>
-              </div>
-              {seriesCats.map(cat => (
-                <button key={cat.category_id}
-                  onClick={() => { navigate('/dashboard?tab=series&scat=' + cat.category_id, { replace: true }); loadFullCategory(cat.category_id, 'series') }}
-                  className={`w-full text-left px-3 md:px-4 py-2.5 text-base md:text-lg transition-colors uppercase tracking-wide ${
-                    selectedSeriesCat === cat.category_id
-                      ? 'bg-[#0099ff]/10 text-white border-r-2 border-[#0099ff] font-bold'
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
-                  }`}>
-                  {trName(cat.category_name)}
-                </button>
-              ))}
-            </div>
-            {/* Sağ panel - içerik */}
+            <SlideCategoryPanel title="Dizi Kategorileri" items={seriesCats} selected={selectedSeriesCat} onSelect={(id) => { navigate('/dashboard?tab=series&scat=' + id, { replace: true }); loadFullCategory(id, 'series') }} />
             <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0" data-scroll="grid">
               {showSeriesCategory && activeSeriesCat ? (
                 <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} />
@@ -781,6 +747,49 @@ function SeriesCategoryGrid({ items, loading, categoryName }: any) {
         </div>
       )}
     </div>
+  )
+}
+
+function SlideCategoryPanel({ title, items, selected, onSelect }: { title: string; items: any[]; selected: string; onSelect: (id: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+
+  const show = () => { clearTimeout(timerRef.current); setOpen(true) }
+  const scheduleHide = () => { timerRef.current = setTimeout(() => setOpen(false), 3000) }
+  const handleMouseEnter = () => { clearTimeout(timerRef.current) }
+  const handleMouseLeave = () => { scheduleHide() }
+  const handleSelect = (id: string) => { onSelect(id); scheduleHide() }
+
+  return (
+    <>
+      {/* Trigger button */}
+      <button onClick={() => open ? scheduleHide() : show()}
+        className="fixed left-0 top-1/2 -translate-y-1/2 z-30 w-7 h-16 rounded-r-xl bg-[#0099ff]/80 hover:bg-[#0099ff] text-white flex items-center justify-center transition-all shadow-lg backdrop-blur-sm group">
+        <svg className={`w-4 h-4 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 18l-6-6 6-6" /></svg>
+      </button>
+      {/* Overlay */}
+      {open && <div className="fixed inset-0 z-20 bg-black/40" onClick={() => scheduleHide()} />}
+      {/* Panel */}
+      <div onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}
+        className={`fixed left-0 top-16 md:top-20 bottom-0 z-20 w-56 bg-[#0f172a]/95 backdrop-blur-xl border-r border-white/10 transition-transform duration-300 ease-out ${open ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="px-4 py-3 border-b border-white/10">
+          <h3 className="text-xs font-semibold text-[#0099ff] tracking-widest uppercase" style={{ fontFamily: 'Orbitron, sans-serif' }}>{title}</h3>
+        </div>
+        <div className="overflow-y-auto h-full pb-16">
+          {items.map(cat => (
+            <button key={cat.category_id}
+              onClick={() => handleSelect(cat.category_id)}
+              className={`w-full text-left px-4 py-2.5 text-sm transition-colors uppercase tracking-wide ${
+                selected === cat.category_id
+                  ? 'bg-[#0099ff]/10 text-white border-r-2 border-[#0099ff] font-bold'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}>
+              {cat.category_name || cat.name}
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
   )
 }
 
