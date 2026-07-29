@@ -188,7 +188,7 @@ export default function Dashboard() {
       return true
     }
     if (type === 'series') return valid(item.cover_big) || valid(item.movie_image) || valid(item.cover) || valid(item.thumbnail)
-    return valid(item.cover_big) || valid(item.stream_icon)
+    return valid(item.cover_big)
   }
 
   const loadFullCategory = useCallback(async (catId: string, type: 'movie' | 'series') => {
