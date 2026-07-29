@@ -193,22 +193,28 @@
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #0f172a;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 153, 255, 0.25);
-  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(0,153,255,0.35), rgba(168,85,247,0.25));
+  border-radius: 4px;
+  border: 2px solid #0f172a;
+  background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 153, 255, 0.45);
+  background: linear-gradient(180deg, rgba(0,153,255,0.55), rgba(168,85,247,0.4));
+  background-clip: content-box;
 }
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 153, 255, 0.25) transparent;
+  scrollbar-color: rgba(0,153,255,0.35) #0f172a;
+}
+html {
+  overflow-y: scroll;
 }
 
 ::selection {
