@@ -224,14 +224,14 @@ export default function Dashboard() {
       }
       if (type === 'movie') {
         if (allVods) {
-          setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId)) }))
+          setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId) && hasPoster(i, 'movie')) }))
           return
         }
         let items = await fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass)
         if (!items || items.length === 0) {
           items = await fetchAllCatsSequential('movie')
         }
-        const matched = (items || []).filter((i: any) => matchCat(i, catId))
+        const matched = (items || []).filter((i: any) => matchCat(i, catId) && hasPoster(i, 'movie'))
         setAllVods(items || [])
         setVodItems(prev => ({ ...prev, [catId]: matched }))
       } else {
