@@ -660,7 +660,7 @@ export default function Dashboard() {
         {/* SERIES TAB */}
         {tab === 'series' && (
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
-            <SlideCategoryPanel title="Dizi Kategorileri" items={seriesCats} selected={selectedSeriesCat} onSelect={(id) => {
+            <SlideCategoryPanel title="Dizi Kategorileri" items={seriesCats.slice(0, -3)} selected={selectedSeriesCat} onSelect={(id) => {
               const cat = seriesCats.find(c => c.category_id === id)
               if (cat && isAdultCat(cat.category_name)) { setAdultPrompt({ catId: id, type: 'series' }); return }
               navigate('/dashboard?tab=series&scat=' + id, { replace: true }); loadFullCategory(id, 'series')
