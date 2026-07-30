@@ -16,7 +16,7 @@ export default function LivePlayer({ channelId, title, src, onEnded, onChannelCh
   const [fullscreen, setFullscreen] = useState(false)
   const fullscreenRef = useRef<HTMLDivElement>(null)
   const ch = getChannelById(channelId)
-  const categoryId = ch?.groupTitle?.toLowerCase().replace(/\s+/g, '-') || ''
+  const categoryId = (ch?.groupTitle || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
   const siblings = getChannelsByCategory(categoryId)
   const currentIndex = siblings.findIndex(s => s.id === channelId)
 

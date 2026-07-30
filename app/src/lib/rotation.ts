@@ -458,14 +458,8 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/32602.m3u8
 #EXTINF:-1 tvg-id="TRTRTSPORYILDIZHD" tvg-name="TR: TRT SPOR YILDIZ HD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/TRT.SPOR.YILDIZ.png",TR: TRT SPOR YILDIZ HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/161120.m3u8
 
-#EXTINF:-1 tvg-id="TRASPORFHD" tvg-name="TR: A SPOR FHD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/A.SPOR.png",TR: A SPOR FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/93986.m3u8
-
 #EXTINF:-1 tvg-id="TRASPORHD" tvg-name="TR: A SPOR HD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/A.SPOR.png",TR: A SPOR HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/154011.m3u8
-
-#EXTINF:-1 tvg-id="TR0SIFIRTV" tvg-name="TR: 0 SIFIR TV" group-title="Premium Spor" tvg-logo="",TR: 0 SIFIR TV
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/217053.m3u8
 
 #EXTINF:-1 tvg-id="TRHTSPORFHD" tvg-name="TR: HT SPOR FHD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/SONRADAN/HT.SPOR.png",TR: HT SPOR FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/146100.m3u8
@@ -479,26 +473,8 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/10446.m3u8
 #EXTINF:-1 tvg-id="TRSPORSMART1HD" tvg-name="TR: SPOR SMART 1 HD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/SPOR.SMART.1.png",TR: SPOR SMART 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/44902.m3u8
 
-#EXTINF:-1 tvg-id="TRSPORSMART2FHD" tvg-name="TR: SPOR SMART 2 FHD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/SPOR.SMART.2.png",TR: SPOR SMART 2 FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/167438.m3u8
-
 #EXTINF:-1 tvg-id="TRSPORSMART2HD" tvg-name="TR: SPOR SMART 2 HD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/SPOR.SMART.2.png",TR: SPOR SMART 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/159350.m3u8
-
-#EXTINF:-1 tvg-id="TRTiViBUSPORFHD" tvg-name="TR: TiViBUSPOR FHD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/TIVIBU.SPOR.png",TR: TiViBUSPOR FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/86876.m3u8
-
-#EXTINF:-1 tvg-id="TRTiViBUSPOR1FHD" tvg-name="TR: TiViBUSPOR 1 FHD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/TIVIBU.SPOR.1.png",TR: TiViBUSPOR 1 FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/90373.m3u8
-
-#EXTINF:-1 tvg-id="TRTiViBUSPOR2FHD" tvg-name="TR: TiViBUSPOR 2 FHD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/TIVIBU.SPOR.2.png",TR: TiViBUSPOR 2 FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/44717.m3u8
-
-#EXTINF:-1 tvg-id="TRTiViBUSPOR3FHD" tvg-name="TR: TiViBUSPOR 3 FHD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/TIVIBU.SPOR.3.png",TR: TiViBUSPOR 3 FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/37476.m3u8
-
-#EXTINF:-1 tvg-id="TRTiViBUSPOR4FHD" tvg-name="TR: TiViBUSPOR 4 FHD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/TIVIBU.SPOR.4.png",TR: TiViBUSPOR 4 FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/70739.m3u8
 
 #EXTINF:-1 tvg-id="TREUROSPORT1FHD" tvg-name="TR: EUROSPORT 1 FHD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/EURO.SPORT.1.png",TR: EUROSPORT 1 FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/145527.m3u8
@@ -506,38 +482,8 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/145527.m3u8
 #EXTINF:-1 tvg-id="TREUROSPORT2FHD" tvg-name="TR: EUROSPORT 2 FHD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/EURO.SPORT.2.png",TR: EUROSPORT 2 FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/39047.m3u8
 
-#EXTINF:-1 tvg-id="TREKOLSPORTSHD" tvg-name="TR: EKOL SPORTS HD" group-title="Premium Spor" tvg-logo="",TR: EKOL SPORTS HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/197063.m3u8
-
-#EXTINF:-1 tvg-id="TRCOSMOSPORTSFHD" tvg-name="TR: COSMO SPORTS FHD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/SONRADAN/COSMOS.png",TR: COSMO SPORTS FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/173947.m3u8
-
-#EXTINF:-1 tvg-id="TRSPORTSTVHD" tvg-name="TR: SPORTS TV HD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/SPORTS.TV.png",TR: SPORTS TV HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/80505.m3u8
-
-#EXTINF:-1 tvg-id="TRGSTVHD" tvg-name="TR: GS TV HD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/GS.TV.png",TR: GS TV HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/71653.m3u8
-
 #EXTINF:-1 tvg-id="TRFBTVHD" tvg-name="TR: FB TV  HD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/FB.TV.png",TR: FB TV  HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/86393.m3u8
-
-#EXTINF:-1 tvg-id="TRTJKTVHD" tvg-name="TR: TJK TV HD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/TJK.TV.png",TR: TJK TV HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/50692.m3u8
-
-#EXTINF:-1 tvg-id="TRTAYTV" tvg-name="TR: T.A.Y TV" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/TAY.TV.png",TR: T.A.Y TV
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/80939.m3u8
-
-#EXTINF:-1 tvg-id="TRNBATV" tvg-name="TR: NBA TV" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/NBA.png",TR: NBA TV
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/44520.m3u8
-
-#EXTINF:-1 tvg-id="TRBlueTVSMACKDOWNFHD" tvg-name="TR: BlueTV SMACKDOWN FHD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/SMACK.DOWN.png",TR: BlueTV SMACKDOWN FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/121925.m3u8
-
-#EXTINF:-1 tvg-id="TRBlueTVBOXFHD" tvg-name="TR: Blue TV BOX FHD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/BOX.png",TR: Blue TV BOX FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/42342.m3u8
-
-#EXTINF:-1 tvg-id="TRTRT3SPORFHD" tvg-name="TR: TRT 3 - SPOR FHD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/TRT.3.SPOR.png",TR: TRT 3 - SPOR FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/22940.m3u8
 
 #EXTINF:-1 tvg-id="TRTRTBELGESELFHD" tvg-name="TR: TRT BELGESEL FHD" group-title="Belgesel" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/BELGESELL/TRT.BELGESEL.png",TR: TRT BELGESEL FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/123270.m3u8
@@ -581,7 +527,7 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/89521.m3u8
 #EXTINF:-1 tvg-id="TRVASATEXPLOREFHD" tvg-name="TR: VİASAT EXPLORE FHD" group-title="Belgesel" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/BELGESELL/VIASAT.EXPLORE.png",TR: VİASAT EXPLORE FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/99775.m3u8
 
-#EXTINF:-1 tvg-id="TRPOLSKAMERASIHD" tvg-name="TR: POLİS KAMERASI HD" group-title="Belgesel" tvg-logo="http://zorexlogo.dynuddns.com:8080/zrx/BELGESEL/POLIS.KAMERASI.png",TR: POLİS KAMERASI HD
+#EXTINF:-1 tvg-id="TRPOLSKAMERASIHD" tvg-name="TR: POLİS KAMERASI HD" group-title="Belgesel" tvg-logo="https://zorexlogo.dynuddns.com:8080/zrx/BELGESEL/POLIS.KAMERASI.png",TR: POLİS KAMERASI HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220392.m3u8
 
 #EXTINF:-1 tvg-id="TRTRTGENC" tvg-name="TR: TRT GENC" group-title="Belgesel" tvg-logo="",TR: TRT GENC
