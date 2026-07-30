@@ -4,12 +4,8 @@ import { Loader2, Maximize2, Minimize2, ChevronDown } from 'lucide-react'
 interface Game { name: string; slug: string; cat: string; url: string }
 
 const PC_GAMES: Game[] = [
-  { name: 'GTA: Vice City', slug: 'vc-web', cat: 'Macera', url: 'https://quenq.com/apps/vc-web/' },
   { name: 'GTA: Vice City (Unofficial)', slug: 'vc-web-unofficial', cat: 'Macera', url: 'https://vcweb.studynotes.top' },
   { name: 'The Simpsons: Hit & Run', slug: 'simpsons-hit-run', cat: 'Macera', url: 'https://shar-wasm.cjoseph.workers.dev/?skipmovie' },
-  { name: 'Minecraft', slug: 'minecraft', cat: 'Macera', url: 'https://quenq.com/apps/minecraft/' },
-  { name: '3D Pinball: Space Cadet', slug: '3d-pinball', cat: 'Klasik', url: 'https://quenq.com/apps/3d-pinball-space-cadet/' },
-  { name: 'Angry Birds Chrome', slug: 'angry-birds', cat: 'Bulmaca', url: 'https://quenq.com/apps/angry-birds-chrome/' },
   { name: 'Web Dashers (Geometry Dash)', slug: 'web-dashers', cat: 'Spor', url: 'https://web-dashers.github.io/' },
 ]
 
