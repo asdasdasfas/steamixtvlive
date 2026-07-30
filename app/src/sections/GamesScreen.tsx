@@ -1,150 +1,138 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { Loader2, Maximize2, Minimize2, ArrowLeft } from 'lucide-react'
 
-const GAMES = [
-  { name: 'Slope', slug: 'slope', cat: 'Arcade' },
-  { name: '2048', slug: '2048', cat: 'Puzzle' },
-  { name: 'Snake', slug: 'snake', cat: 'Arcade' },
-  { name: 'Tetris', slug: 'tetris', cat: 'Puzzle' },
-  { name: 'Chess', slug: 'chess', cat: 'Puzzle' },
-  { name: 'Cut the Rope', slug: 'cut-the-rope', cat: 'Puzzle' },
-  { name: 'Sudoku', slug: 'sudoku', cat: 'Puzzle' },
-  { name: 'Solitaire', slug: 'solitaire', cat: 'Puzzle' },
-  { name: 'Pong', slug: 'pong', cat: 'Arcade' },
-  { name: 'Doodle Jump', slug: 'doodle-jump', cat: 'Arcade' },
-  { name: 'Neon Dash', slug: 'neon-dash', cat: 'Arcade' },
-  { name: 'Slice Master', slug: 'slice-master', cat: 'Puzzle' },
-  { name: 'T-Rex Dino', slug: 't-rex', cat: 'Arcade' },
-  { name: 'Drive Fury', slug: 'drive-fury', cat: 'Arcade' },
-  { name: 'Cookie Clicker', slug: 'cookie-clicker', cat: 'Idle' },
-  { name: 'Flappy Wings', slug: 'flappy-wings', cat: 'Arcade' },
-  { name: 'Brick Breaker', slug: 'brick-breaker', cat: 'Arcade' },
-  { name: 'Minesweeper', slug: 'minesweeper', cat: 'Puzzle' },
-  { name: 'Crossword', slug: 'crossword', cat: 'Puzzle' },
-  { name: 'Wordle', slug: 'wordle', cat: 'Puzzle' },
-  { name: 'Basketball Shoot', slug: 'basketball-shoot', cat: 'Arcade' },
-  { name: 'Pinball', slug: 'pinball', cat: 'Arcade' },
-  { name: 'Helix Jump', slug: 'helix-jump', cat: 'Arcade' },
-  { name: 'Doodle Jump', slug: 'doodle-jump', cat: 'Arcade' },
-  { name: 'Paper.io', slug: 'paper-io', cat: 'Arcade' },
-  { name: 'Monkey Mart', slug: 'monkey-mart', cat: 'Arcade' },
-  { name: 'Eggy Car', slug: 'eggy-car', cat: 'Arcade' },
-  { name: 'Drift Boss', slug: 'drift-boss', cat: 'Arcade' },
-  { name: 'Snow Rider', slug: 'snow-rider', cat: 'Arcade' },
-  { name: 'Stack Ball', slug: 'stack-ball', cat: 'Arcade' },
-  { name: 'Knife Hit', slug: 'knife-hit', cat: 'Arcade' },
-  { name: 'Bounce Bot', slug: 'bounce-bot', cat: 'Arcade' },
-  { name: 'Level Devil', slug: 'level-devil', cat: 'Arcade' },
-  { name: 'Gravity Run', slug: 'gravity-run', cat: 'Arcade' },
-  { name: 'Stickman Swing', slug: 'stickman-swing', cat: 'Arcade' },
-  { name: 'Stickman Escape', slug: 'stickman-escape', cat: 'Arcade' },
-  { name: 'Bottle Flip 3D', slug: 'bottle-flip-3d', cat: 'Arcade' },
-  { name: 'Snake vs Block', slug: 'snake-vs-block', cat: 'Arcade' },
-  { name: 'Magic Sort', slug: 'magic-sort', cat: 'Puzzle' },
-  { name: 'Bubble Pop', slug: 'bubble-pop', cat: 'Puzzle' },
-  { name: 'Bubble Shooter', slug: 'bubble-shooter', cat: 'Puzzle' },
-  { name: 'Mahjong', slug: 'mahjong-solitaire', cat: 'Puzzle' },
-  { name: 'Tile Dynasty', slug: 'tile-dynasty', cat: 'Puzzle' },
-  { name: 'Crystal Sort', slug: 'color-sort', cat: 'Puzzle' },
-  { name: 'Watermelon Merge', slug: 'watermelon-merge', cat: 'Puzzle' },
-  { name: 'Sushi Stack', slug: 'sushi-stack', cat: 'Puzzle' },
-  { name: 'Bolt Jam 3D', slug: 'bolt-jam-3d', cat: 'Puzzle' },
-  { name: 'Wood Block', slug: 'wood-block-puzzle', cat: 'Puzzle' },
-  { name: 'Parking Jam', slug: 'parking-jam', cat: 'Puzzle' },
-  { name: 'Unblock Me', slug: 'unblock-me', cat: 'Puzzle' },
-  { name: 'Pipe Connect', slug: 'pipe-connect', cat: 'Puzzle' },
-  { name: 'Hex Block', slug: 'hex-block', cat: 'Puzzle' },
-  { name: 'Flow Connect', slug: 'flow-connect', cat: 'Puzzle' },
-  { name: 'Wordscapes', slug: 'wordscapes', cat: 'Puzzle' },
-  { name: 'Jigsaw', slug: 'jigsaw-puzzle', cat: 'Puzzle' },
-  { name: 'Nonogram', slug: 'nonogram', cat: 'Puzzle' },
-  { name: 'Number Match', slug: 'number-match', cat: 'Puzzle' },
-  { name: 'Tangram', slug: 'tangram', cat: 'Puzzle' },
-  { name: 'Pull the Pin', slug: 'pull-the-pin', cat: 'Puzzle' },
-  { name: 'Sand Balls', slug: 'sand-balls', cat: 'Puzzle' },
-  { name: 'Fill The Fridge', slug: 'fill-fridge', cat: 'Puzzle' },
-  { name: 'Little Alchemy', slug: 'little-alchemy', cat: 'Puzzle' },
-  { name: 'Brain Out', slug: 'brain-out', cat: 'Puzzle' },
-  { name: 'Trivia Crack', slug: 'trivia-crack', cat: 'Puzzle' },
-  { name: 'Tic Tac Toe', slug: 'tic-tac-toe', cat: 'Puzzle' },
-  { name: 'Reversi', slug: 'reversi', cat: 'Puzzle' },
-  { name: 'Connect Four', slug: 'connect-four', cat: 'Puzzle' },
-  { name: 'Hangman', slug: 'hangman', cat: 'Puzzle' },
-  { name: 'Dominoes', slug: 'dominoes', cat: 'Puzzle' },
-  { name: 'Checkers', slug: 'checkers', cat: 'Puzzle' },
-  { name: 'Gomoku', slug: 'gomoku', cat: 'Puzzle' },
-  { name: 'Yahtzee', slug: 'yahtzee', cat: 'Puzzle' },
-  { name: 'Sliding Puzzle', slug: 'sliding-puzzle', cat: 'Puzzle' },
-  { name: 'Peg Solitaire', slug: 'peg-solitaire', cat: 'Puzzle' },
-  { name: 'Tower of Hanoi', slug: 'tower-of-hanoi', cat: 'Puzzle' },
-  { name: 'Simon Says', slug: 'simon-says', cat: 'Puzzle' },
-  { name: 'Maze Runner', slug: 'maze-runner', cat: 'Puzzle' },
-  { name: 'Word Search', slug: 'word-search', cat: 'Puzzle' },
-  { name: 'Spot the Diff', slug: 'spot-the-difference', cat: 'Puzzle' },
-  { name: 'Hidden Object', slug: 'hidden-object', cat: 'Puzzle' },
-  { name: 'Jewel Crush', slug: 'jewel-crush', cat: 'Puzzle' },
-  { name: 'Bejeweled', slug: 'bejeweled', cat: 'Puzzle' },
-  { name: 'Cover Orange', slug: 'cover-orange', cat: 'Puzzle' },
-  { name: 'Fireboy&Watergirl', slug: 'fireboy-watergirl', cat: 'Puzzle' },
-  { name: 'Physics Draw', slug: 'physics-draw-puzzle', cat: 'Puzzle' },
-  { name: 'Dots and Boxes', slug: 'dots-and-boxes', cat: 'Puzzle' },
-  { name: 'Word Connect', slug: 'word-connections', cat: 'Puzzle' },
-  { name: 'Marble Shooter', slug: 'marble-shooter', cat: 'Puzzle' },
-  { name: 'Bridge Builder', slug: 'bridge-builder', cat: 'Puzzle' },
-  { name: 'Screw Jam', slug: 'screw-jam', cat: 'Puzzle' },
-  { name: 'Escape Manor', slug: 'escape-manor', cat: 'Puzzle' },
-  { name: 'Tower Defense', slug: 'tower-defense', cat: 'Puzzle' },
-  { name: 'Rope Rescue', slug: 'rope-rescue', cat: 'Puzzle' },
-  { name: 'Ice Breaker', slug: 'ice-breaker', cat: 'Puzzle' },
-  { name: 'Happy Glass', slug: 'happy-glass', cat: 'Puzzle' },
-  { name: 'Mekorama', slug: 'mekorama', cat: 'Puzzle' },
-  { name: 'Blockudoku', slug: 'blockudoku', cat: 'Puzzle' },
-  { name: 'Infinity Loop', slug: 'infinity-loop', cat: 'Puzzle' },
-  { name: 'Tidy Up 3D', slug: 'tidy-up-3d', cat: 'Puzzle' },
-  { name: 'Poly Art 3D', slug: 'poly-art-3d', cat: 'Puzzle' },
-  { name: 'Pop Them', slug: 'pop-them', cat: 'Puzzle' },
-  { name: 'Ball Sort', slug: 'ball-sort', cat: 'Puzzle' },
-  { name: 'Word Scramble', slug: 'word-scramble', cat: 'Puzzle' },
-  { name: 'Peg Blast', slug: 'peg-blast', cat: 'Puzzle' },
-  { name: 'Mini Golf', slug: 'mini-golf', cat: 'Puzzle' },
-]
+interface Game { name: string; slug: string; cat: string }
 
-const GAME_EMOJIS: Record<string, string> = {
-  slope: '🔴', '2048': '🌌', snake: '🐍', tetris: '🧱', chess: '♔',
-  'cut-the-rope': '🍬', sudoku: '🧩', solitaire: '🃏', pong: '🏓',
-  'doodle-jump': '🐸', 'neon-dash': '⚡', 'slice-master': '🔪',
-  't-rex': '🦖', 'drive-fury': '🏎️', 'cookie-clicker': '🍪',
-  'flappy-wings': '🐦', 'brick-breaker': '🧱', minesweeper: '💣',
-  crossword: '✏️', wordle: '🔤', 'basketball-shoot': '🏀',
-  pinball: '🎱', 'helix-jump': '🌀', 'paper-io': '📦',
-  'monkey-mart': '🐵', 'eggy-car': '🥚', 'drift-boss': '🏎️',
-  'snow-rider': '🏂', 'stack-ball': '🔴', 'knife-hit': '🗡',
-  'bounce-bot': '🤖', 'level-devil': '😈', 'gravity-run': '🏃',
-  'stickman-swing': '🏃', 'stickman-escape': '🏃', 'bottle-flip-3d': '🍾',
-  'snake-vs-block': '🐍', 'magic-sort': '🧪', 'bubble-pop': '🫧',
-  'bubble-shooter': '🫧', 'mahjong-solitaire': '🀄', 'tile-dynasty': '🀄',
-  'color-sort': '🧊', 'watermelon-merge': '🍉', 'sushi-stack': '🍣',
-  'bolt-jam-3d': '🔩', 'wood-block-puzzle': '🪵', 'parking-jam': '🚗',
-  'unblock-me': '🧱', 'pipe-connect': '🔧', 'hex-block': '⬡',
-  'flow-connect': '🔗', wordscapes: '🌿', 'jigsaw-puzzle': '🧩',
-  nonogram: '🔲', 'number-match': '🔢', tangram: '🔺',
-  'pull-the-pin': '📌', 'sand-balls': '🏐', 'fill-fridge': '🧊',
-  'little-alchemy': '⚗️', 'brain-out': '🧠', 'trivia-crack': '❓',
-  'tic-tac-toe': '⭕', reversi: '⚫', 'connect-four': '🔴',
-  hangman: '🎯', dominoes: '🁣', checkers: '⬤', gomoku: '⚫',
-  yahtzee: '🎲', 'sliding-puzzle': '🔢', 'peg-solitaire': '⚪',
-  'tower-of-hanoi': '🏰', 'simon-says': '🧠', 'maze-runner': '🏃',
-  'word-search': '🔍', 'spot-the-difference': '🔍', 'hidden-object': '🔍',
-  'jewel-crush': '💎', bejeweled: '💎', 'cover-orange': '🍊',
-  'fireboy-watergirl': '🔥', 'physics-draw-puzzle': '✏️', 'dots-and-boxes': '⬜',
-  'word-connections': '🔗', 'marble-shooter': '🔮', 'bridge-builder': '🌉',
-  'screw-jam': '🔩', 'escape-manor': '🏚️', 'tower-defense': '🏰',
-  'rope-rescue': '🪢', 'ice-breaker': '🧊', 'happy-glass': '🥛',
-  mekorama: '🤖', blockudoku: '🧩', 'infinity-loop': '♾️',
-  'tidy-up-3d': '🧹', 'poly-art-3d': '🎨', 'pop-them': '💥',
-  'ball-sort': '🎱', 'word-scramble': '🔤', 'peg-blast': '🎯',
-  'mini-golf': '⛳',
-}
+const GAMES: Game[] = [
+  // İşletme / Yönetim (Management / Tycoon)
+  { name: 'Süpermarket', slug: 'supermarket', cat: 'İşletme' },
+  { name: 'Döner Efsanesi', slug: 'doner-efsanesi', cat: 'İşletme' },
+  { name: 'İyi Pizza Güzel Pizza', slug: 'iyi-pizza-guzel-pizza', cat: 'İşletme' },
+  { name: 'Penguen Lokantası', slug: 'penguen-lokantasi', cat: 'İşletme' },
+  { name: 'Hamburger Restoranı', slug: 'hamburger-restorani', cat: 'İşletme' },
+  { name: 'Hamburger Dükkanı', slug: 'hamburger-dukkani', cat: 'İşletme' },
+  { name: 'Suşi Dükkanı', slug: 'susi-dukkani', cat: 'İşletme' },
+  { name: 'Pizza Dükkanı İşletme', slug: 'pizza-dukkani-isletme', cat: 'İşletme' },
+  { name: 'Pasta Dükkanı', slug: 'pasta-dukkani', cat: 'İşletme' },
+  { name: 'Sosisçi Bush', slug: 'sosisci-bush', cat: 'İşletme' },
+  { name: 'Hızlı Büfeci 2', slug: 'hizli-bufeci-2', cat: 'İşletme' },
+  { name: 'Hizli Büfeci', slug: 'hizli-bufeci', cat: 'İşletme' },
+  { name: 'Hamburgerci Kız', slug: 'hamburgerci-kiz', cat: 'İşletme' },
+  { name: 'Restoran İşletme', slug: 'restoran-isletme', cat: 'İşletme' },
+  { name: 'Sokak Restoranı', slug: 'sokak-restorani', cat: 'İşletme' },
+  { name: 'Burger Dükkanı', slug: 'burger-dukkani', cat: 'İşletme' },
+  { name: 'Pizza İmparatorluğu', slug: 'pizza-imparatorlugu', cat: 'İşletme' },
+  { name: 'Penguen Cafe', slug: 'penguen-cafe', cat: 'İşletme' },
+  { name: 'Otel İşletme 2', slug: 'otel-isletme-2', cat: 'İşletme' },
+  { name: 'Otel İşletme', slug: 'otel-isletme', cat: 'İşletme' },
+  { name: 'Lunapark İşletme', slug: 'lunapark-isletme', cat: 'İşletme' },
+  { name: 'Alışveriş Caddesi', slug: 'alisveris-caddesi', cat: 'İşletme' },
+  { name: 'Alışveriş Merkezi', slug: 'alisveris-merkezi', cat: 'İşletme' },
+  { name: 'Giyim Mağazası', slug: 'giyim-magazasi', cat: 'İşletme' },
+  { name: 'Ofis Yönetme', slug: 'ofis-yonetme', cat: 'İşletme' },
+  { name: 'Benzin İstasyonu', slug: 'benzin-istasyonu-isletme', cat: 'İşletme' },
+  { name: 'Emlakçı', slug: 'emlakci', cat: 'İşletme' },
+  { name: 'Reyon Düzenleme 2', slug: 'reyon-duzenleme-2', cat: 'İşletme' },
+  { name: 'Garson Kız', slug: 'garson-kiz', cat: 'İşletme' },
+  { name: 'Demirci Eşek', slug: 'demirci-esek', cat: 'İşletme' },
+  { name: 'Araba Satıcısı', slug: 'araba-saticisi', cat: 'İşletme' },
+  { name: 'Otopark Görevlisi 2', slug: 'otopark-gorevlisi-2', cat: 'İşletme' },
+  { name: 'Şirinler Lokantası', slug: 'sirinler-lokantasi', cat: 'İşletme' },
+  { name: 'Yemek Çılgınlığı', slug: 'yemek-cilginligi', cat: 'İşletme' },
+  { name: 'Pizza', slug: 'pizza', cat: 'İşletme' },
+  { name: 'Hamburger Yapma', slug: 'hamburger-yapma', cat: 'İşletme' },
+  { name: 'Garson Penguen', slug: 'garson-penguen', cat: 'İşletme' },
+  { name: 'Restoran', slug: 'restoran', cat: 'İşletme' },
+  { name: 'Cadı Restoranı', slug: 'cadi-restorani', cat: 'İşletme' },
+  { name: 'Penguen Lokantası 2', slug: 'penguen-lokantasi-2', cat: 'İşletme' },
+  { name: 'Döner Efsanesi 2', slug: 'doner-efsanesi-2', cat: 'İşletme' },
+  { name: 'Muz Çiftliği', slug: 'muz-ciftligi', cat: 'İşletme' },
+  { name: 'Yumurta Fabrikası', slug: 'yumurta-fabrikasi', cat: 'İşletme' },
+
+  // Macera / Aksiyon (Adventure / Action)
+  { name: 'Super Bear Adventure', slug: 'super-bear-adventure', cat: 'Macera' },
+  { name: 'Among Us', slug: 'among-us', cat: 'Macera' },
+  { name: 'Hello Neighbor', slug: 'hello-neighbor', cat: 'Macera' },
+  { name: 'Cat and Granny', slug: 'cat-and-granny', cat: 'Macera' },
+  { name: 'Hapishaneden Kaçış', slug: 'hapishaneden-kacis-obby', cat: 'Macera' },
+  { name: 'Uzay Hapishanesinden Kaçış', slug: 'uzay-hapishanesinden-kacis', cat: 'Macera' },
+  { name: 'Saklambaç', slug: 'saklambac', cat: 'Macera' },
+  { name: 'Portaldan Kaçış', slug: 'portaldan-kacis', cat: 'Macera' },
+  { name: 'Tünel Kazma 2', slug: 'tunel-kazma-2', cat: 'Macera' },
+  { name: 'Adadan Kaçış', slug: 'adadan-kacis', cat: 'Macera' },
+  { name: 'Bu Benim Komşum Değil', slug: 'bu-benim-komsum-degil', cat: 'Macera' },
+  { name: 'Hırsız Polis', slug: 'hirsiz-polis', cat: 'Macera' },
+  { name: 'Polislerden Kaç', slug: 'polislerden-kac', cat: 'Macera' },
+  { name: 'Robin Hood', slug: 'robin-hood', cat: 'Macera' },
+  { name: 'I am Cat', slug: 'i-am-cat', cat: 'Macera' },
+  { name: 'I Am Monkey', slug: 'i-am-monkey', cat: 'Macera' },
+  { name: 'Meccha Chameleon', slug: 'meccha-chameleon', cat: 'Macera' },
+  { name: 'Lise Öğretmeni Sim.', slug: 'lise-ogretmeni-simulatoru', cat: 'Macera' },
+  { name: 'Kedi Simülatörü', slug: 'kedi-simulatoru', cat: 'Macera' },
+  { name: 'Geyik Simülatörü', slug: 'geyik-simulatoru', cat: 'Macera' },
+  { name: 'Yaşam Simülasyonu', slug: 'yasam-simulasyonu', cat: 'Macera' },
+  { name: 'Havaalanı Güvenlik', slug: 'havaalani-guvenlik', cat: 'Macera' },
+  { name: 'Havaalanı Görevlisi', slug: 'havaalani-gorevlisi', cat: 'Macera' },
+  { name: 'Havaalanı Sim.', slug: 'havaalani-simulasyonu', cat: 'Macera' },
+  { name: 'Hostes', slug: 'hostes', cat: 'Macera' },
+  { name: 'Okulda Flört', slug: 'okulda-flort', cat: 'Macera' },
+  { name: 'Hacker', slug: 'hacker', cat: 'Macera' },
+  { name: 'Kar Küreme', slug: 'kar-kureme', cat: 'Macera' },
+  { name: 'Mad Day Special', slug: 'mad-day-special', cat: 'Macera' },
+  { name: 'Köpek Bakma', slug: 'kopek-bakma', cat: 'Macera' },
+  { name: 'Roblox Temizlik', slug: 'roblox-temizlik', cat: 'Macera' },
+
+  // Platform / Parkur (Platform / Runner)
+  { name: 'Obby Mega Parkur', slug: 'obby-mega-parkur', cat: 'Platform' },
+  { name: 'Obby Zıplama Parkuru', slug: 'obby-ziplama-parkuru', cat: 'Platform' },
+  { name: 'Obby Spor Salonu', slug: 'obby-spor-salonu', cat: 'Platform' },
+  { name: 'Zor Parkur', slug: 'zor-parkur', cat: 'Platform' },
+  { name: 'Maden Avcısı', slug: 'maden-avcisi', cat: 'Platform' },
+  { name: 'Depo Avcısı', slug: 'depo-avcisi', cat: 'Platform' },
+
+  // Araba Yarışı (Racing)
+  { name: 'Drift Parkuru', slug: 'drift-parkuru', cat: 'Araba' },
+  { name: 'Araba Yarışı', slug: 'araba-yarisi', cat: 'Araba' },
+  { name: 'Direksiyonlu Araba Sürme', slug: 'direksiyonlu-araba-surme', cat: 'Araba' },
+  { name: 'Tofaş Şahin', slug: 'tofas-sahin', cat: 'Araba' },
+  { name: '3D Car Simulator', slug: '3d-car-simulator', cat: 'Araba' },
+  { name: 'Dr Driving', slug: 'dr-driving', cat: 'Araba' },
+  { name: 'Extreme Car Driving', slug: 'extreme-car-driving-simulator', cat: 'Araba' },
+  { name: 'Super Drift 3D', slug: 'super-drift-3d', cat: 'Araba' },
+
+  // Spor (Sports)
+  { name: 'Spor Salonu', slug: 'spor-salonu', cat: 'Spor' },
+  { name: 'Basketbol', slug: 'basketbol', cat: 'Spor' },
+  { name: 'Futbol', slug: 'futbol', cat: 'Spor' },
+
+  // Zombi / Survival
+  { name: 'Zombi Yolu 4', slug: 'zombi-yolu-4', cat: 'Zombi' },
+  { name: 'Gumball Survivor', slug: 'gumball-survivor', cat: 'Zombi' },
+  { name: 'Survivor', slug: 'survivor', cat: 'Zombi' },
+
+  // Yemek (Cooking / Food)
+  { name: 'Pasta Yapma', slug: 'pasta-yapma', cat: 'Yemek' },
+  { name: 'Pizza Yapma', slug: 'pizza-yapma', cat: 'Yemek' },
+  { name: 'Hamburger', slug: 'hamburger', cat: 'Yemek' },
+  { name: 'Dondurma Yapma', slug: 'dondurma-yapma', cat: 'Yemek' },
+  { name: 'Pankek Yapma', slug: 'pankek-yapma', cat: 'Yemek' },
+  { name: 'Master Şef', slug: 'master-sef', cat: 'Yemek' },
+  { name: 'Tost Yapma', slug: 'tost-yapma', cat: 'Yemek' },
+  { name: 'Döner Kebap', slug: 'doner-kebap', cat: 'Yemek' },
+  { name: 'Yemek Yapma', slug: 'yemek-yapma', cat: 'Yemek' },
+  { name: 'Taco Yapma', slug: 'taco-yapma', cat: 'Yemek' },
+  { name: 'Sandviç', slug: 'sandvic', cat: 'Yemek' },
+  { name: 'Elmalı Turta', slug: 'elmali-turta', cat: 'Yemek' },
+  { name: 'Süper Pizza', slug: 'super-pizza', cat: 'Yemek' },
+
+  // Klasikler
+  { name: 'Ateş ve Su', slug: 'ates-ve-su', cat: 'Macera' },
+  { name: 'Süper Mario', slug: 'super-mario', cat: 'Platform' },
+  { name: 'Mahjong', slug: 'mahjong', cat: 'Zeka' },
+  { name: 'Bubble Shooter', slug: 'bubble-shooter', cat: 'Zeka' },
+  { name: 'Okey', slug: 'okey', cat: 'Zeka' },
+  { name: 'Tavla', slug: 'tavla', cat: 'Zeka' },
+]
 
 const uniqueGames = GAMES.filter((g, i, a) => a.findIndex(x => x.slug === g.slug) === i)
 
@@ -202,7 +190,7 @@ export default function GamesScreen() {
               </div>
             )}
             <iframe
-              src={`https://gamezipper.com/${playing}/`}
+              src={`https://www.rekoroyun.com/${playing}.html`}
               className={`w-full h-full ${iframeLoaded ? '' : 'invisible'}`}
               allowFullScreen
               allow="autoplay; fullscreen; gamepad"
@@ -218,7 +206,7 @@ export default function GamesScreen() {
               <h2 className="text-base font-bold text-white" style={{ fontFamily: 'Orbitron, sans-serif' }}>
                 🎮 Oyunlar
               </h2>
-              <p className="text-xs text-gray-500 mt-0.5">{uniqueGames.length} reklamsız HTML5 oyun</p>
+              <p className="text-xs text-gray-500 mt-0.5">{uniqueGames.length} Android tarzı oyun</p>
             </div>
           </div>
           <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-6 scrollbar-thin">
@@ -233,15 +221,12 @@ export default function GamesScreen() {
                     <div className="aspect-[4/3] relative overflow-hidden" style={{ background: grad }}>
                       {showImg && (
                         <img
-                          src={`https://gamezipper.com/og-images/${game.slug}.png`}
+                          src={`https://www.rekoroyun.com/resim/${game.slug}.jpg`}
                           alt=""
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           onError={() => handleImgError(game.slug)}
                         />
                       )}
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <span className="text-4xl drop-shadow-xl opacity-60">{GAME_EMOJIS[game.slug] || '🎮'}</span>
-                      </div>
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                     </div>
                     <div className="p-2.5">
