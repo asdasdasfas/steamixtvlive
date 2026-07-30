@@ -8,6 +8,7 @@ import type { FavoriteItem } from '@/lib/favorites'
 import Navbar from '@/sections/Navbar'
 const MemoNavbar = memo(Navbar)
 import LiveTvScreen from '@/sections/LiveTvScreen'
+import GamesScreen from '@/sections/GamesScreen'
 import Poster from '@/components/Poster'
 import { Loader2, Play, Info, Heart, Lock } from 'lucide-react'
 
@@ -830,6 +831,9 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+        {/* OYUNLAR TAB */}
+        {tab === 'games' && <GamesScreen />}
 
         {/* FAVORİLER TAB */}
         {tab === 'favorites' && (

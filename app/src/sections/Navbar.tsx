@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useLang } from '@/lib/language'
 import { useAuth } from '@/hooks/use-auth'
-import { Home, Tv, Film, Clapperboard, Search, Settings, LogOut, Globe, ChevronDown, Heart } from 'lucide-react'
+import { Home, Tv, Film, Clapperboard, Search, Settings, LogOut, Globe, ChevronDown, Heart, Gamepad2 } from 'lucide-react'
 import { useState } from 'react'
 
 const allTabs = [
@@ -9,6 +9,7 @@ const allTabs = [
   { key: 'live', icon: Tv, labelKey: 'nav.live' },
   { key: 'movies', icon: Film, labelKey: 'nav.movies' },
   { key: 'series', icon: Clapperboard, labelKey: 'nav.series' },
+  { key: 'games', icon: Gamepad2, labelKey: 'Oyunlar' },
   { key: 'favorites', icon: Heart, labelKey: 'Favoriler' },
 ]
 
