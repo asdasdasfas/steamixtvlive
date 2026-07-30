@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { gunzipSync } from 'node:zlib'
 import { spawn, execSync } from 'node:child_process'
 import ffmpegPathStatic from 'ffmpeg-static'
-import puppeteer from 'puppeteer'
+import puppeteer from 'puppeteer-core'
 
 // Try to find ffmpeg: first check static, then system PATH, then common locations
 let ffmpegPath = null
@@ -645,7 +645,8 @@ footer, section, .text-center.py-8,
       try {
         const browser = await puppeteer.launch({
           headless: true,
-          args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--single-process']
+          executablePath: process.env.CHROME_PATH || undefined,
+          args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--single-process', '--disable-gpu', '--no-zygote']
         })
         const page = await browser.newPage()
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36')
