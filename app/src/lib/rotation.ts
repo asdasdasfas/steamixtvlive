@@ -483,9 +483,6 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/101581.m3u8
 
 
 
-#EXTINF:-1 tvg-id="TRDOCUSCREENFHD" tvg-name="DOCU SCREEN FHD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/international/docubox-hd-int.png",DOCU SCREEN FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/173948.m3u8
-
 
 #EXTINF:-1 tvg-id="TRTGRTBELGESELFHD" tvg-name="TGRT BELGESEL FHD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/tgrt-belgesel-tr.png",TGRT BELGESEL FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/2820.m3u8
@@ -501,8 +498,7 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/96121.m3u8
 #EXTINF:-1 tvg-id="TRCHASSEETPECHE" tvg-name="CHASSE ET PECHE" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/france/chasse-et-peche-fr.png",CHASSE ET PECHE
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/106148.m3u8
 
-#EXTINF:-1 tvg-id="TRFILMSCREENFHD" tvg-name="FILMSCREEN FHD" group-title="Sinema & Dizi" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/filmbox-hd-tr.png",FILMSCREEN FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/110102.m3u8
+
 
 #EXTINF:-1 tvg-id="TRSNEMATVFHD" tvg-name="SİNEMA TV FHD" group-title="Sinema & Dizi" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/sinema-tv-hz-tr.png",SİNEMA TV FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/128156.m3u8
@@ -522,8 +518,7 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/137505.m3u8
 #EXTINF:-1 tvg-id="TRSINEMATVAKSIYONFHD" tvg-name="SINEMA TV AKSIYON FHD" group-title="Sinema & Dizi" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/sinema-aksiyon-tr.png",SINEMA TV AKSIYON FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/53492.m3u8
 
-#EXTINF:-1 tvg-id="TRSINEMATVAKSIYON2HD" tvg-name="SINEMA TV AKSIYON 2 HD" group-title="Sinema & Dizi" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/sinema-aksiyon2-tr.png",SINEMA TV AKSIYON 2 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/56326.m3u8
+
 
 #EXTINF:-1 tvg-id="TRSINEMATVKOMEDIFHD" tvg-name="SINEMA TV KOMEDI FHD" group-title="Sinema & Dizi" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/sinema-komedi-tr.png",SINEMA TV KOMEDI FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/116207.m3u8
@@ -540,14 +535,6 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/138755.m3u8
 #EXTINF:-1 tvg-id="TRMOVESMARTCLASSCFHD" tvg-name="MOVİE SMART CLASSİC FHD" group-title="Sinema & Dizi" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/movie-smart-classic-hd-tr.png",MOVİE SMART CLASSİC FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/38078.m3u8
 
-#EXTINF:-1 tvg-id="BestofIMDB1" tvg-name="Best of IMDB 1 HD" group-title="Sinema & Dizi" tvg-logo="https://graph.facebook.com/imdb/picture?type=large",Best of IMDB 1 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/9735.m3u8
-
-#EXTINF:-1 tvg-id="BestofIMDB2" tvg-name="Best of IMDB 2 HD" group-title="Sinema & Dizi" tvg-logo="https://graph.facebook.com/imdb/picture?type=large",Best of IMDB 2 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220455.m3u8
-
-#EXTINF:-1 tvg-id="BestofIMDB4" tvg-name="Best of IMDB 4 HD" group-title="Sinema & Dizi" tvg-logo="https://graph.facebook.com/imdb/picture?type=large",Best of IMDB 4 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220484.m3u8
 
 #EXTINF:-1 tvg-id="CINEMAXAKSIYON" tvg-name="TR: CINEMAXIMUM Aksiyon HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Aksiyon HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/28328.m3u8
@@ -784,8 +771,7 @@ function proxyUrl(url: string): string {
   const needsProxy = url.startsWith('http://') || url.includes('.daioncdn.net')
   if (needsProxy) {
     const u = new URL(url)
-    const port = u.port || (u.protocol === 'https:' ? 443 : 80)
-    const base = u.protocol + '//' + u.hostname + ':' + port
+    const base = u.origin
     const b64 = btoa(base).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
     const urlNoQuery = url.split('?')[0]
     if (urlNoQuery.endsWith('.m3u8') || urlNoQuery.endsWith('.m3u')) return '/p/' + b64 + u.pathname + (u.search || '')
