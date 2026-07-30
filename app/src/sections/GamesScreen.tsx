@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { Loader2, Maximize2, Minimize2, ChevronDown } from 'lucide-react'
+import { Loader2, Maximize2, Minimize2, ChevronDown, ExternalLink } from 'lucide-react'
 
 interface Game { name: string; slug: string; cat: string; url: string }
 
@@ -34,7 +34,7 @@ export default function GamesScreen() {
       setGames([])
       setCats([])
       setGamesByCat({})
-      setPlaying('gam-onl')
+      setPlaying(null)
       setLoading(false)
       return
     }
@@ -198,11 +198,24 @@ export default function GamesScreen() {
               </div>
             </div>
           )}
-          {playing ? (
+          {source === 'gam-onl' ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black">
+              <p className="text-gray-400 text-xs text-center px-4">gam.onl iframe'i engelliyor, yeni sekmede aç</p>
+              <a
+                href={ATARI_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-[#0099ff] text-white text-sm px-4 py-2 rounded-lg hover:bg-[#0099ff]/80 transition-colors"
+              >
+                <ExternalLink className="w-4 h-4" />
+                gam.onl'u Aç
+              </a>
+            </div>
+          ) : playing ? (
             <iframe
               key={source + (playing || '')}
-              src={source === 'easyhub' ? `/tr/games/${playing}` : source === 'pc' ? (game?.url || '') : `/browser-proxy?url=${encodeURIComponent(ATARI_URL)}`}
-              className={`w-full h-full ${gameLoaded || source === 'gam-onl' ? '' : 'invisible'}`}
+              src={source === 'easyhub' ? `/tr/games/${playing}` : (game?.url || '')}
+              className={`w-full h-full ${gameLoaded ? '' : 'invisible'}`}
               allowFullScreen
               allow="autoplay; fullscreen; gamepad"
               style={{ border: 'none', touchAction: 'manipulation' }}

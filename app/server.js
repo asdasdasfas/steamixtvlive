@@ -6,26 +6,6 @@ import { fileURLToPath } from 'node:url'
 import { gunzipSync } from 'node:zlib'
 import { spawn, execSync } from 'node:child_process'
 import ffmpegPathStatic from 'ffmpeg-static'
-import puppeteer from 'puppeteer-core'
-
-// Find Chrome binary
-function findChrome() {
-  const paths = [
-    process.env.CHROME_PATH,
-    '/usr/bin/google-chrome',
-    '/usr/bin/google-chrome-stable',
-    '/opt/google/chrome/google-chrome',
-    '/opt/google/chrome/chrome',
-    '/snap/bin/chromium',
-    '/usr/bin/chromium',
-    '/usr/bin/chromium-browser'
-  ].filter(Boolean)
-  for (const p of paths) { try { fs.accessSync(p); return p } catch {} }
-  return null
-}
-const chromePath = findChrome()
-console.log(`[CHROME] path=${chromePath}`)
-import puppeteer from 'puppeteer-core'
 
 // Try to find ffmpeg: first check static, then system PATH, then common locations
 let ffmpegPath = null
@@ -650,37 +630,6 @@ footer, section, .text-center.py-8,
         res.end(html)
       })
     }).on('error', () => { res.writeHead(502); res.end('Proxy Error') })
-    return
-  }
-
-  // Browser proxy - uses headless Chrome (Puppeteer) to bypass Cloudflare
-  // /browser-proxy?url=https://example.com
-  if (req.url.startsWith('/browser-proxy')) {
-    const urlObj = new URL(req.url, 'http://localhost')
-    const targetUrl = urlObj.searchParams.get('url')
-    if (!targetUrl) { res.writeHead(400); res.end('Missing url param'); return }
-    const baseUrl = targetUrl.replace(/\/?$/, '/')
-    ;(async () => {
-      try {
-        const browser = await puppeteer.launch({
-          headless: true,
-          executablePath: chromePath,
-          args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--single-process', '--disable-gpu', '--no-zygote']
-        })
-        const page = await browser.newPage()
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36')
-        await page.goto(targetUrl, { waitUntil: 'networkidle0', timeout: 30000 })
-        let html = await page.content()
-        await browser.close()
-        html = html.replace('<head>', '<head><base href="' + baseUrl + '">')
-        html = html.replace('</head>', '<style>html,body{margin:0!important;padding:0!important;width:100vw;height:100vh;overflow:hidden}iframe,video,canvas{max-width:100vw;max-height:100vh}</style></head>')
-        res.writeHead(200, { 'Content-Type': 'text/html', 'Access-Control-Allow-Origin': '*' })
-        res.end(html)
-      } catch (e) {
-        res.writeHead(502, { 'Content-Type': 'text/plain' })
-        res.end('Proxy Error: ' + e.message)
-      }
-    })()
     return
   }
 
