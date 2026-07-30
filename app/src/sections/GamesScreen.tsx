@@ -2,35 +2,29 @@ import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 
 const GAMES = [
-  { name: 'Subway Surfers', slug: 'subway-surfers' },
-  { name: 'Angry Birds 2', slug: 'angry-birds-2' },
-  { name: 'Stick War Legacy', slug: 'stick-war-legacy' },
-  { name: 'Geometry Dash', slug: 'geometry-dash-freezenova' },
-  { name: 'Temple Run 2', slug: 'temple-run-2' },
-  { name: 'Cut the Rope', slug: 'cut-the-rope' },
-  { name: 'Fruit Ninja', slug: 'fruit-ninja' },
-  { name: 'Highway Traffic', slug: 'highway-traffic' },
-  { name: '2048', slug: '2048' },
-  { name: 'Doodle Jump', slug: 'doodle-jump' },
+  { name: 'Neon Run', slug: 'neon-run', emoji: '🏃' },
+  { name: 'Cut the Rope', slug: 'cut-the-rope', emoji: '🍬' },
+  { name: 'Fruit Slash', slug: 'fruit-slash', emoji: '🍉' },
+  { name: 'Slope', slug: 'slope', emoji: '⚪' },
+  { name: '2048', slug: '2048', emoji: '🔢' },
+  { name: 'Drive Fury', slug: 'drive-fury', emoji: '🚗' },
+  { name: 'Block Blast', slug: 'block-blast', emoji: '🧱' },
+  { name: 'T-Rex Dino', slug: 't-rex', emoji: '🦖' },
+  { name: 'Cookie Clicker', slug: 'cookie-clicker', emoji: '🍪' },
+  { name: 'Chess', slug: 'chess', emoji: '♟️' },
 ]
 
-const SLUG_TO_EMOJI: Record<string, string> = {
-  'subway-surfers': '🏃', 'angry-birds-2': '🐦', 'stick-war-legacy': '⚔️',
-  'geometry-dash-freezenova': '🔥', 'temple-run-2': '🏛️', 'cut-the-rope': '🍬',
-  'fruit-ninja': '🍉', 'highway-traffic': '🚗', '2048': '🔢', 'doodle-jump': '🎮',
-}
-
 const GRADIENTS: Record<string, string> = {
-  'subway-surfers': 'from-orange-500 to-yellow-500',
-  'angry-birds-2': 'from-red-500 to-orange-400',
-  'stick-war-legacy': 'from-blue-600 to-purple-600',
-  'geometry-dash-freezenova': 'from-cyan-500 to-blue-600',
-  'temple-run-2': 'from-amber-700 to-yellow-600',
+  'neon-run': 'from-purple-500 to-pink-500',
   'cut-the-rope': 'from-green-400 to-emerald-500',
-  'fruit-ninja': 'from-red-400 to-pink-500',
-  'highway-traffic': 'from-blue-500 to-indigo-600',
-  '2048': 'from-purple-500 to-pink-500',
-  'doodle-jump': 'from-teal-400 to-cyan-500',
+  'fruit-slash': 'from-red-400 to-pink-500',
+  'slope': 'from-cyan-500 to-blue-600',
+  '2048': 'from-amber-500 to-yellow-600',
+  'drive-fury': 'from-orange-500 to-red-500',
+  'block-blast': 'from-blue-500 to-indigo-600',
+  't-rex': 'from-teal-400 to-cyan-500',
+  'cookie-clicker': 'from-yellow-400 to-orange-500',
+  'chess': 'from-gray-600 to-gray-900',
 }
 
 export default function GamesScreen() {
@@ -55,7 +49,7 @@ export default function GamesScreen() {
               </div>
             )}
             <iframe
-              src={`https://www.madkidgames.com/full/${playing}`}
+              src={`https://gamezipper.com/${playing}/`}
               className={`w-full h-full ${iframeLoaded ? '' : 'invisible'}`}
               allowFullScreen
               allow="autoplay; fullscreen; gamepad"
@@ -70,7 +64,7 @@ export default function GamesScreen() {
             <h2 className="text-base font-bold text-white" style={{ fontFamily: 'Orbitron, sans-serif' }}>
               🎮 Oyunlar <span className="text-xs text-gray-500 font-normal">({GAMES.length} oyun)</span>
             </h2>
-            <p className="text-xs text-gray-500 mt-1">Android oyunları tarayıcında oyna</p>
+            <p className="text-xs text-gray-500 mt-1">Reklamsız HTML5 oyunlar</p>
           </div>
           <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-6">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -78,12 +72,12 @@ export default function GamesScreen() {
                 <button key={game.slug} onClick={() => setPlaying(game.slug)}
                   className="group bg-[#1a1f35] rounded-xl overflow-hidden hover:bg-[#252b45] transition-all hover:shadow-lg hover:shadow-[#0099ff]/10 active:scale-[0.97]">
                   <div className={`aspect-[4/3] bg-gradient-to-br ${GRADIENTS[game.slug] || 'from-gray-600 to-gray-800'} flex items-center justify-center relative overflow-hidden`}>
-                    <span className="text-5xl drop-shadow-xl">{SLUG_TO_EMOJI[game.slug] || '🎮'}</span>
+                    <span className="text-5xl drop-shadow-xl">{game.emoji}</span>
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                   </div>
                   <div className="p-3 text-left">
                     <p className="text-sm font-medium text-white truncate">{game.name}</p>
-                    <p className="text-[10px] text-gray-500 mt-0.5">HTML5 · Android</p>
+                    <p className="text-[10px] text-gray-500 mt-0.5">Reklamsız</p>
                   </div>
                 </button>
               ))}
