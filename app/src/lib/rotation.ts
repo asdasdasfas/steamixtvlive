@@ -485,7 +485,7 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/126779.m3u8
 #EXTINF:-1 tvg-id="TRVASATEXPLOREFHD" tvg-name="VİASAT EXPLORE FHD" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/c/c3/Viasat_Explore-logo.svg"
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/99775.m3u8
 
-#EXTINF:-1 tvg-id="TRPOLSKAMERASIHD" tvg-name="POLİS KAMERASI HD" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Police_badge.svg/320px-Police_badge.svg.png",POLİS KAMERASI HD
+#EXTINF:-1 tvg-id="TRPOLSKAMERASIHD" tvg-name="POLİS KAMERASI HD" group-title="Belgesel" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/09/Dmax-Logo-Vector.svg-.png",POLİS KAMERASI HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220392.m3u8
 
 #EXTINF:-1 tvg-id="TRTRTGENC" tvg-name="TRT GENC" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/trt-gen%C3%A7-tr.png",TRT GENC
@@ -572,118 +572,91 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220455.m3u8
 #EXTINF:-1 tvg-id="BestofIMDB4" tvg-name="Best of IMDB 4 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg",Best of IMDB 4 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220484.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVVizyon3" tvg-name="DOLBY TV Vizyon 3 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Vizyon 3 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/35572.m3u8
+#EXTINF:-1 tvg-id="CINEMAXAKSIYON" tvg-name="TR: CINEMAXIMUM Aksiyon HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Aksiyon HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/28328.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVAksiyon1" tvg-name="DOLBY TV Aksiyon 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Aksiyon 1 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/1271.m3u8
+#EXTINF:-1 tvg-id="CINEMAXBILIMKURGU" tvg-name="TR: CINEMAXIMUM Bilimkurgu HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Bilimkurgu HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/11713.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVMacera1" tvg-name="DOLBY TV Macera 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Macera 1 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/120016.m3u8
+#EXTINF:-1 tvg-id="CINEMAXKORKU" tvg-name="TR: CINEMAXIMUM Korku HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Korku HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/131545.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVMacera2" tvg-name="DOLBY TV Macera 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Macera 2 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/130392.m3u8
+#EXTINF:-1 tvg-id="CINEMAXFANTASTIK" tvg-name="TR: CINEMAXIMUM Fantastik HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Fantastik HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/95961.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVKorku1" tvg-name="DOLBY TV  Korku 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV  Korku 1 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/83492.m3u8
+#EXTINF:-1 tvg-id="CINEMAXSUC" tvg-name="TR: CINEMAXIMUM Suç HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Suç HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/111234.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVKorku2" tvg-name="DOLBY TV  Korku 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV  Korku 2 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/2011.m3u8
+#EXTINF:-1 tvg-id="CINEMAXGERILIM" tvg-name="TR: CINEMAXIMUM Gerilim HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Gerilim HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/110268.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVKorku3" tvg-name="DOLBY TV  Korku 3 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV  Korku 3 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220125.m3u8
+#EXTINF:-1 tvg-id="CINEMAXGIZEM" tvg-name="TR: CINEMAXIMUM Gizem HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Gizem HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/112241.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVGerilim1" tvg-name="DOLBY TV Gerilim 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Gerilim 1 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/27174.m3u8
+#EXTINF:-1 tvg-id="CINEMAXMACERA" tvg-name="TR: CINEMAXIMUM Macera HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Macera HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/28090.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVGerilim2" tvg-name="DOLBY TV  Gerilim 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV  Gerilim 2 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220139.m3u8
+#EXTINF:-1 tvg-id="CINEMAXDRAM" tvg-name="TR: CINEMAXIMUM Dram HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Dram HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/35256.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVFantasy1" tvg-name="DOLBY TV Fantasy 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Fantasy 1 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/4255.m3u8
+#EXTINF:-1 tvg-id="CINEMAXKOMEDI" tvg-name="TR: CINEMAXIMUM Komedi HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Komedi HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/15390.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVFantasy2" tvg-name="DOLBY TV Fantasy 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Fantasy 2 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/18268.m3u8
+#EXTINF:-1 tvg-id="CINEMAXROMANTIK" tvg-name="TR: CINEMAXIMUM Romantik HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Romantik HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/99149.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVBilimkurgu1" tvg-name="DOLBY TV Bilimkurgu 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Bilimkurgu 1 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/134960.m3u8
+#EXTINF:-1 tvg-id="CINEMAXBOLLYWOOD" tvg-name="TR: CINEMAXIMUM Bollywood HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Bollywood HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/132859.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVBilimkurgu2" tvg-name="DOLBY TV Bilimkurgu 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Bilimkurgu 2 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/53065.m3u8
+#EXTINF:-1 tvg-id="CINEMAXANIMASYON" tvg-name="TR: CINEMAXIMUM Animasyon HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Animasyon HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/158761.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVBilimkurgu3" tvg-name="DOLBY TV  Bilimkurgu 3 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV  Bilimkurgu 3 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220176.m3u8
+#EXTINF:-1 tvg-id="CINEMAXYERLI1" tvg-name="TR: CINEMAXIMUM Yerli 1 HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Yerli 1 HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/104440.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVKomedi2" tvg-name="DOLBY TV Komedi 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Komedi 2 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/102189.m3u8
+#EXTINF:-1 tvg-id="CINEMAXYERLI2" tvg-name="TR: CINEMAXIMUM Yerli 2 HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Yerli 2 HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/6410.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVKomedi3" tvg-name="DOLBY TV Komedi 3 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Komedi 3 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220330.m3u8
+#EXTINF:-1 tvg-id="CINEMAXYERLI3" tvg-name="TR: CINEMAXIMUM Yerli 3 HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Yerli 3 HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/108163.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVRomantik1" tvg-name="DOLBY TV Romantik 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Romantik 1 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/142765.m3u8
+#EXTINF:-1 tvg-id="CINEMAXYERLI4" tvg-name="TR: CINEMAXIMUM Yerli 4 HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Yerli 4 HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/140153.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVRomantik2" tvg-name="DOLBY TV Romantik 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Romantik 2 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/144842.m3u8
+#EXTINF:-1 tvg-id="CINEMAXYERLI5" tvg-name="TR: CINEMAXIMUM Yerli 5 HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Yerli 5 HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/23308.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVDram1" tvg-name="DOLBY TV Dram 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Dram 1 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/56554.m3u8
+#EXTINF:-1 tvg-id="CINEMAX1" tvg-name="TR: CINEMAXIMUM 1 HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM 1 HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/34026.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVDram2" tvg-name="DOLBY TV Dram 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Dram 2 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/164542.m3u8
+#EXTINF:-1 tvg-id="CINEMAX2" tvg-name="TR: CINEMAXIMUM 2 HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM 2 HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/104110.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVDram3" tvg-name="DOLBY TV Dram 3 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Dram 3 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220686.m3u8
+#EXTINF:-1 tvg-id="CINEMAX3" tvg-name="TR: CINEMAXIMUM 3 HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM 3 HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/42938.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVUzakdou1" tvg-name="DOLBY TV Uzakdoğu 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Uzakdoğu 1 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/133453.m3u8
+#EXTINF:-1 tvg-id="CINEMAX4" tvg-name="TR: CINEMAXIMUM 4 HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM 4 HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/60115.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVUzakdou2" tvg-name="DOLBY TV Uzakdoğu 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Uzakdoğu 2 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/38448.m3u8
+#EXTINF:-1 tvg-id="CINEMAX5" tvg-name="TR: CINEMAXIMUM 5 HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM 5 HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/134361.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVWestern1" tvg-name="DOLBY TV Western 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Western 1 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/152940.m3u8
+#EXTINF:-1 tvg-id="CINEMAX6" tvg-name="TR: CINEMAXIMUM 6 HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM 6 HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/117814.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVWestern2" tvg-name="DOLBY TV Western 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Western 2 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/75515.m3u8
+#EXTINF:-1 tvg-id="CINEMAX7" tvg-name="TR: CINEMAXIMUM 7 HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM 7 HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/123203.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVSava" tvg-name="DOLBY TV Savaş HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Savaş HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/36566.m3u8
+#EXTINF:-1 tvg-id="CINEMAX8" tvg-name="TR: CINEMAXIMUM 8 HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM 8 HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/23219.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVNostalji" tvg-name="DOLBY TV Nostalji HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Nostalji HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/25512.m3u8
+#EXTINF:-1 tvg-id="CINEMAX9" tvg-name="TR: CINEMAXIMUM 9 HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM 9 HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/141594.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVLoca1" tvg-name="DOLBY TV Loca 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 1 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/38875.m3u8
+#EXTINF:-1 tvg-id="CINEMAX10" tvg-name="TR: CINEMAXIMUM 10 HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM 10 HD
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/9050.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVLoca2" tvg-name="DOLBY TV Loca 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 2 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/26452.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVLoca3" tvg-name="DOLBY TV Loca 3 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 3 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/31813.m3u8
-
-#EXTINF:-1 tvg-id="DOLBYTVLoca4" tvg-name="DOLBY TV Loca 4 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 4 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/59316.m3u8
-
-#EXTINF:-1 tvg-id="DOLBYTVLoca5" tvg-name="DOLBY TV Loca 5 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 5 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/38575.m3u8
-
-#EXTINF:-1 tvg-id="DOLBYTVLoca6" tvg-name="DOLBY TV Loca 6 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 6 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/143756.m3u8
-
-#EXTINF:-1 tvg-id="DOLBYTVLoca8" tvg-name="DOLBY TV Loca 8 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 8 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/114629.m3u8
-
-#EXTINF:-1 tvg-id="DOLBYTVLoca9" tvg-name="DOLBY TV Loca 9 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 9 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/41440.m3u8
-
-#EXTINF:-1 tvg-id="DOLBYTVLoca11" tvg-name="DOLBY TV Loca 11HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 11HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220684.m3u8
-
-#EXTINF:-1 tvg-id="DOLBYTVLoca12" tvg-name="DOLBY TV Loca 12 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 12 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220685.m3u8
-
-#EXTINF:-1 tvg-id="TRMAXSTARWARSHD" tvg-name="MAX STAR WARS HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/6c/Star_Wars_Logo.svg",MAX STAR WARS HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/132769.m3u8
 
 #EXTINF:-1 tvg-id="TRMARVELSTUDIOS1HD" tvg-name="MARVEL STUDIOS 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/10/Marvel_Studios_2016_logo.svg",MARVEL STUDIOS 1 HD
@@ -785,7 +758,7 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/129589.m3u8
 #EXTINF:-1 tvg-id="TRLEYLAileMECNUN" tvg-name="LEYLA ile MECNUN HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/tr/d/d9/Leyla-ile-mecnun.png",LEYLA ile MECNUN HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/135820.m3u8
 
-#EXTINF:-1 tvg-id="TRBELGESEL" tvg-name="BELGESEL HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/0/09/TRT_Belgesel_logo_%282019-%29.svg",BELGESEL HD
+#EXTINF:-1 tvg-id="TRBELGESEL" tvg-name="BELGESEL HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/d/db/Exxen.png",BELGESEL HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/96802.m3u8
 
 #EXTINF:-1 tvg-id="TREXXENTV1" tvg-name="EXXEN TV 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/d/db/Exxen.png",EXXEN TV 1 HD
