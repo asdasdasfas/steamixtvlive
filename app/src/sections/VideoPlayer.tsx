@@ -383,7 +383,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
 
   return (
     <div ref={containerRef} className="relative bg-black group cursor-pointer" onClick={togglePlay} onMouseMove={startHideTimer} onTouchStart={startHideTimer}>
-      <video ref={videoRef} className={`w-full ${fullscreen ? 'h-screen w-screen object-cover md:object-contain' : 'aspect-video object-contain'}`} poster={poster} playsInline crossOrigin="anonymous" />
+      <video ref={videoRef} className={`w-full ${fullscreen ? 'h-screen w-screen object-cover md:object-contain' : 'aspect-video object-contain'}`} poster={poster} playsInline />
 
       {title && <div className="absolute top-4 left-4 text-white text-sm font-medium drop-shadow-lg bg-black/40 px-3 py-1.5 rounded-lg">{title}</div>}
       {loadError && (
