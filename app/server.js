@@ -642,7 +642,7 @@ footer, section, .text-center.py-8,
       'simpsons-hit-run': 'https://shar-wasm.cjoseph.workers.dev/?skipmovie',
       'web-dashers': 'https://web-dashers.github.io/',
     }
-    const targetUrl = (urls as any)[slug]
+    const targetUrl = urls[slug]
     if (!targetUrl) { res.writeHead(404); res.end('Not found'); return }
     const opts = makeHttpOpts(targetUrl, 'GET', {})
     httpModule(opts).get(opts, proxyRes => {
