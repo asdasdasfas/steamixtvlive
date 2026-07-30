@@ -485,7 +485,7 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/126779.m3u8
 #EXTINF:-1 tvg-id="TRVASATEXPLOREFHD" tvg-name="VİASAT EXPLORE FHD" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/c/c3/Viasat_Explore-logo.svg"
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/99775.m3u8
 
-#EXTINF:-1 tvg-id="TRPOLSKAMERASIHD" tvg-name="POLİS KAMERASI HD" group-title="Belgesel" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/09/Dmax-Logo-Vector.svg-.png",POLİS KAMERASI HD
+#EXTINF:-1 tvg-id="TRPOLSKAMERASIHD" tvg-name="POLİS KAMERASI HD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/asdasdasfas/steamixtvlive/main/app/public/polis-kamerasi.svg",POLİS KAMERASI HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220392.m3u8
 
 #EXTINF:-1 tvg-id="TRTRTGENC" tvg-name="TRT GENC" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/trt-gen%C3%A7-tr.png",TRT GENC
