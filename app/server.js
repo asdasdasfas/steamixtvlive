@@ -837,7 +837,8 @@ footer, section, .text-center.py-8,
   } else {
     console.log(`[KEEPALIVE] Starting for ${host}`)
     setInterval(() => {
-      http.get(host + '/', () => {}).on('error', () => {})
+      const mod = host.startsWith('https') ? https : http
+      mod.get(host + '/', () => {}).on('error', () => {})
     }, 10 * 60 * 1000)
   }
 })
