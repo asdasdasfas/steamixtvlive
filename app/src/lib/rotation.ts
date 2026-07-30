@@ -479,41 +479,23 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/93794.m3u8
 #EXTINF:-1 tvg-id="TRDISCOVERYIDFHD" tvg-name="DISCOVERY ID FHD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/international/investigation-discovery-int.png",DISCOVERY ID FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/101581.m3u8
 
-#EXTINF:-1 tvg-id="TRDISCOVERYIDHD" tvg-name="DISCOVERY ID HD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/international/investigation-discovery-int.png",DISCOVERY ID HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/126779.m3u8
 
-#EXTINF:-1 tvg-id="TRVASATEXPLOREFHD" tvg-name="VİASAT EXPLORE FHD" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/c/c3/Viasat_Explore-logo.svg"
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/99775.m3u8
 
-#EXTINF:-1 tvg-id="TRPOLSKAMERASIHD" tvg-name="POLİS KAMERASI HD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/asdasdasfas/steamixtvlive/main/app/public/polis-kamerasi.svg",POLİS KAMERASI HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220392.m3u8
 
-#EXTINF:-1 tvg-id="TRTRTGENC" tvg-name="TRT GENC" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/trt-gen%C3%A7-tr.png",TRT GENC
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/213805.m3u8
 
 #EXTINF:-1 tvg-id="TRDOCUSCREENFHD" tvg-name="DOCU SCREEN FHD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/international/docubox-hd-int.png",DOCU SCREEN FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/173948.m3u8
 
-#EXTINF:-1 tvg-id="TRBBCEARTHFHD" tvg-name="BBC EARTH FHD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/canada/bbc-earth-ca.png",BBC EARTH FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/17759.m3u8
 
 #EXTINF:-1 tvg-id="TRTGRTBELGESELFHD" tvg-name="TGRT BELGESEL FHD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/tgrt-belgesel-tr.png",TGRT BELGESEL FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/2820.m3u8
 
-#EXTINF:-1 tvg-id="TRFASTFUN" tvg-name="FAST & FUN" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/international/fast-and-funbox-hd-int.png",FAST & FUN
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/88006.m3u8
 
-#EXTINF:-1 tvg-id="TRLOVENATUREHD" tvg-name="LOVE NATURE HD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/canada/love-nature-ca.png",LOVE NATURE HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/147538.m3u8
 
 #EXTINF:-1 tvg-id="TRNATUREESCAPE" tvg-name="NATURE ESCAPE" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/asdasdasfas/steamixtvlive/main/app/public/nature-escape.svg",NATURE ESCAPE
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/173916.m3u8
 
-#EXTINF:-1 tvg-id="TRLUYSTV" tvg-name="LUYS TV" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/64/ArmeniaTV-English-Logo.svg",LUYS TV
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/131315.m3u8
 
-#EXTINF:-1 tvg-id="TRDAVINCILEARNING" tvg-name="DA VINCI LEARNING" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/serbia/da-vinci-rs.png",DA VINCI LEARNING
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/65083.m3u8
 
 #EXTINF:-1 tvg-id="TRCIFTCITV" tvg-name="CIFTCI TV" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/ciftci-tv-tr.png",CIFTCI TV
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/96121.m3u8
