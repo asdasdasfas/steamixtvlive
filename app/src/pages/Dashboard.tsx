@@ -701,7 +701,7 @@ export default function Dashboard() {
         )}
 
         {/* LIVE TV TAB */}
-        {tab === 'live' && <LiveTvScreen categories={rotCategories} selectedCat={selectedLiveCat} onSelectCategory={(id) => { navigate('/dashboard?tab=live&lcat=' + id, { replace: true }) }} />}
+        {tab === 'live' && <LiveTvScreen categories={rotCategories} selectedCat={selectedLiveCat} onSelectCategory={(id) => { navigate('/dashboard?tab=live&lcat=' + encodeURIComponent(id), { replace: true }) }} />}
 
         {/* MOVIES TAB */}
         {tab === 'movies' && (
