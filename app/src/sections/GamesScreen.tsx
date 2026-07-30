@@ -5,15 +5,11 @@ interface Game { name: string; slug: string; cat: string; url: string }
 
 const PC_GAMES: Game[] = [
   { name: 'GTA: Vice City', slug: 'vc-web', cat: 'Macera', url: 'https://quenq.com/apps/vc-web/' },
-  { name: 'GTA: Vice City (No Ads)', slug: 'vc-web-no-ads', cat: 'Macera', url: 'https://quenq.com/apps/vc-web/' },
   { name: 'GTA: Vice City (Unofficial)', slug: 'vc-web-unofficial', cat: 'Macera', url: 'https://vcweb.studynotes.top' },
   { name: 'The Simpsons: Hit & Run', slug: 'simpsons-hit-run', cat: 'Macera', url: 'https://shar-wasm.cjoseph.workers.dev/?skipmovie' },
   { name: 'Minecraft', slug: 'minecraft', cat: 'Macera', url: 'https://quenq.com/apps/minecraft/' },
   { name: '3D Pinball: Space Cadet', slug: '3d-pinball', cat: 'Klasik', url: 'https://quenq.com/apps/3d-pinball-space-cadet/' },
   { name: 'Angry Birds Chrome', slug: 'angry-birds', cat: 'Bulmaca', url: 'https://quenq.com/apps/angry-birds-chrome/' },
-  { name: 'Quake 3 Arena', slug: 'quake3', cat: 'Nişancı', url: 'https://dos.zone/mp/?lobby=q3' },
-  { name: 'Counter-Strike 1.6', slug: 'cs16', cat: 'Nişancı', url: 'https://dos.zone/mp/?lobby=cs16' },
-  { name: 'Half-Life Deathmatch', slug: 'hldm', cat: 'Nişancı', url: 'https://dos.zone/mp/?lobby=hldm' },
   { name: 'Web Dashers (Geometry Dash)', slug: 'web-dashers', cat: 'Spor', url: 'https://web-dashers.github.io/' },
 ]
 
@@ -66,11 +62,15 @@ export default function GamesScreen() {
     try {
       if (!document.fullscreenElement) {
         await playerRef.current.requestFullscreen()
+        if (source === 'pc') {
+          try { await (screen.orientation as any).lock('landscape') } catch {}
+        }
       } else {
+        if ((screen.orientation as any)?.unlock) (screen.orientation as any).unlock()
         await document.exitFullscreen()
       }
     } catch { }
-  }, [])
+  }, [source])
 
   useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement)
@@ -111,10 +111,10 @@ export default function GamesScreen() {
           <div className="flex items-center gap-1 bg-white/5 rounded-lg p-0.5 shrink-0">
             <button onClick={() => switchSource('easyhub')}
               className={`px-2 py-1 text-[10px] rounded-md transition-colors ${source === 'easyhub' ? 'bg-[#0099ff] text-white' : 'text-gray-400 hover:text-white'}`}
-            >EasyHub</button>
+            >Android Oyunlar</button>
             <button onClick={() => switchSource('pc')}
               className={`px-2 py-1 text-[10px] rounded-md transition-colors ${source === 'pc' ? 'bg-[#0099ff] text-white' : 'text-gray-400 hover:text-white'}`}
-            >Klasik PC</button>
+            >Klasik Windows Oyunları</button>
           </div>
           <div ref={menuRef} className="relative">
             <button
