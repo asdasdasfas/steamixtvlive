@@ -193,7 +193,7 @@ export default function GamesScreen() {
               </div>
             )}
             <iframe
-              src={`/game-proxy/${playing}`}
+              src={`/game-proxy/tr/games/${playing}`}
               className={`w-full h-full ${iframeLoaded ? '' : 'invisible'}`}
               allowFullScreen
               allow="autoplay; fullscreen; gamepad"
