@@ -18,9 +18,9 @@ export default function Subscription() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {[
-            { name: '1 AYLIK', price: '164 TL', link: 'https://www.shopier.com/platool/45181977', features: ['4K Ultra HD', 'Sınırsız İzleme', 'Tüm Kategoriler', 'VOD + Arşiv', '7/24 Destek'] },
-            { name: '3 AYLIK', price: '336 TL', link: 'https://www.shopier.com/platool/45181945', popular: true, features: ['4K Ultra HD', 'Sınırsız İzleme', 'Tüm Kategoriler', 'VOD + Arşiv', '7/24 Destek', 'En Popüler Seçim'] },
-            { name: '12 AYLIK', price: '500 TL', original: '1.200 TL', link: 'https://www.shopier.com/platool/44083927', features: ['4K Ultra HD', 'Sınırsız İzleme', 'Tüm Kategoriler', 'VOD + Arşiv', '7/24 Destek', 'Kampanya Fiyatı!'] },
+            { name: '1 AYLIK', price: '100 TL', link: 'https://www.shopier.com/platool/45181977', features: ['4K Ultra HD', 'Sınırsız İzleme', 'Tüm Kategoriler', 'VOD + Arşiv', '7/24 Destek'] },
+            { name: '3 AYLIK', price: '300 TL', link: 'https://www.shopier.com/platool/45181945', popular: true, features: ['4K Ultra HD', 'Sınırsız İzleme', 'Tüm Kategoriler', 'VOD + Arşiv', '7/24 Destek', 'En Popüler Seçim'] },
+            { name: '12 AYLIK', price: '3.000 TL', link: 'https://www.shopier.com/platool/44083927', features: ['4K Ultra HD', 'Sınırsız İzleme', 'Tüm Kategoriler', 'VOD + Arşiv', '7/24 Destek'] },
           ].map(p => (
             <div key={p.name} className={`relative rounded-2xl p-6 border transition-all duration-300 hover:scale-[1.03] flex flex-col ${p.popular ? 'border-[#0099ff] bg-[#0099ff]/5 shadow-lg shadow-[#0099ff]/10' : 'border-white/10 bg-white/5'}`}>
               {p.popular && (
@@ -30,9 +30,6 @@ export default function Subscription() {
               )}
               <div className="text-center mb-4 mt-2">
                 <p className="text-xs text-gray-500 tracking-widest mb-2">{p.name}</p>
-                {p.original && (
-                  <p className="text-sm text-gray-500 line-through mb-1">{p.original}</p>
-                )}
                 <div className="text-3xl md:text-4xl font-bold text-[#0099ff] mb-1">{p.price}</div>
               </div>
               <div className="flex-1 space-y-2 mb-6">
@@ -50,13 +47,21 @@ export default function Subscription() {
             </div>
           ))}
         </div>
-        <div className="mt-6 p-4 rounded-xl bg-white/5 border border-white/10 max-w-xl mx-auto">
-          <p className="text-xs text-gray-400 leading-relaxed text-center">
-            <span className="text-yellow-400 font-semibold">📌 Önemli:</span> Satın aldıktan sonra{' '}
-            <span className="text-[#0099ff] font-medium">steamixgame@yandex.com</span> mail adresine
-            satın aldığınıza dair ekran görüntüsü atın. Yönetici tarafından onaylanıp en kısa sürede
-            abonelik giriş bilgileriniz size teslim edilecektir.
-          </p>
+        <div className="mt-6 space-y-3 max-w-xl mx-auto">
+          <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+            <p className="text-xs text-gray-400 leading-relaxed text-center">
+              <span className="text-yellow-400 font-semibold">📌 Önemli:</span> Satın aldıktan sonra{' '}
+              <span className="text-[#0099ff] font-medium">steamixgame@yandex.com</span> mail adresine
+              satın aldığınıza dair ekran görüntüsü atın. Yönetici tarafından onaylanıp en kısa sürede
+              abonelik giriş bilgileriniz size teslim edilecektir.
+            </p>
+          </div>
+          <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
+            <p className="text-xs text-yellow-300 leading-relaxed text-center">
+              ⚠️ Shopier kuralları gereği abonelikler sınırlıdır; satın aldığınız abonelik tamamlandıktan
+              sonra ek olarak yalnızca bir defaya mahsus tekrar alınabilir.
+            </p>
+          </div>
         </div>
       </div>
     </div>

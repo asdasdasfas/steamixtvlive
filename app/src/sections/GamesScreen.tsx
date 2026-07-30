@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { Loader2, Maximize2, Minimize2, ChevronDown, ExternalLink } from 'lucide-react'
+import { Loader2, Maximize2, Minimize2, ChevronDown } from 'lucide-react'
 
 interface Game { name: string; slug: string; cat: string; url: string }
 
@@ -14,7 +14,7 @@ const PC_BY_CAT = Object.fromEntries(PC_CATS.map(c => [c, PC_GAMES.filter(g => g
 const SOURCE_BTN = 'px-2 py-1 text-[10px] rounded-md transition-colors whitespace-nowrap'
 
 export default function GamesScreen() {
-  const [source, setSource] = useState<'easyhub' | 'pc' | 'gam-onl'>('easyhub')
+  const [source, setSource] = useState<'easyhub' | 'pc'>('easyhub')
   const [games, setGames] = useState<Game[]>([])
   const [cats, setCats] = useState<string[]>([])
   const [gamesByCat, setGamesByCat] = useState<Record<string, Game[]>>({})
@@ -28,16 +28,9 @@ export default function GamesScreen() {
   const searchRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(true)
   const ATARI_URL = 'https://gam.onl/'
+  const openAtari = () => window.open(ATARI_URL, '_blank', 'noopener,noreferrer')
 
   useEffect(() => {
-    if (source === 'gam-onl') {
-      setGames([])
-      setCats([])
-      setGamesByCat({})
-      setPlaying(null)
-      setLoading(false)
-      return
-    }
     if (source === 'pc') {
       setGames(PC_GAMES)
       setCats(PC_CATS)
@@ -103,7 +96,7 @@ export default function GamesScreen() {
     ? games.filter(g => g.name.toLowerCase().includes(search.toLowerCase()))
     : []
 
-  const switchSource = (s: 'easyhub' | 'pc' | 'gam-onl') => {
+  const switchSource = (s: 'easyhub' | 'pc') => {
     setSource(s)
     setGameLoaded(false)
     setPlaying(null)
@@ -121,11 +114,10 @@ export default function GamesScreen() {
             <button onClick={() => switchSource('pc')}
               className={`${SOURCE_BTN} ${source === 'pc' ? 'bg-[#0099ff] text-white' : 'text-gray-400 hover:text-white'}`}
             >PC</button>
-            <button onClick={() => switchSource('gam-onl')}
-              className={`${SOURCE_BTN} ${source === 'gam-onl' ? 'bg-[#0099ff] text-white' : 'text-gray-400 hover:text-white'}`}
+            <button onClick={openAtari}
+              className={`${SOURCE_BTN} text-gray-400 hover:text-white`}
             >Atari</button>
           </div>
-          {source !== 'gam-onl' && (
           <div ref={menuRef} className="relative">
             <button
               onClick={() => setMenuOpen(p => !p)}
@@ -183,14 +175,13 @@ export default function GamesScreen() {
               </div>
             )}
           </div>
-          )}
           <button onClick={toggleFullscreen}
             className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 text-white text-[11px] hover:bg-white/20 transition-colors shrink-0 ml-auto">
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
         </div>
         <div className="flex-1 relative min-h-0" style={{ overflow: 'hidden' }}>
-          {!gameLoaded && playing && source !== 'gam-onl' && (
+          {!gameLoaded && playing && (
             <div className="absolute inset-0 flex items-center justify-center z-20 bg-black">
               <div className="flex flex-col items-center gap-2">
                 <Loader2 className="w-6 h-6 text-[#0099ff] animate-spin" />
@@ -198,20 +189,7 @@ export default function GamesScreen() {
               </div>
             </div>
           )}
-          {source === 'gam-onl' ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black">
-              <p className="text-gray-400 text-xs text-center px-4">gam.onl iframe'i engelliyor, yeni sekmede aç</p>
-              <a
-                href={ATARI_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 bg-[#0099ff] text-white text-sm px-4 py-2 rounded-lg hover:bg-[#0099ff]/80 transition-colors"
-              >
-                <ExternalLink className="w-4 h-4" />
-                gam.onl'u Aç
-              </a>
-            </div>
-          ) : playing ? (
+          {playing ? (
             <iframe
               key={source + (playing || '')}
               src={source === 'easyhub' ? `/tr/games/${playing}` : (game?.url || '')}
