@@ -4,134 +4,142 @@ import { Loader2, Maximize2, Minimize2, ArrowLeft } from 'lucide-react'
 interface Game { name: string; slug: string; cat: string }
 
 const GAMES: Game[] = [
-  // İşletme / Yönetim (Management / Tycoon)
-  { name: 'Süpermarket', slug: 'supermarket', cat: 'İşletme' },
-  { name: 'Döner Efsanesi', slug: 'doner-efsanesi', cat: 'İşletme' },
-  { name: 'İyi Pizza Güzel Pizza', slug: 'iyi-pizza-guzel-pizza', cat: 'İşletme' },
-  { name: 'Penguen Lokantası', slug: 'penguen-lokantasi', cat: 'İşletme' },
-  { name: 'Hamburger Restoranı', slug: 'hamburger-restorani', cat: 'İşletme' },
-  { name: 'Hamburger Dükkanı', slug: 'hamburger-dukkani', cat: 'İşletme' },
-  { name: 'Suşi Dükkanı', slug: 'susi-dukkani', cat: 'İşletme' },
-  { name: 'Pizza Dükkanı İşletme', slug: 'pizza-dukkani-isletme', cat: 'İşletme' },
-  { name: 'Pasta Dükkanı', slug: 'pasta-dukkani', cat: 'İşletme' },
-  { name: 'Sosisçi Bush', slug: 'sosisci-bush', cat: 'İşletme' },
-  { name: 'Hızlı Büfeci 2', slug: 'hizli-bufeci-2', cat: 'İşletme' },
-  { name: 'Hizli Büfeci', slug: 'hizli-bufeci', cat: 'İşletme' },
-  { name: 'Hamburgerci Kız', slug: 'hamburgerci-kiz', cat: 'İşletme' },
-  { name: 'Restoran İşletme', slug: 'restoran-isletme', cat: 'İşletme' },
-  { name: 'Sokak Restoranı', slug: 'sokak-restorani', cat: 'İşletme' },
-  { name: 'Burger Dükkanı', slug: 'burger-dukkani', cat: 'İşletme' },
-  { name: 'Pizza İmparatorluğu', slug: 'pizza-imparatorlugu', cat: 'İşletme' },
-  { name: 'Penguen Cafe', slug: 'penguen-cafe', cat: 'İşletme' },
-  { name: 'Otel İşletme 2', slug: 'otel-isletme-2', cat: 'İşletme' },
-  { name: 'Otel İşletme', slug: 'otel-isletme', cat: 'İşletme' },
-  { name: 'Lunapark İşletme', slug: 'lunapark-isletme', cat: 'İşletme' },
-  { name: 'Alışveriş Caddesi', slug: 'alisveris-caddesi', cat: 'İşletme' },
-  { name: 'Alışveriş Merkezi', slug: 'alisveris-merkezi', cat: 'İşletme' },
-  { name: 'Giyim Mağazası', slug: 'giyim-magazasi', cat: 'İşletme' },
-  { name: 'Ofis Yönetme', slug: 'ofis-yonetme', cat: 'İşletme' },
-  { name: 'Benzin İstasyonu', slug: 'benzin-istasyonu-isletme', cat: 'İşletme' },
-  { name: 'Emlakçı', slug: 'emlakci', cat: 'İşletme' },
-  { name: 'Reyon Düzenleme 2', slug: 'reyon-duzenleme-2', cat: 'İşletme' },
-  { name: 'Garson Kız', slug: 'garson-kiz', cat: 'İşletme' },
-  { name: 'Demirci Eşek', slug: 'demirci-esek', cat: 'İşletme' },
-  { name: 'Araba Satıcısı', slug: 'araba-saticisi', cat: 'İşletme' },
-  { name: 'Otopark Görevlisi 2', slug: 'otopark-gorevlisi-2', cat: 'İşletme' },
-  { name: 'Şirinler Lokantası', slug: 'sirinler-lokantasi', cat: 'İşletme' },
-  { name: 'Yemek Çılgınlığı', slug: 'yemek-cilginligi', cat: 'İşletme' },
-  { name: 'Pizza', slug: 'pizza', cat: 'İşletme' },
-  { name: 'Hamburger Yapma', slug: 'hamburger-yapma', cat: 'İşletme' },
-  { name: 'Garson Penguen', slug: 'garson-penguen', cat: 'İşletme' },
-  { name: 'Restoran', slug: 'restoran', cat: 'İşletme' },
-  { name: 'Cadı Restoranı', slug: 'cadi-restorani', cat: 'İşletme' },
-  { name: 'Penguen Lokantası 2', slug: 'penguen-lokantasi-2', cat: 'İşletme' },
-  { name: 'Döner Efsanesi 2', slug: 'doner-efsanesi-2', cat: 'İşletme' },
-  { name: 'Muz Çiftliği', slug: 'muz-ciftligi', cat: 'İşletme' },
-  { name: 'Yumurta Fabrikası', slug: 'yumurta-fabrikasi', cat: 'İşletme' },
+  // Koşu / Aksiyon (Running / Action)
+  { name: 'Subway Surfers', slug: 'pk-subway-surfers', cat: 'Koşu' },
+  { name: 'Tunnel Rush', slug: 'pk-tunnel-rush', cat: 'Koşu' },
+  { name: 'Tünel Koşucusu', slug: 'tunnel-runner', cat: 'Koşu' },
+  { name: 'Drive Mad', slug: 'pk-drive-mad', cat: 'Koşu' },
+  { name: 'Mobil Koşu', slug: 'mobile-run', cat: 'Koşu' },
+  { name: 'Metrodan Kaçış', slug: 'metro-escape', cat: 'Koşu' },
+  { name: 'Ninja Kaçışı', slug: 'ninja-escape', cat: 'Koşu' },
+  { name: 'Serbest Kal', slug: 'break-free', cat: 'Koşu' },
+  { name: 'Öfke Ayak', slug: 'anger-foot-3d', cat: 'Koşu' },
+  { name: 'Twerk Race 3D', slug: 'twerk-race-3d----fun-run-game', cat: 'Koşu' },
+  { name: 'Dinosaur Game', slug: 'pk-dinosaur-game', cat: 'Koşu' },
 
-  // Macera / Aksiyon (Adventure / Action)
-  { name: 'Super Bear Adventure', slug: 'super-bear-adventure', cat: 'Macera' },
-  { name: 'Among Us', slug: 'among-us', cat: 'Macera' },
-  { name: 'Hello Neighbor', slug: 'hello-neighbor', cat: 'Macera' },
-  { name: 'Cat and Granny', slug: 'cat-and-granny', cat: 'Macera' },
-  { name: 'Hapishaneden Kaçış', slug: 'hapishaneden-kacis-obby', cat: 'Macera' },
-  { name: 'Uzay Hapishanesinden Kaçış', slug: 'uzay-hapishanesinden-kacis', cat: 'Macera' },
-  { name: 'Saklambaç', slug: 'saklambac', cat: 'Macera' },
-  { name: 'Portaldan Kaçış', slug: 'portaldan-kacis', cat: 'Macera' },
-  { name: 'Tünel Kazma 2', slug: 'tunel-kazma-2', cat: 'Macera' },
-  { name: 'Adadan Kaçış', slug: 'adadan-kacis', cat: 'Macera' },
-  { name: 'Bu Benim Komşum Değil', slug: 'bu-benim-komsum-degil', cat: 'Macera' },
-  { name: 'Hırsız Polis', slug: 'hirsiz-polis', cat: 'Macera' },
-  { name: 'Polislerden Kaç', slug: 'polislerden-kac', cat: 'Macera' },
-  { name: 'Robin Hood', slug: 'robin-hood', cat: 'Macera' },
-  { name: 'I am Cat', slug: 'i-am-cat', cat: 'Macera' },
-  { name: 'I Am Monkey', slug: 'i-am-monkey', cat: 'Macera' },
-  { name: 'Meccha Chameleon', slug: 'meccha-chameleon', cat: 'Macera' },
-  { name: 'Lise Öğretmeni Sim.', slug: 'lise-ogretmeni-simulatoru', cat: 'Macera' },
-  { name: 'Kedi Simülatörü', slug: 'kedi-simulatoru', cat: 'Macera' },
-  { name: 'Geyik Simülatörü', slug: 'geyik-simulatoru', cat: 'Macera' },
-  { name: 'Yaşam Simülasyonu', slug: 'yasam-simulasyonu', cat: 'Macera' },
-  { name: 'Havaalanı Güvenlik', slug: 'havaalani-guvenlik', cat: 'Macera' },
-  { name: 'Havaalanı Görevlisi', slug: 'havaalani-gorevlisi', cat: 'Macera' },
-  { name: 'Havaalanı Sim.', slug: 'havaalani-simulasyonu', cat: 'Macera' },
-  { name: 'Hostes', slug: 'hostes', cat: 'Macera' },
-  { name: 'Okulda Flört', slug: 'okulda-flort', cat: 'Macera' },
-  { name: 'Hacker', slug: 'hacker', cat: 'Macera' },
-  { name: 'Kar Küreme', slug: 'kar-kureme', cat: 'Macera' },
-  { name: 'Mad Day Special', slug: 'mad-day-special', cat: 'Macera' },
-  { name: 'Köpek Bakma', slug: 'kopek-bakma', cat: 'Macera' },
-  { name: 'Roblox Temizlik', slug: 'roblox-temizlik', cat: 'Macera' },
+  // Macera (Adventure)
+  { name: 'Murder', slug: 'pk-murder', cat: 'Macera' },
+  { name: 'Kötü Büyükanneden Kaçış', slug: 'escape-evil-granny-viz', cat: 'Macera' },
+  { name: 'Kapılar Kalesi', slug: 'doors-castle', cat: 'Macera' },
+  { name: 'Kaçış Odası: Garip Vaka 2', slug: 'escape-room-strange-case-2', cat: 'Macera' },
+  { name: 'Iron Snout', slug: 'pk-iron-snout', cat: 'Macera' },
+  { name: 'Vur ve Sür', slug: 'shoot-and-drive', cat: 'Macera' },
+  { name: 'Fleeing The Complex', slug: 'fleeing-the-complex', cat: 'Macera' },
+  { name: 'We Become What We Behold', slug: 'we-become-what-we-behold', cat: 'Macera' },
+  { name: 'Moto X3M', slug: 'moto-x3m', cat: 'Macera' },
+  { name: 'Stickman Hook', slug: 'pk-stickman-hook', cat: 'Macera' },
+  { name: 'Çakram Ustası', slug: 'chakram-master', cat: 'Macera' },
+  { name: 'Okçular Arenası', slug: 'archers-arena', cat: 'Macera' },
+  { name: 'Hedef Ustası', slug: 'target-master', cat: 'Macera' },
+  { name: 'Karışık Halatlar', slug: 'tangled-ropes', cat: 'Macera' },
+  { name: 'Asansör Odasından Kaçış', slug: 'escape-elevator-room', cat: 'Macera' },
+  { name: 'Video Stüdyosundan Kaçış', slug: 'iz-video-studio-escape', cat: 'Macera' },
+  { name: 'Perili Okul', slug: 'haunted-school', cat: 'Macera' },
+  { name: 'Kuzbass Korku', slug: 'kuzbass-horror', cat: 'Macera' },
+  { name: 'Uzay Dalgaları', slug: 'space-waves', cat: 'Macera' },
+  { name: 'Söz Dizimi', slug: 'syntax', cat: 'Macera' },
 
-  // Platform / Parkur (Platform / Runner)
-  { name: 'Obby Mega Parkur', slug: 'obby-mega-parkur', cat: 'Platform' },
-  { name: 'Obby Zıplama Parkuru', slug: 'obby-ziplama-parkuru', cat: 'Platform' },
-  { name: 'Obby Spor Salonu', slug: 'obby-spor-salonu', cat: 'Platform' },
-  { name: 'Zor Parkur', slug: 'zor-parkur', cat: 'Platform' },
-  { name: 'Maden Avcısı', slug: 'maden-avcisi', cat: 'Platform' },
-  { name: 'Depo Avcısı', slug: 'depo-avcisi', cat: 'Platform' },
+  // Sürüş / Araba (Driving / Car)
+  { name: 'Çekmece Süper Yarışçı', slug: 'drawer-super-racer', cat: 'Araba' },
+  { name: 'Moskova Metro Sürücüsü 3D', slug: 'moscow-metro-driver-3d', cat: 'Araba' },
+  { name: 'Araba Yarışı 3D', slug: 'araba-yarisi-3d', cat: 'Araba' },
+  { name: 'Çarpışma Yarışı Çiz', slug: 'carpisma-yarisi-ciz', cat: 'Araba' },
+  { name: 'Köprüler Çiz', slug: 'kopruler-ciz', cat: 'Araba' },
+  { name: 'Yanan Lastik Çarpışması', slug: 'yanan-lastik-carpismasi-ve-yanma', cat: 'Araba' },
+  { name: 'Araba Kullanmak', slug: 'shoot-and-drive', cat: 'Araba' },
+  { name: 'Uçan Yarasa Robot Araba', slug: 'ucan-yarasa-robot-araba-donusumu-oyunu', cat: 'Araba' },
 
-  // Araba Yarışı (Racing)
-  { name: 'Drift Parkuru', slug: 'drift-parkuru', cat: 'Araba' },
-  { name: 'Araba Yarışı', slug: 'araba-yarisi', cat: 'Araba' },
-  { name: 'Direksiyonlu Araba Sürme', slug: 'direksiyonlu-araba-surme', cat: 'Araba' },
-  { name: 'Tofaş Şahin', slug: 'tofas-sahin', cat: 'Araba' },
-  { name: '3D Car Simulator', slug: '3d-car-simulator', cat: 'Araba' },
-  { name: 'Dr Driving', slug: 'dr-driving', cat: 'Araba' },
-  { name: 'Extreme Car Driving', slug: 'extreme-car-driving-simulator', cat: 'Araba' },
-  { name: 'Super Drift 3D', slug: 'super-drift-3d', cat: 'Araba' },
+  // Hayatta Kalma / Korku (Survival / Horror)
+  { name: 'Zombi Dünyasından Kaçış', slug: 'zombi-dunyasindan-kacis', cat: 'Korku' },
+  { name: 'SURVIVORZ: Mermiler ve Beyinler', slug: 'survivorz-bullets-and-brains', cat: 'Korku' },
+  { name: 'ZARCANE: Zombi Kıyameti', slug: 'zarcane-bir-zombi-kiyameti', cat: 'Korku' },
+  { name: 'Slenderman\'ın Şafağı', slug: 'slendermanin-safagi', cat: 'Korku' },
+  { name: 'Canavar Okulu', slug: 'canavar-okulu-herobrine-siren-kafasi', cat: 'Korku' },
+  { name: 'Psikopatlar Şehri', slug: 'psikopatlar-sehri', cat: 'Korku' },
+  { name: 'Cadılar Bayramı Katliamı', slug: 'cadilar-bayrami-elektrikli-testere-katliami', cat: 'Korku' },
+  { name: 'Katil', slug: 'katil', cat: 'Korku' },
+  { name: 'Keskin Nişancı Saldırısı', slug: 'keskin-nisanci-saldirisi', cat: 'Korku' },
 
-  // Spor (Sports)
-  { name: 'Spor Salonu', slug: 'spor-salonu', cat: 'Spor' },
-  { name: 'Basketbol', slug: 'basketbol', cat: 'Spor' },
-  { name: 'Futbol', slug: 'futbol', cat: 'Spor' },
+  // Parkur / Platform (Parkour / Platform)
+  { name: 'Parkur Ustası', slug: 'parkour-master', cat: 'Parkur' },
+  { name: 'Parkur Ustası 2', slug: 'parkour-master-2', cat: 'Parkur' },
+  { name: 'Parkour Race', slug: 'pk-parkour-race', cat: 'Parkur' },
+  { name: 'Bloklu Parkur', slug: 'bloklu-parkur-sadece-yukari-macera', cat: 'Parkur' },
+  { name: 'Mega Parkour', slug: 'mega-parkour-obby-kacis-kosusu', cat: 'Parkur' },
+  { name: 'Obby Parkur Yarışı', slug: 'obby-parkur-yarisi-cok-oyunculu', cat: 'Parkur' },
+  { name: 'Obby World', slug: 'obby-world-kalamardan-kacis', cat: 'Parkur' },
+  { name: 'Dijital Sirk: Obby', slug: 'dijital-sirk-obby', cat: 'Parkur' },
+  { name: 'Hapishaneden Kaçış.io', slug: 'hapishaneden-kacis-io', cat: 'Parkur' },
+  { name: 'Tung Tung Sahur', slug: 'tung-tung-sahur-obby-mucadelesi', cat: 'Parkur' },
+  { name: 'Hava Bloğu', slug: 'hava-bloku', cat: 'Parkur' },
+  { name: 'Karalama Yolu', slug: 'karalamayolu', cat: 'Parkur' },
+  { name: 'Çılgın Adamlar', slug: 'cilgin-adamlar', cat: 'Parkur' },
+  { name: 'Tembel Atlayıcı', slug: 'tembel-atlayici', cat: 'Parkur' },
+  { name: 'Zıpla Çocuklar', slug: 'ziplay-cocuklar', cat: 'Parkur' },
+  { name: 'Ne Bacak', slug: 'ne-bacak', cat: 'Parkur' },
+  { name: 'Paperly: Kağıt Uçak', slug: 'paperly-kagit-ucak-macerasi', cat: 'Parkur' },
+  { name: 'Yuvarlanan Toplar Deniz', slug: 'yuvarlanan-toplar-deniz-yarisi', cat: 'Parkur' },
+  { name: 'Yuvarlanan Toplar Uzay', slug: 'yuvarlanan-toplar-uzay-yarisi', cat: 'Parkur' },
+  { name: 'Çatal N Sosis', slug: 'catal-n-sosis', cat: 'Parkur' },
+  { name: 'Rodha', slug: 'rodha', cat: 'Parkur' },
+  { name: 'JamJam', slug: 'jamjam', cat: 'Parkur' },
+  { name: 'Beraberlik ve Kırma', slug: 'beraberlik-ve-kirma', cat: 'Parkur' },
+  { name: 'Toilet Rush', slug: 'toilet-rush-bulmaca-ciz', cat: 'Parkur' },
 
-  // Zombi / Survival
-  { name: 'Zombi Yolu 4', slug: 'zombi-yolu-4', cat: 'Zombi' },
-  { name: 'Gumball Survivor', slug: 'gumball-survivor', cat: 'Zombi' },
-  { name: 'Survivor', slug: 'survivor', cat: 'Zombi' },
+  // Çiftçilik / İşletme (Farming / Management)
+  { name: 'Pure Farm: Taze Gıda', slug: 'pure-farm-fresh-food', cat: 'Çiftçilik' },
+  { name: 'Çiftlik Ailesi', slug: 'ciftlik-ailesi', cat: 'Çiftçilik' },
+  { name: 'Benim Martım', slug: 'benim-martim', cat: 'Çiftçilik' },
+  { name: 'Hayvanat Bahçesi Adası', slug: 'hayvanat-bahcesi-adasi', cat: 'Çiftçilik' },
+  { name: 'Yaban Hayatı Cenneti', slug: 'yaban-hayati-cenneti-sandbox-safari', cat: 'Çiftçilik' },
+  { name: 'Hexo Ülkesi', slug: 'hexo-ulkesi', cat: 'Çiftçilik' },
+  { name: 'Boşta Hayvanat Bahçesi', slug: 'bosta-hayvanat-bahcesi', cat: 'Çiftçilik' },
+  { name: 'Mısır Kralı', slug: 'misir-krali', cat: 'Çiftçilik' },
 
-  // Yemek (Cooking / Food)
-  { name: 'Pasta Yapma', slug: 'pasta-yapma', cat: 'Yemek' },
-  { name: 'Pizza Yapma', slug: 'pizza-yapma', cat: 'Yemek' },
-  { name: 'Hamburger', slug: 'hamburger', cat: 'Yemek' },
-  { name: 'Dondurma Yapma', slug: 'dondurma-yapma', cat: 'Yemek' },
-  { name: 'Pankek Yapma', slug: 'pankek-yapma', cat: 'Yemek' },
-  { name: 'Master Şef', slug: 'master-sef', cat: 'Yemek' },
-  { name: 'Tost Yapma', slug: 'tost-yapma', cat: 'Yemek' },
-  { name: 'Döner Kebap', slug: 'doner-kebap', cat: 'Yemek' },
-  { name: 'Yemek Yapma', slug: 'yemek-yapma', cat: 'Yemek' },
-  { name: 'Taco Yapma', slug: 'taco-yapma', cat: 'Yemek' },
-  { name: 'Sandviç', slug: 'sandvic', cat: 'Yemek' },
-  { name: 'Elmalı Turta', slug: 'elmali-turta', cat: 'Yemek' },
-  { name: 'Süper Pizza', slug: 'super-pizza', cat: 'Yemek' },
+  // İşletme / Tycoon
+  { name: 'İkinci El Araba Satıcısı', slug: 'ikinci-el-araba-saticisi-tycoon', cat: 'İşletme' },
+  { name: 'Spor Kulübü 3D', slug: 'spor-kulubu-3d', cat: 'İşletme' },
+  { name: 'Boşta Taşıma Kralı', slug: 'bosta-tasima-krali', cat: 'İşletme' },
+  { name: 'Taverna Simülatörü', slug: 'taverna-simulatoru', cat: 'İşletme' },
+  { name: 'Boşta Restoran Kralı', slug: 'bosta-restoran-krali', cat: 'İşletme' },
+  { name: 'Marina Ateşi Kralı', slug: 'marina-atesi-krali', cat: 'İşletme' },
+  { name: 'Taxi Tycoon', slug: 'taxi-tycoon-bosta-is', cat: 'İşletme' },
+  { name: 'Günlük Bakım Kralı', slug: 'gunluk-bakim-krali', cat: 'İşletme' },
+  { name: 'İnternet ve Oyun Kafe Sim.', slug: 'internet-ve-oyun-kafe-simulatoru', cat: 'İşletme' },
+  { name: 'Iza\'nın Süpermarketi', slug: 'iza-supermarketi', cat: 'İşletme' },
+  { name: 'Çamaşırhane Acelesi', slug: 'camasirhane-acelesi', cat: 'İşletme' },
+  { name: 'Sokak Yemeği Simülatörü', slug: 'sokak-yemegi-simulatoru', cat: 'İşletme' },
+  { name: 'Fırın Müdürü', slug: 'firin-muduru-magaza-simulatoru', cat: 'İşletme' },
+  { name: 'Evcil Hayvan Kafesi', slug: 'evcil-hayvan-kafesi', cat: 'İşletme' },
+  { name: 'Plaj Kulübü', slug: 'plaj-kulubu', cat: 'İşletme' },
+  { name: 'Atari İmparatorluğu', slug: 'atari-imparatorlugu', cat: 'İşletme' },
+  { name: 'Bar Ustası', slug: 'bar-ustasi', cat: 'İşletme' },
 
-  // Klasikler
-  { name: 'Ateş ve Su', slug: 'ates-ve-su', cat: 'Macera' },
-  { name: 'Süper Mario', slug: 'super-mario', cat: 'Platform' },
-  { name: 'Mahjong', slug: 'mahjong', cat: 'Zeka' },
-  { name: 'Bubble Shooter', slug: 'bubble-shooter', cat: 'Zeka' },
-  { name: 'Okey', slug: 'okey', cat: 'Zeka' },
-  { name: 'Tavla', slug: 'tavla', cat: 'Zeka' },
+  // Nişancı / FPS (Shooter)
+  { name: 'Yerçekimi Arenası', slug: 'yercekimi-arenasi-aticisi', cat: 'Nişancı' },
+  { name: 'Arabalar vs Skibidi', slug: 'arabalar-vs-skibidi-tuvalet', cat: 'Nişancı' },
+  { name: 'Ciddi Kafa', slug: 'ciddi-kafa', cat: 'Nişancı' },
+  { name: 'Ciddi Kafa 2', slug: 'ciddi-kafa-2', cat: 'Nişancı' },
+  { name: '1930\'ların Mafyası', slug: 'sehir-merkezinde-1930larin-mafyasi', cat: 'Nişancı' },
+  { name: 'Küçük Robot', slug: 'kucuk-robot', cat: 'Nişancı' },
+  { name: 'Yağma Kahramanı', slug: 'yagma-kahramani', cat: 'Nişancı' },
+  { name: 'Fury Wars', slug: 'fury-wars-cevrimici-nisanci', cat: 'Nişancı' },
+  { name: 'Kahraman 3: Uçan Robot', slug: 'kahraman-3-ucan-robot', cat: 'Nişancı' },
+  { name: 'NIMRODS: GunCraft', slug: 'nimrods-guncraft-survivor-demosu', cat: 'Nişancı' },
+  { name: 'Gangster Suçları 6', slug: 'gangster-suclari-cevrimici-6', cat: 'Nişancı' },
+  { name: 'Max Gangsterlere Karşı', slug: 'max-gangsterlere-karsi', cat: 'Nişancı' },
+  { name: 'Korumalı Alan Şehri', slug: 'korumali-alan-sehri', cat: 'Nişancı' },
+  { name: 'Usta Vuruş: Patron Avcısı', slug: 'master-hit-boss-hunter-btt', cat: 'Nişancı' },
+  { name: 'Dedektif IQ', slug: 'detective-iq-brain-games', cat: 'Nişancı' },
+
+  // Profesyonel İnşaat
+  { name: 'Profesyonel İnşaat 3D', slug: 'pro-construction-simulator-3d-swm', cat: 'Simülasyon' },
+
+  // Diğer (Other)
+  { name: 'Kağıt Bebek Günlüğü', slug: 'paper-doll-diary-diy-dress-up', cat: 'Yaratıcı' },
+  { name: 'Birleştir ve Oluştur', slug: 'merge-construct', cat: 'Yaratıcı' },
+  { name: 'Mystery Digger', slug: 'mystery-digger', cat: 'Yaratıcı' },
+  { name: 'Coin Clicker', slug: 'coin-clicker', cat: 'Yaratıcı' },
 ]
 
 const uniqueGames = GAMES.filter((g, i, a) => a.findIndex(x => x.slug === g.slug) === i)
@@ -139,7 +147,6 @@ const uniqueGames = GAMES.filter((g, i, a) => a.findIndex(x => x.slug === g.slug
 export default function GamesScreen() {
   const [playing, setPlaying] = useState<string | null>(null)
   const [iframeLoaded, setIframeLoaded] = useState(false)
-  const [imgErrors, setImgErrors] = useState<Set<string>>(new Set())
   const [isFullscreen, setIsFullscreen] = useState(false)
   const playerRef = useRef<HTMLDivElement>(null)
 
@@ -161,10 +168,6 @@ export default function GamesScreen() {
     document.addEventListener('fullscreenchange', handler)
     return () => document.removeEventListener('fullscreenchange', handler)
   }, [])
-
-  const handleImgError = (slug: string) => {
-    setImgErrors(prev => new Set(prev).add(slug))
-  }
 
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col bg-[#0f172a]">
@@ -190,7 +193,7 @@ export default function GamesScreen() {
               </div>
             )}
             <iframe
-              src={`https://www.rekoroyun.com/${playing}.html`}
+              src={`/game-proxy/${playing}`}
               className={`w-full h-full ${iframeLoaded ? '' : 'invisible'}`}
               allowFullScreen
               allow="autoplay; fullscreen; gamepad"
@@ -214,21 +217,10 @@ export default function GamesScreen() {
               {uniqueGames.map((game, i) => {
                 const hue = (i * 47) % 360
                 const grad = `linear-gradient(135deg, hsl(${hue},60%,30%), hsl(${(hue + 60) % 360},60%,20%))`
-                const showImg = playing === null && !imgErrors.has(game.slug)
                 return (
                   <button key={game.slug} onClick={() => { setPlaying(game.slug); setIframeLoaded(false) }}
                     className="group bg-[#1a1f35] rounded-xl overflow-hidden hover:bg-[#252b45] transition-all hover:shadow-lg hover:shadow-[#0099ff]/10 active:scale-[0.97] text-left">
-                    <div className="aspect-[4/3] relative overflow-hidden" style={{ background: grad }}>
-                      {showImg && (
-                        <img
-                          src={`https://www.rekoroyun.com/resim/${game.slug}.jpg`}
-                          alt=""
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          onError={() => handleImgError(game.slug)}
-                        />
-                      )}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                    </div>
+                    <div className="aspect-[4/3] relative overflow-hidden" style={{ background: grad }} />
                     <div className="p-2.5">
                       <p className="text-sm font-medium text-white truncate">{game.name}</p>
                       <p className="text-[10px] text-gray-500 mt-0.5">{game.cat}</p>

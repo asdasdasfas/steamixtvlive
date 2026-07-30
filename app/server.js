@@ -525,6 +525,94 @@ http.createServer((req, res) => {
     return
   }
 
+  // Game proxy: fetches EasyHub game page, injects CSS to hide chrome, adds <base> tag
+  // Usage: /game-proxy/{gameId}  e.g. /game-proxy/pk-subway-surfers
+  if (req.url.startsWith('/game-proxy/')) {
+    const gameId = req.url.slice('/game-proxy/'.length).split('?')[0].split('/')[0]
+    if (!gameId) { res.writeHead(400); res.end('Missing gameId'); return }
+    const targetUrl = `https://easyhub.games/tr/games/${gameId}`
+    const opts = makeHttpOpts(targetUrl, 'GET', {})
+    httpModule(opts).get(opts, proxyRes => {
+      const chunks = []
+      proxyRes.on('data', c => chunks.push(c))
+      proxyRes.on('end', () => {
+        let html = Buffer.concat(chunks).toString('utf8')
+        // Inject <base> tag so relative URLs resolve to easyhub.games
+        html = html.replace('<head>', '<head><base href="https://easyhub.games">')
+        // Inject CSS to hide unwanted elements and make game fullscreen
+        const style = `
+<style>
+/* Hide header/navbar */
+.h-0 > div:first-child, .h-0, .fixed.top-0.left-0, nav {
+  display: none !important;
+}
+/* Hide sidebar */
+.drawer-side, aside, .hidden.md\\:flex.md\\:w-0 {
+  display: none !important;
+}
+/* Remove padding/margin from drawer */
+.drawer {
+  padding-top: 0 !important;
+}
+.drawer-content > div:first-child {
+  display: none !important;
+}
+/* Hide title, buttons, tags, description, comments, footer, ads */
+.flex-wrap.gap-3.items-center.min-h-12,
+.flex-wrap.gap-2,
+.flex.flex-col.lg\\:flex-row.gap-4,
+.hidden.lg\\:flex.flex-col,
+section,
+footer,
+[class*="comment"],
+[class*="footer"],
+[class*="legal"],
+[class*="about"],
+.adsbygoogle,
+ins.adsbygoogle {
+  display: none !important;
+}
+/* Make game container fill entire viewport */
+.relative.w-full.flex.justify-center.items-center.bg-black.overflow-hidden {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  aspect-ratio: auto !important;
+  max-width: 100vw !important;
+  z-index: 9999 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.relative.w-full.flex.justify-center.items-center.bg-black.overflow-hidden > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+/* Hide all other content below game */
+.flex-1.min-w-0.flex.flex-col {
+  height: 100vh !important;
+  overflow: hidden !important;
+}
+/* Hide drawer content layout */
+.drawer-content > .flex {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+body { overflow: hidden !important; margin: 0 !important; padding: 0 !important; }
+</style>`
+        html = html.replace('</head>', style + '</head>')
+        res.writeHead(200, { 'Content-Type': 'text/html', 'Access-Control-Allow-Origin': '*' })
+        res.end(html)
+      })
+    }).on('error', () => { res.writeHead(502); res.end('Proxy Error') })
+    return
+  }
+
   // Console log view endpoint
   if (req.url === '/__logs') {
     res.setHeader('Content-Type', 'application/json')

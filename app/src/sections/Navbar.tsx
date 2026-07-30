@@ -9,8 +9,8 @@ const allTabs = [
   { key: 'live', icon: Tv, labelKey: 'nav.live' },
   { key: 'movies', icon: Film, labelKey: 'nav.movies' },
   { key: 'series', icon: Clapperboard, labelKey: 'nav.series' },
-  { key: 'games', icon: Gamepad2, labelKey: 'Oyunlar' },
   { key: 'favorites', icon: Heart, labelKey: 'Favoriler' },
+  { key: 'games', icon: Gamepad2, labelKey: 'Oyunlar' },
 ]
 
 interface NavbarProps {
