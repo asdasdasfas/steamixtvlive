@@ -153,6 +153,12 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const currentSrc = urls[idx]
     retryCountRef.current = 0
 
+    const ctrl = new AbortController()
+    fetch(currentSrc, { signal: ctrl.signal }).then(r => {
+      const ct = r.headers.get('content-type') || ''
+      ctrl.abort()
+    }).catch(() => {})
+
     // Destroy previous HLS and reset video element fully
     if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null }
     video.pause()
@@ -164,8 +170,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const srcNoQuery = currentSrc.split('?')[0]
     const isHls = srcNoQuery.endsWith('.m3u8')
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
-    const isAndroid = /android/i.test(navigator.userAgent)
-    if (isHls && Hls.isSupported() && !isSafari && !isAndroid) {
+    if (isHls && Hls.isSupported() && !isSafari) {
       const isVirtualHls = currentSrc.startsWith('/v/')
       const hls = new Hls({
         enableWorker: false, lowLatencyMode: isVirtualHls, debug: false,
@@ -239,11 +244,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       video.src = currentSrc
       const onReady = () => { video.removeEventListener('canplay', onReady); tryPlay(video); startWatchdog(video) }
       video.addEventListener('canplay', onReady)
-      video.onerror = () => {
-        clearInterval(watchdogRef.current)
-        urlIndexRef.current++
-        tryUrl(video)
-      }
+      video.addEventListener('error', () => {}, { once: true })
       startWatchdog(video)
     } else {
       video.src = currentSrc
