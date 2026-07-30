@@ -629,8 +629,6 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/34680.m3u8
 #EXTINF:-1 tvg-id="TRTRTSPORFHD" tvg-name="TR: TRT SPOR FHD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/TRT.SPOR.png",TR: TRT SPOR FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/94495.m3u8
 
-#EXTINF:-1 tvg-id="TRTRTSPORHD" tvg-name="TR: TRT SPOR HD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/TRT.SPOR.png",TR: TRT SPOR HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/162216.m3u8
 
 #EXTINF:-1 tvg-id="TRTRTSPORYILDIZFHD" tvg-name="TR: TRT SPOR YILDIZ FHD" group-title="Premium Spor" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/TR.SPOR/TRT.SPOR.YILDIZ.png",TR: TRT SPOR YILDIZ FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/32602.m3u8
@@ -779,8 +777,6 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/17759.m3u8
 #EXTINF:-1 tvg-id="TRTGRTBELGESELFHD" tvg-name="TR: TGRT BELGESEL FHD" group-title="Belgesel" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/BELGESELL/TGRT.BELGESEL.png",TR: TGRT BELGESEL FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/2820.m3u8
 
-#EXTINF:-1 tvg-id="TRYABANTVHD" tvg-name="TR: YABAN TV HD" group-title="Belgesel" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/BELGESELL/YABAN.png",TR: YABAN TV HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/108718.m3u8
 
 #EXTINF:-1 tvg-id="TRFASTFUN" tvg-name="TR: FAST & FUN" group-title="Belgesel" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/BELGESELL/FAST.AND.FUN.png",TR: FAST & FUN
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/88006.m3u8
@@ -923,8 +919,6 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/9735.m3u8
 #EXTINF:-1 tvg-id="BestofIMDB2" tvg-name="Best of IMDB 2 ʜᴅ" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/DOBLYYY/DOLBYY.png",Best of IMDB 2 ʜᴅ
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220455.m3u8
 
-#EXTINF:-1 tvg-id="BestofIMDB3" tvg-name="Best of IMDB 3 ʜᴅ" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/DOBLYYY/DOLBYY.png",Best of IMDB 3 ʜᴅ
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220456.m3u8
 
 #EXTINF:-1 tvg-id="BestofIMDB4" tvg-name="Best of IMDB 4 ʜᴅ" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/DOBLYYY/DOLBYY.png",Best of IMDB 4 ʜᴅ
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220484.m3u8
@@ -1049,8 +1043,6 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/38575.m3u8
 #EXTINF:-1 tvg-id="DOLBYTVLoca6" tvg-name="DOLBY TV Loca 6 ʜᴅ" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/DOBLYYY/DOLBYY.png",DOLBY TV Loca 6 ʜᴅ
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/143756.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVLoca7" tvg-name="DOLBY TV Loca 7 ʜᴅ" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/DOBLYYY/DOLBYY.png",DOLBY TV Loca 7 ʜᴅ
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/15039.m3u8
 
 #EXTINF:-1 tvg-id="DOLBYTVLoca8" tvg-name="DOLBY TV Loca 8 ʜᴅ" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/DOBLYYY/DOLBYY.png",DOLBY TV Loca 8 ʜᴅ
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/114629.m3u8
@@ -1058,8 +1050,6 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/114629.m3u8
 #EXTINF:-1 tvg-id="DOLBYTVLoca9" tvg-name="DOLBY TV Loca 9 ʜᴅ" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/DOBLYYY/DOLBYY.png",DOLBY TV Loca 9 ʜᴅ
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/41440.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVLoca10" tvg-name="DOLBY TV Loca 10 ʜᴅ" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/DOBLYYY/DOLBYY.png",DOLBY TV Loca 10 ʜᴅ
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/36270.m3u8
 
 #EXTINF:-1 tvg-id="DOLBYTVLoca11" tvg-name="DOLBY TV Loca 11ʜᴅ" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/DOBLYYY/DOLBYY.png",DOLBY TV Loca 11ʜᴅ
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220684.m3u8
@@ -1067,38 +1057,18 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220684.m3u8
 #EXTINF:-1 tvg-id="DOLBYTVLoca12" tvg-name="DOLBY TV Loca 12 ʜᴅ" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/DOBLYYY/DOLBYY.png",DOLBY TV Loca 12 ʜᴅ
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220685.m3u8
 
-#EXTINF:-1 tvg-id="TRMAXAKSYON1" tvg-name="TR: MAX AKSİYON 1 ʜᴅ" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/CINEBOX/MAX.AKSIYON.1.png",TR: MAX AKSİYON 1 ʜᴅ
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/117921.m3u8
 
-#EXTINF:-1 tvg-id="TRMAXPREMIERHD" tvg-name="TR: MAX PREMIER HD" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/CINEBOX/MAX.PREMIER.png",TR: MAX PREMIER HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/126645.m3u8
 
-#EXTINF:-1 tvg-id="TRMAXVZYON2HD" tvg-name="TR: MAX VİZYON 2 HD" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/CINEBOX/MAX.VIZYON.2.png",TR: MAX VİZYON 2 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/153617.m3u8
 
-#EXTINF:-1 tvg-id="TRMAXVZYON3HD" tvg-name="TR: MAX VİZYON 3 HD" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/CINEBOX/MAX.VIZYON.3.png",TR: MAX VİZYON 3 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/9786.m3u8
 
-#EXTINF:-1 tvg-id="TRMAXTURKHD" tvg-name="TR: MAX TURK HD" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/CINEBOX/MAX.TURK.png",TR: MAX TURK HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/143516.m3u8
 
-#EXTINF:-1 tvg-id="TRMAXGOLDHD" tvg-name="TR: MAX GOLD HD" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/CINEBOX/MAX.GOLD.png",TR: MAX GOLD HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/120322.m3u8
 
-#EXTINF:-1 tvg-id="TRMAXKINOCOLLECTIONHD" tvg-name="TR: MAX KINO COLLECTION HD" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/CINEBOX/MAX.KINO.png",TR: MAX KINO COLLECTION HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/166926.m3u8
 
 #EXTINF:-1 tvg-id="TRMAXSTARWARSHD" tvg-name="TR: MAX STAR WARS HD" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/CINEBOX/MAX.STAR.WARS.png",TR: MAX STAR WARS HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/132769.m3u8
 
-#EXTINF:-1 tvg-id="TRMax" tvg-name="TR: Max ⁴ᴷ ғʜᴅ" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/CINEBOX/MAX.4K.png",TR: Max ⁴ᴷ ғʜᴅ
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/146982.m3u8
 
-#EXTINF:-1 tvg-id="TRMAXORJNAL" tvg-name="TR: MAX ORJİNAL ʜᴅ" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/CINEBOX/MAX.ORJINAL.png",TR: MAX ORJİNAL ʜᴅ
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/124473.m3u8
 
-#EXTINF:-1 tvg-id="TRMAX007" tvg-name="TR: MAX 007 ʜᴅ" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/CINEBOX/MAX.007.png",TR: MAX 007 ʜᴅ
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/63947.m3u8
 
 #EXTINF:-1 tvg-id="TRMARVELSTUDIOS1HD" tvg-name="TR: MARVEL STUDIOS 1 HD" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/MARVEL.WESTERN/MARVEL.SINEMA.1.png",TR: MARVEL STUDIOS 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/119025.m3u8
@@ -1127,14 +1097,8 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/158816.m3u8
 #EXTINF:-1 tvg-id="TRWESTERNSTUDIOS2HD" tvg-name="TR: WESTERN STUDIOS 2 HD" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/MARVEL.WESTERN/WESTERN.SINEMA.2.png",TR: WESTERN STUDIOS 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/30073.m3u8
 
-#EXTINF:-1 tvg-id="TRWESTERNSTUDIOS3HD" tvg-name="TR: WESTERN STUDIOS 3 HD" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/MARVEL.WESTERN/WESTERN.SINEMA.3.png",TR: WESTERN STUDIOS 3 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/118758.m3u8
 
-#EXTINF:-1 tvg-id="TRWESTERNSTUDIOS4HD" tvg-name="TR: WESTERN STUDIOS 4 HD" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/MARVEL.WESTERN/WESTERN.SINEMA.4.png",TR: WESTERN STUDIOS 4 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/182790.m3u8
 
-#EXTINF:-1 tvg-id="TRWESTERNSTUDIOS5HD" tvg-name="TR: WESTERN STUDIOS 5 HD" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/MARVEL.WESTERN/WESTERN.SINEMA.5.png",TR: WESTERN STUDIOS 5 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/182791.m3u8
 
 #EXTINF:-1 tvg-id="TRNETFLIXAksiyon" tvg-name="TR: NETFLIX Aksiyon ʜᴅ" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/NETFLIX/AKSIYON.png",TR: NETFLIX Aksiyon ʜᴅ
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/156976.m3u8
@@ -1190,8 +1154,6 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/110639.m3u8
 #EXTINF:-1 tvg-id="TRNETFLIX5" tvg-name="TR: NETFLIX 5 ʜᴅ" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/NETFLIX/5.png",TR: NETFLIX 5 ʜᴅ
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/12850.m3u8
 
-#EXTINF:-1 tvg-id="EXXENSHOW724" tvg-name="✦★ EXXEN SHOW 7/24 ★✦" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO/TR/BAYRAK.png",✦★ EXXEN SHOW 7/24 ★✦
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/75396.m3u8
 
 #EXTINF:-1 tvg-id="TRKONUANLAR1" tvg-name="TR: KONUŞANLAR 1 ʜᴅ" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/EXXEN.7.24/KONUSANLAR.1.png",TR: KONUŞANLAR 1 ʜᴅ
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/33747.m3u8
@@ -1220,8 +1182,6 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/103232.m3u8
 #EXTINF:-1 tvg-id="TREXXENTV2" tvg-name="TR: EXXEN TV 2 ʜᴅ" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/EXXEN.7.24/KANAL.2.png",TR: EXXEN TV 2 ʜᴅ
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/136326.m3u8
 
-#EXTINF:-1 tvg-id="SKYSELECT" tvg-name="✦ ✦ SKY SELECT ✦ ✦" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO/DE/BAYRAK.png",✦ ✦ SKY SELECT ✦ ✦
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/134528.m3u8
 
 #EXTINF:-1 tvg-id="DESKYSELECTPROGRAMMUBERSICHT" tvg-name="DE: SKY SELECT  PROGRAMMUBERSICHT" group-title="Sinema & Dizi" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/DE/SKY.SELECT/11.png",DE: SKY SELECT  PROGRAMMUBERSICHT
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/42112.m3u8
