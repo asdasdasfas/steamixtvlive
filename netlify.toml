@@ -20,12 +20,12 @@
 
 [[redirects]]
   from = "/p2095/*"
-  to = "http://dzcvip1.xyz:2095/:splat"
+  to = "http://ctn34.xyz:8080/:splat"
   status = 200
 
 [[redirects]]
   from = "/p8080/*"
-  to = "http://dzcvip1.xyz:8080/:splat"
+  to = "http://ctn34.xyz:8080/:splat"
   status = 200
 
 [[redirects]]
