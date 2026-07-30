@@ -14,7 +14,7 @@ const PC_BY_CAT = Object.fromEntries(PC_CATS.map(c => [c, PC_GAMES.filter(g => g
 const SOURCE_BTN = 'px-2 py-1 text-[10px] rounded-md transition-colors whitespace-nowrap'
 
 export default function GamesScreen() {
-  const [source, setSource] = useState<'easyhub' | 'pc'>('easyhub')
+  const [source, setSource] = useState<'easyhub' | 'pc' | 'gam-onl'>('easyhub')
   const [games, setGames] = useState<Game[]>([])
   const [cats, setCats] = useState<string[]>([])
   const [gamesByCat, setGamesByCat] = useState<Record<string, Game[]>>({})
@@ -27,8 +27,17 @@ export default function GamesScreen() {
   const menuRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(true)
+  const ATARI_URL = 'https://gam.onl/'
 
   useEffect(() => {
+    if (source === 'gam-onl') {
+      setGames([])
+      setCats([])
+      setGamesByCat({})
+      setPlaying('gam-onl')
+      setLoading(false)
+      return
+    }
     if (source === 'pc') {
       setGames(PC_GAMES)
       setCats(PC_CATS)
@@ -94,15 +103,11 @@ export default function GamesScreen() {
     ? games.filter(g => g.name.toLowerCase().includes(search.toLowerCase()))
     : []
 
-  const switchSource = (s: 'easyhub' | 'pc') => {
+  const switchSource = (s: 'easyhub' | 'pc' | 'gam-onl') => {
     setSource(s)
     setGameLoaded(false)
     setPlaying(null)
     setLoading(true)
-  }
-
-  const openAtari = () => {
-    window.open('https://gam.onl/', 'gam-onl', 'width=' + screen.availWidth + ',height=' + screen.availHeight + ',menubar=no,toolbar=no,location=no,status=no')
   }
 
   return (
@@ -116,10 +121,11 @@ export default function GamesScreen() {
             <button onClick={() => switchSource('pc')}
               className={`${SOURCE_BTN} ${source === 'pc' ? 'bg-[#0099ff] text-white' : 'text-gray-400 hover:text-white'}`}
             >PC</button>
-            <button onClick={openAtari}
-              className={`${SOURCE_BTN} text-gray-400 hover:text-white`}
+            <button onClick={() => switchSource('gam-onl')}
+              className={`${SOURCE_BTN} ${source === 'gam-onl' ? 'bg-[#0099ff] text-white' : 'text-gray-400 hover:text-white'}`}
             >Atari</button>
           </div>
+          {source !== 'gam-onl' && (
           <div ref={menuRef} className="relative">
             <button
               onClick={() => setMenuOpen(p => !p)}
@@ -177,13 +183,14 @@ export default function GamesScreen() {
               </div>
             )}
           </div>
+          )}
           <button onClick={toggleFullscreen}
             className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 text-white text-[11px] hover:bg-white/20 transition-colors shrink-0 ml-auto">
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
         </div>
         <div className="flex-1 relative min-h-0" style={{ overflow: 'hidden' }}>
-          {!gameLoaded && playing && (
+          {!gameLoaded && playing && source !== 'gam-onl' && (
             <div className="absolute inset-0 flex items-center justify-center z-20 bg-black">
               <div className="flex flex-col items-center gap-2">
                 <Loader2 className="w-6 h-6 text-[#0099ff] animate-spin" />
@@ -194,8 +201,8 @@ export default function GamesScreen() {
           {playing ? (
             <iframe
               key={source + (playing || '')}
-              src={source === 'easyhub' ? `/tr/games/${playing}` : (game?.url || '')}
-              className={`w-full h-full ${gameLoaded ? '' : 'invisible'}`}
+              src={source === 'easyhub' ? `/tr/games/${playing}` : source === 'pc' ? (game?.url || '') : `/browser-proxy?url=${encodeURIComponent(ATARI_URL)}`}
+              className={`w-full h-full ${gameLoaded || source === 'gam-onl' ? '' : 'invisible'}`}
               allowFullScreen
               allow="autoplay; fullscreen; gamepad"
               style={{ border: 'none', touchAction: 'manipulation' }}

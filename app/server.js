@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { gunzipSync } from 'node:zlib'
 import { spawn, execSync } from 'node:child_process'
 import ffmpegPathStatic from 'ffmpeg-static'
+import puppeteer from 'puppeteer'
 
 // Try to find ffmpeg: first check static, then system PATH, then common locations
 let ffmpegPath = null
@@ -633,36 +634,33 @@ footer, section, .text-center.py-8,
     return
   }
 
-  // Browser proxy - bypass Cloudflare using allorigins.win as upstream
+  // Browser proxy - uses headless Chrome (Puppeteer) to bypass Cloudflare
   // /browser-proxy?url=https://example.com
   if (req.url.startsWith('/browser-proxy')) {
     const urlObj = new URL(req.url, 'http://localhost')
     const targetUrl = urlObj.searchParams.get('url')
     if (!targetUrl) { res.writeHead(400); res.end('Missing url param'); return }
-    // Use allorigins.win to bypass Cloudflare
-    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl)
-    const opts = makeHttpOpts(proxyUrl, 'GET', {})
-    opts.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
-    opts.headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
     const baseUrl = targetUrl.replace(/\/?$/, '/')
-    const httpModule = opts.protocol === 'https' ? https : http
-    httpModule.get(opts, proxyRes => {
-      const chunks = []
-      proxyRes.on('data', c => chunks.push(c))
-      proxyRes.on('end', () => {
-        let body = Buffer.concat(chunks)
-        const ct = (proxyRes.headers['content-type'] || '').toLowerCase()
-        if (ct.includes('text/html') || body.toString('utf8', 0, 100).includes('<html') || body.toString('utf8', 0, 100).includes('<!DOCTYPE')) {
-          let html = body.toString('utf8')
-          html = html.replace('<head>', '<head><base href="' + baseUrl + '">')
-          html = html.replace('</head>', '<style>html,body{margin:0!important;padding:0!important;width:100vw;height:100vh;overflow:hidden}iframe,video,canvas{max-width:100vw;max-height:100vh}</style></head>')
-          body = Buffer.from(html, 'utf8')
-        }
-        const headers = { 'Content-Type': 'text/html', 'Access-Control-Allow-Origin': '*' }
-        res.writeHead(200, headers)
-        res.end(body)
-      })
-    }).on('error', () => { res.writeHead(502); res.end('Proxy Error') })
+    ;(async () => {
+      try {
+        const browser = await puppeteer.launch({
+          headless: true,
+          args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--single-process']
+        })
+        const page = await browser.newPage()
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36')
+        await page.goto(targetUrl, { waitUntil: 'networkidle0', timeout: 30000 })
+        let html = await page.content()
+        await browser.close()
+        html = html.replace('<head>', '<head><base href="' + baseUrl + '">')
+        html = html.replace('</head>', '<style>html,body{margin:0!important;padding:0!important;width:100vw;height:100vh;overflow:hidden}iframe,video,canvas{max-width:100vw;max-height:100vh}</style></head>')
+        res.writeHead(200, { 'Content-Type': 'text/html', 'Access-Control-Allow-Origin': '*' })
+        res.end(html)
+      } catch (e) {
+        res.writeHead(502, { 'Content-Type': 'text/plain' })
+        res.end('Proxy Error: ' + e.message)
+      }
+    })()
     return
   }
 
