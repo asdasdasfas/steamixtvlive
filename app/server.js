@@ -525,12 +525,10 @@ http.createServer((req, res) => {
     return
   }
 
-  // Game proxy: fetches EasyHub game page, strips chrome, rewrites relative URLs
-  // Usage: /game-proxy/tr/games/{gameId}  e.g. /game-proxy/tr/games/pk-subway-surfers
-  // The path after /game-proxy/ must match EasyHub's path so Next.js router works.
-  if (req.url.startsWith('/game-proxy/')) {
-    const ehPath = req.url.slice('/game-proxy/'.length).split('?')[0].replace(/\/$/, '')
-    if (!ehPath) { res.writeHead(400); res.end('Missing path'); return }
+  // Game proxy: fetches EasyHub game page at the SAME URL path so Next.js works
+  // /tr/games/{gameId}  e.g. /tr/games/pk-subway-surfers
+  if (req.url.startsWith('/tr/games/')) {
+    const ehPath = req.url.split('?')[0].replace(/^\//, '')
     const targetUrl = `https://easyhub.games/${ehPath}`
     const opts = makeHttpOpts(targetUrl, 'GET', {})
     httpModule(opts).get(opts, proxyRes => {
