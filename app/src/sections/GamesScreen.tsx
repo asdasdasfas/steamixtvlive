@@ -184,11 +184,11 @@ export default function GamesScreen() {
           {playing ? (
             <iframe
               key={source + playing}
-              src={source === 'easyhub' ? `/tr/games/${playing}` : (game?.url || '')}
+              src={source === 'easyhub' ? `/tr/games/${playing}` : `/pc-proxy/${playing}`}
               className={`w-full h-full ${gameLoaded ? '' : 'invisible'}`}
               allowFullScreen
               allow="autoplay; fullscreen; gamepad"
-              style={{ border: 'none' }}
+              style={{ border: 'none', touchAction: 'manipulation' }}
               onLoad={() => setGameLoaded(true)}
             />
           ) : (

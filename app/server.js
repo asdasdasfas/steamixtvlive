@@ -633,6 +633,64 @@ footer, section, .text-center.py-8,
     return
   }
 
+  // PC game proxy: blocks ads, injects touch support, makes fullscreen
+  // /pc-proxy/{slug}
+  if (req.url.startsWith('/pc-proxy/')) {
+    const slug = req.url.split('/pc-proxy/')[1].split('?')[0].replace(/\/$/, '')
+    const urls = {
+      'vc-web-unofficial': 'https://vcweb.studynotes.top',
+      'simpsons-hit-run': 'https://shar-wasm.cjoseph.workers.dev/?skipmovie',
+      'web-dashers': 'https://web-dashers.github.io/',
+    }
+    const targetUrl = (urls as any)[slug]
+    if (!targetUrl) { res.writeHead(404); res.end('Not found'); return }
+    const opts = makeHttpOpts(targetUrl, 'GET', {})
+    httpModule(opts).get(opts, proxyRes => {
+      const chunks = []
+      proxyRes.on('data', c => chunks.push(c))
+      proxyRes.on('end', () => {
+        let html = Buffer.concat(chunks).toString('utf8')
+        // Remove ad scripts
+        html = html.replace(/<script[^>]*?(push-sdk|effectivecpmnetwork|pl30254502)[^>]*>.*?<\/script>/gis, '')
+        html = html.replace(/<script[^>]*>.*?window\.addEventListener\('load'.*?setTimeout.*?s\.src\s*=.*?pl30254502.*?<\/script>/gis, '')
+        html = html.replace(/<script[^>]*data-cfasync[^>]*>[\s\S]*?push-sdk\.com[\s\S]*?<\/script>/gi, '')
+        html = html.replace(/<script[^>]*src="https:\/\/pl30254502[^>]*><\/script>/gi, '')
+        html = html.replace(/<script[^>]*src="https:\/\/push-sdk\.com[^>]*><\/script>/gi, '')
+        html = html.replace(/<script[^>]*async[^>]*>[\s\S]*?push-sdk[\s\S]*?<\/script>/gi, '')
+        // Remove ad-related iframes
+        html = html.replace(/<iframe[^>]*?(pl30254502|push-sdk|ads|ad-)[^>]*>.*?<\/iframe>/gis, '')
+        // Inject touch + fullscreen CSS
+        const style = `<style>
+html,body{margin:0!important;padding:0!important;overflow:hidden!important;height:100vh!important;width:100vw!important;background:#000!important;touch-action:manipulation!important;-webkit-touch-callout:none!important;user-select:none!important}
+canvas,video,iframe{width:100vw!important;height:100vh!important;touch-action:manipulation!important}
+/* hide all distractions */
+header,nav,footer,.header,.footer,.nav,.sidebar,.ad,.ads,.adsbygoogle,.ad-container,.ad-unit,.ad-wrapper,
+.popup,.overlay,[class*="ad-"],[id*="ad-"],[class*="popup"],[id*="popup"],
+[class*="banner"],[id*="banner"],[class*="cookie"],[id*="cookie"],
+[aria-label*="ad"],[aria-label*="Ad"],[role="complementary"]{display:none!important}
+/* make sure game fills screen */
+#container,.container,.game-container,.game-wrapper,.game-holder,#app,#root,.app,main,article,
+[class*="content"],[class*="main"],[class*="game"]{width:100vw!important;height:100vh!important;max-width:100vw!important;max-height:100vh!important;margin:0!important;padding:0!important;overflow:hidden!important}
+</style>`
+        html = html.replace('</head>', style + '</head>')
+        // Inject touch helper script
+        const touchScript = `<script>
+document.addEventListener('touchstart', function(e) {
+  var t = e.changedTouches[0];
+  var el = document.elementFromPoint(t.clientX, t.clientY);
+  if (el) { el.focus(); }
+  e.preventDefault();
+}, {passive:false});
+document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+</script>`
+        html = html.replace('</body>', touchScript + '</body>')
+        res.writeHead(200, { 'Content-Type': 'text/html', 'Access-Control-Allow-Origin': '*' })
+        res.end(html)
+      })
+    }).on('error', () => { res.writeHead(502); res.end('Proxy Error') })
+    return
+  }
+
   // Console log view endpoint
   if (req.url === '/__logs') {
     res.setHeader('Content-Type', 'application/json')
