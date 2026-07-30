@@ -38,7 +38,7 @@ export default function GamesScreen() {
   const [iframeLoaded, setIframeLoaded] = useState(false)
 
   return (
-    <div className="h-full flex flex-col bg-[#0f172a]">
+    <div className="h-[calc(100vh-8rem)] flex flex-col bg-[#0f172a]">
       {playing ? (
         <div className="flex-1 flex flex-col">
           <div className="flex items-center gap-3 px-4 py-3 bg-[#1a1f35] border-b border-white/5">
