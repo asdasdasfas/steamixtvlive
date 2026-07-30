@@ -269,6 +269,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     if (!video) return
     urlIndexRef.current = 0
     setLoadError('')
+    setLoading(true)
     tryUrl(video)
 
     return () => { cleanup() }
