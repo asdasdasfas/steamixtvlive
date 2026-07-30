@@ -11,8 +11,10 @@ export default function GamesScreen() {
   const [gameLoaded, setGameLoaded] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [search, setSearch] = useState('')
   const playerRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -57,6 +59,17 @@ export default function GamesScreen() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
+  useEffect(() => {
+    if (menuOpen && searchRef.current) {
+      searchRef.current.focus()
+      setSearch('')
+    }
+  }, [menuOpen])
+
+  const filtered = search.trim()
+    ? games.filter(g => g.name.toLowerCase().includes(search.toLowerCase()))
+    : []
+
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col bg-black">
       <div ref={playerRef} className="flex-1 flex flex-col min-h-0">
@@ -70,13 +83,24 @@ export default function GamesScreen() {
               <ChevronDown className={`w-3 h-3 shrink-0 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
             </button>
             {menuOpen && (
-              <div className="absolute top-full left-0 mt-1 w-64 max-h-[60vh] overflow-y-auto bg-[#1a1a2e] border border-white/10 rounded-lg shadow-2xl z-50">
-                {loading ? (
-                  <div className="px-3 py-4 text-center text-xs text-gray-400">Yükleniyor...</div>
-                ) : cats.map(cat => (
-                  <div key={cat}>
-                    <div className="sticky top-0 bg-[#1a1a2e] px-3 py-1.5 text-[#0099ff] text-[10px] font-bold uppercase tracking-wider border-b border-white/5">{cat}</div>
-                    {gamesByCat[cat].map(g => (
+              <div className="absolute top-full left-0 mt-1 w-72 max-h-[60vh] flex flex-col bg-[#1a1a2e] border border-white/10 rounded-lg shadow-2xl z-50">
+                <div className="p-2 border-b border-white/10">
+                  <input
+                    ref={searchRef}
+                    type="text"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder="Oyun ara..."
+                    className="w-full bg-white/10 text-white text-xs rounded-md px-2.5 py-1.5 border border-white/10 outline-none placeholder-gray-500"
+                  />
+                </div>
+                <div className="overflow-y-auto flex-1">
+                  {loading ? (
+                    <div className="px-3 py-4 text-center text-xs text-gray-400">Yükleniyor...</div>
+                  ) : search.trim() ? (
+                    filtered.length === 0 ? (
+                      <div className="px-3 py-4 text-center text-xs text-gray-400">Oyun bulunamadı</div>
+                    ) : filtered.map(g => (
                       <button
                         key={g.slug}
                         onClick={() => { setPlaying(g.slug); setGameLoaded(false); setMenuOpen(false) }}
@@ -86,9 +110,24 @@ export default function GamesScreen() {
                             : 'text-gray-300 hover:bg-white/5 hover:text-white'
                         }`}
                       >{g.name}</button>
-                    ))}
-                  </div>
-                ))}
+                    ))
+                  ) : cats.map(cat => (
+                    <div key={cat}>
+                      <div className="sticky top-0 bg-[#1a1a2e] px-3 py-1.5 text-[#0099ff] text-[10px] font-bold uppercase tracking-wider border-b border-white/5">{cat}</div>
+                      {gamesByCat[cat].map(g => (
+                        <button
+                          key={g.slug}
+                          onClick={() => { setPlaying(g.slug); setGameLoaded(false); setMenuOpen(false) }}
+                          className={`w-full text-left px-3 py-1.5 text-xs transition-colors border-b border-white/5 last:border-0 ${
+                            playing === g.slug
+                              ? 'bg-[#0099ff]/20 text-white font-semibold'
+                              : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                          }`}
+                        >{g.name}</button>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
