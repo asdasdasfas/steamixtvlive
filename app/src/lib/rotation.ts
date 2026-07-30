@@ -464,10 +464,10 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/10446.m3u8
 #EXTINF:-1 tvg-id="TRSPORSMART2HD" tvg-name="SPOR SMART 2 HD" group-title="Premium Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/spor-smart-hd-tr.png",SPOR SMART 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/159350.m3u8
 
-#EXTINF:-1 tvg-id="TREUROSPORT1FHD" tvg-name="EUROSPORT 1 FHD" group-title="Premium Spor" tvg-logo="https://cdn.worldvectorlogo.com/logos/eurosport-1-logo-2015.svg",EUROSPORT 1 FHD
+#EXTINF:-1 tvg-id="TREUROSPORT1FHD" tvg-name="EUROSPORT 1 FHD" group-title="Premium Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/france/eurosport-1-fr.png",EUROSPORT 1 FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/145527.m3u8
 
-#EXTINF:-1 tvg-id="TREUROSPORT2FHD" tvg-name="EUROSPORT 2 FHD" group-title="Premium Spor" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/d/d8/Eurosport_2_Logo_2015.svg",EUROSPORT 2 FHD
+#EXTINF:-1 tvg-id="TREUROSPORT2FHD" tvg-name="EUROSPORT 2 FHD" group-title="Premium Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/france/eurosport-2-fr.png",EUROSPORT 2 FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/39047.m3u8
 
 #EXTINF:-1 tvg-id="TRFBTVHD" tvg-name="FB TV  HD" group-title="Premium Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/fenerbahce-tv-tr.png",FB TV  HD
@@ -506,10 +506,10 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/88006.m3u8
 #EXTINF:-1 tvg-id="TRLOVENATUREHD" tvg-name="LOVE NATURE HD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/canada/love-nature-ca.png",LOVE NATURE HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/147538.m3u8
 
-#EXTINF:-1 tvg-id="TRNATUREESCAPE" tvg-name="NATURE ESCAPE" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Nature_%28TV_network%29_logo.svg/320px-Nature_%28TV_network%29_logo.svg.png",NATURE ESCAPE
+#EXTINF:-1 tvg-id="TRNATUREESCAPE" tvg-name="NATURE ESCAPE" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/asdasdasfas/steamixtvlive/main/app/public/nature-escape.svg",NATURE ESCAPE
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/173916.m3u8
 
-#EXTINF:-1 tvg-id="TRLUYSTV" tvg-name="LUYS TV" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/ArmeniaTV-English-Logo.svg/320px-ArmeniaTV-English-Logo.svg.png",LUYS TV
+#EXTINF:-1 tvg-id="TRLUYSTV" tvg-name="LUYS TV" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/64/ArmeniaTV-English-Logo.svg",LUYS TV
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/131315.m3u8
 
 #EXTINF:-1 tvg-id="TRDAVINCILEARNING" tvg-name="DA VINCI LEARNING" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/serbia/da-vinci-rs.png",DA VINCI LEARNING
@@ -518,7 +518,7 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/65083.m3u8
 #EXTINF:-1 tvg-id="TRCIFTCITV" tvg-name="CIFTCI TV" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/ciftci-tv-tr.png",CIFTCI TV
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/96121.m3u8
 
-#EXTINF:-1 tvg-id="TRVAHDOAFHD" tvg-name="VAHŞİ DOĞA FHD" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Nature_%28TV_channel%29_logo.svg/320px-Nature_%28TV_channel%29_logo.svg.png",VAHŞİ DOĞA FHD
+#EXTINF:-1 tvg-id="TRVAHDOAFHD" tvg-name="VAHŞİ DOĞA FHD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/asdasdasfas/steamixtvlive/main/app/public/vahsi-doga.svg",VAHŞİ DOĞA FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/95946.m3u8
 
 #EXTINF:-1 tvg-id="TRCHASSEETPECHE" tvg-name="CHASSE ET PECHE" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/france/chasse-et-peche-fr.png",CHASSE ET PECHE
@@ -680,10 +680,10 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/127427.m3u8
 #EXTINF:-1 tvg-id="TRMARVELSTUDIOS7HD" tvg-name="MARVEL STUDIOS 7 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/10/Marvel_Studios_2016_logo.svg",MARVEL STUDIOS 7 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/76125.m3u8
 
-#EXTINF:-1 tvg-id="TRWESTERNSTUDIOS1HD" tvg-name="WESTERN STUDIOS 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Film_reel.svg/320px-Film_reel.svg.png",WESTERN STUDIOS 1 HD
+#EXTINF:-1 tvg-id="TRWESTERNSTUDIOS1HD" tvg-name="WESTERN STUDIOS 1 HD" group-title="Sinema & Dizi" tvg-logo="https://raw.githubusercontent.com/asdasdasfas/steamixtvlive/main/app/public/western-studios.svg",WESTERN STUDIOS 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/158816.m3u8
 
-#EXTINF:-1 tvg-id="TRWESTERNSTUDIOS2HD" tvg-name="WESTERN STUDIOS 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Film_reel.svg/320px-Film_reel.svg.png",WESTERN STUDIOS 2 HD
+#EXTINF:-1 tvg-id="TRWESTERNSTUDIOS2HD" tvg-name="WESTERN STUDIOS 2 HD" group-title="Sinema & Dizi" tvg-logo="https://raw.githubusercontent.com/asdasdasfas/steamixtvlive/main/app/public/western-studios.svg",WESTERN STUDIOS 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/30073.m3u8
 
 #EXTINF:-1 tvg-id="TRNETFLIXAksiyon" tvg-name="NETFLIX Aksiyon HD" group-title="Sinema & Dizi" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/international/netflix-int.png",NETFLIX Aksiyon HD
