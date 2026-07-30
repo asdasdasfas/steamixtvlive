@@ -275,7 +275,7 @@
 }
 
 @media (max-width: 768px) {
-  [class*="blur-"]:not(.backdrop-blur*) { display: none; }
+  [class*="blur-"]:not([class*="backdrop-blur"]) { display: none; }
   .radial-glow { display: none; }
   .glow-pulse { animation: none !important; opacity: 0.1 !important; }
   .noise-overlay { display: none; }
