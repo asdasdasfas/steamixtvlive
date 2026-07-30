@@ -633,6 +633,40 @@ footer, section, .text-center.py-8,
     return
   }
 
+  // Browser proxy - embeds any URL in iframe by stripping X-Frame-Options/CSP
+  // /browser-proxy?url=https://example.com
+  if (req.url.startsWith('/browser-proxy')) {
+    const urlObj = new URL(req.url, 'http://localhost')
+    const targetUrl = urlObj.searchParams.get('url')
+    if (!targetUrl) { res.writeHead(400); res.end('Missing url param'); return }
+    const opts = makeHttpOpts(targetUrl, 'GET', {})
+    opts.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+    opts.headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+    opts.headers['Accept-Language'] = 'en-US,en;q=0.9,tr;q=0.8'
+    opts.headers['Referer'] = 'https://www.google.com/'
+    const httpModule = opts.protocol === 'https' ? https : http
+    httpModule.get(opts, proxyRes => {
+      const chunks = []
+      proxyRes.on('data', c => chunks.push(c))
+      proxyRes.on('end', () => {
+        let body = Buffer.concat(chunks)
+        const headers = { ...proxyRes.headers }
+        // Remove frame-blocking headers
+        delete headers['x-frame-options']
+        delete headers['X-Frame-Options']
+        delete headers['content-security-policy']
+        delete headers['Content-Security-Policy']
+        delete headers['x-xss-protection']
+        delete headers['X-XSS-Protection']
+        delete headers['set-cookie']
+        delete headers['Set-Cookie']
+        res.writeHead(proxyRes.statusCode || 200, headers)
+        res.end(body)
+      })
+    }).on('error', () => { res.writeHead(502); res.end('Proxy Error') })
+    return
+  }
+
   // Console log view endpoint
   if (req.url === '/__logs') {
     res.setHeader('Content-Type', 'application/json')
