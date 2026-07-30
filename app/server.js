@@ -644,22 +644,30 @@ footer, section, .text-center.py-8,
     opts.headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
     opts.headers['Accept-Language'] = 'en-US,en;q=0.9,tr;q=0.8'
     opts.headers['Referer'] = 'https://www.google.com/'
+    const baseUrl = targetUrl.replace(/\/?$/, '/')
     const httpModule = opts.protocol === 'https' ? https : http
     httpModule.get(opts, proxyRes => {
       const chunks = []
       proxyRes.on('data', c => chunks.push(c))
       proxyRes.on('end', () => {
         let body = Buffer.concat(chunks)
+        const ct = (proxyRes.headers['content-type'] || '').toLowerCase()
+        // Only modify HTML responses
+        if (ct.includes('text/html')) {
+          let html = body.toString('utf8')
+          // Inject <base> tag so relative URLs resolve against the original domain
+          html = html.replace('<head>', '<head><base href="' + baseUrl + '">')
+          // Inject CSS to hide scrollbars and make full viewport
+          html = html.replace('</head>', '<style>html,body{margin:0!important;padding:0!important;width:100vw;height:100vh;overflow:hidden}iframe,video,canvas{max-width:100vw;max-height:100vh}</style></head>')
+          body = Buffer.from(html, 'utf8')
+        }
         const headers = { ...proxyRes.headers }
-        // Remove frame-blocking headers
         delete headers['x-frame-options']
         delete headers['X-Frame-Options']
         delete headers['content-security-policy']
         delete headers['Content-Security-Policy']
         delete headers['x-xss-protection']
         delete headers['X-XSS-Protection']
-        delete headers['set-cookie']
-        delete headers['Set-Cookie']
         res.writeHead(proxyRes.statusCode || 200, headers)
         res.end(body)
       })
