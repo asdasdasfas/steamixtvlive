@@ -494,7 +494,7 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/213805.m3u8
 #EXTINF:-1 tvg-id="TRDOCUSCREENFHD" tvg-name="DOCU SCREEN FHD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/international/docubox-hd-int.png",DOCU SCREEN FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/173948.m3u8
 
-#EXTINF:-1 tvg-id="TRBBCEARTHFHD" tvg-name="BBC EARTH FHD" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/BBC_Earth_logo.svg/320px-BBC_Earth_logo.svg.png",BBC EARTH FHD
+#EXTINF:-1 tvg-id="TRBBCEARTHFHD" tvg-name="BBC EARTH FHD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/canada/bbc-earth-ca.png",BBC EARTH FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/17759.m3u8
 
 #EXTINF:-1 tvg-id="TRTGRTBELGESELFHD" tvg-name="TGRT BELGESEL FHD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/tgrt-belgesel-tr.png",TGRT BELGESEL FHD
@@ -503,7 +503,7 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/2820.m3u8
 #EXTINF:-1 tvg-id="TRFASTFUN" tvg-name="FAST & FUN" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/international/fast-and-funbox-hd-int.png",FAST & FUN
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/88006.m3u8
 
-#EXTINF:-1 tvg-id="TRLOVENATUREHD" tvg-name="LOVE NATURE HD" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Love_Nature_logo.svg/320px-Love_Nature_logo.svg.png",LOVE NATURE HD
+#EXTINF:-1 tvg-id="TRLOVENATUREHD" tvg-name="LOVE NATURE HD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/canada/love-nature-ca.png",LOVE NATURE HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/147538.m3u8
 
 #EXTINF:-1 tvg-id="TRNATUREESCAPE" tvg-name="NATURE ESCAPE" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Nature_%28TV_network%29_logo.svg/320px-Nature_%28TV_network%29_logo.svg.png",NATURE ESCAPE
@@ -512,7 +512,7 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/173916.m3u8
 #EXTINF:-1 tvg-id="TRLUYSTV" tvg-name="LUYS TV" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/ArmeniaTV-English-Logo.svg/320px-ArmeniaTV-English-Logo.svg.png",LUYS TV
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/131315.m3u8
 
-#EXTINF:-1 tvg-id="TRDAVINCILEARNING" tvg-name="DA VINCI LEARNING" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Da_Vinci_Learning_2018_logo.svg/320px-Da_Vinci_Learning_2018_logo.svg.png",DA VINCI LEARNING
+#EXTINF:-1 tvg-id="TRDAVINCILEARNING" tvg-name="DA VINCI LEARNING" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/serbia/da-vinci-rs.png",DA VINCI LEARNING
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/65083.m3u8
 
 #EXTINF:-1 tvg-id="TRCIFTCITV" tvg-name="CIFTCI TV" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/ciftci-tv-tr.png",CIFTCI TV
@@ -521,7 +521,7 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/96121.m3u8
 #EXTINF:-1 tvg-id="TRVAHDOAFHD" tvg-name="VAHŞİ DOĞA FHD" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Nature_%28TV_channel%29_logo.svg/320px-Nature_%28TV_channel%29_logo.svg.png",VAHŞİ DOĞA FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/95946.m3u8
 
-#EXTINF:-1 tvg-id="TRCHASSEETPECHE" tvg-name="CHASSE ET PECHE" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Chasse_et_Peche_logo.svg/320px-Chasse_et_Peche_logo.svg.png",CHASSE ET PECHE
+#EXTINF:-1 tvg-id="TRCHASSEETPECHE" tvg-name="CHASSE ET PECHE" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/france/chasse-et-peche-fr.png",CHASSE ET PECHE
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/106148.m3u8
 
 #EXTINF:-1 tvg-id="TRFILMSCREENFHD" tvg-name="FILMSCREEN FHD" group-title="Sinema & Dizi" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/filmbox-hd-tr.png",FILMSCREEN FHD
