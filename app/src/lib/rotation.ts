@@ -492,16 +492,11 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/2820.m3u8
 
 
 
-#EXTINF:-1 tvg-id="TRNATUREESCAPE" tvg-name="NATURE ESCAPE" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/asdasdasfas/steamixtvlive/main/app/public/nature-escape.svg",NATURE ESCAPE
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/173916.m3u8
-
 
 
 #EXTINF:-1 tvg-id="TRCIFTCITV" tvg-name="CIFTCI TV" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/ciftci-tv-tr.png",CIFTCI TV
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/96121.m3u8
 
-#EXTINF:-1 tvg-id="TRVAHDOAFHD" tvg-name="VAHŞİ DOĞA FHD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/asdasdasfas/steamixtvlive/main/app/public/vahsi-doga.svg",VAHŞİ DOĞA FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/95946.m3u8
 
 #EXTINF:-1 tvg-id="TRCHASSEETPECHE" tvg-name="CHASSE ET PECHE" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/france/chasse-et-peche-fr.png",CHASSE ET PECHE
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/106148.m3u8
@@ -545,13 +540,13 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/138755.m3u8
 #EXTINF:-1 tvg-id="TRMOVESMARTCLASSCFHD" tvg-name="MOVİE SMART CLASSİC FHD" group-title="Sinema & Dizi" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/movie-smart-classic-hd-tr.png",MOVİE SMART CLASSİC FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/38078.m3u8
 
-#EXTINF:-1 tvg-id="BestofIMDB1" tvg-name="Best of IMDB 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg",Best of IMDB 1 HD
+#EXTINF:-1 tvg-id="BestofIMDB1" tvg-name="Best of IMDB 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/IMDB_Logo_2016.svg/512px-IMDB_Logo_2016.svg.png",Best of IMDB 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/9735.m3u8
 
-#EXTINF:-1 tvg-id="BestofIMDB2" tvg-name="Best of IMDB 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg",Best of IMDB 2 HD
+#EXTINF:-1 tvg-id="BestofIMDB2" tvg-name="Best of IMDB 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/IMDB_Logo_2016.svg/512px-IMDB_Logo_2016.svg.png",Best of IMDB 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220455.m3u8
 
-#EXTINF:-1 tvg-id="BestofIMDB4" tvg-name="Best of IMDB 4 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg",Best of IMDB 4 HD
+#EXTINF:-1 tvg-id="BestofIMDB4" tvg-name="Best of IMDB 4 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/IMDB_Logo_2016.svg/512px-IMDB_Logo_2016.svg.png",Best of IMDB 4 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220484.m3u8
 
 #EXTINF:-1 tvg-id="CINEMAXAKSIYON" tvg-name="TR: CINEMAXIMUM Aksiyon HD" group-title="Sinema & Dizi" tvg-logo="https://vectorseek.com/wp-content/uploads/2023/10/Cinemaximum-Logo-Vector.svg-.png",TR: CINEMAXIMUM Aksiyon HD
@@ -641,31 +636,31 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/9050.m3u8
 
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/132769.m3u8
 
-#EXTINF:-1 tvg-id="TRMARVELSTUDIOS1HD" tvg-name="MARVEL STUDIOS 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/10/Marvel_Studios_2016_logo.svg",MARVEL STUDIOS 1 HD
+#EXTINF:-1 tvg-id="TRMARVELSTUDIOS1HD" tvg-name="MARVEL STUDIOS 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Marvel_Studios_2016_logo.svg/512px-Marvel_Studios_2016_logo.svg.png",MARVEL STUDIOS 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/119025.m3u8
 
-#EXTINF:-1 tvg-id="TRMARVELSTUDIOS2HD" tvg-name="MARVEL STUDIOS 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/10/Marvel_Studios_2016_logo.svg",MARVEL STUDIOS 2 HD
+#EXTINF:-1 tvg-id="TRMARVELSTUDIOS2HD" tvg-name="MARVEL STUDIOS 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Marvel_Studios_2016_logo.svg/512px-Marvel_Studios_2016_logo.svg.png",MARVEL STUDIOS 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/86272.m3u8
 
-#EXTINF:-1 tvg-id="TRMARVELSTUDIOS3HD" tvg-name="MARVEL STUDIOS 3 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/10/Marvel_Studios_2016_logo.svg",MARVEL STUDIOS 3 HD
+#EXTINF:-1 tvg-id="TRMARVELSTUDIOS3HD" tvg-name="MARVEL STUDIOS 3 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Marvel_Studios_2016_logo.svg/512px-Marvel_Studios_2016_logo.svg.png",MARVEL STUDIOS 3 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/80152.m3u8
 
-#EXTINF:-1 tvg-id="TRMARVELSTUDIOS4HD" tvg-name="MARVEL STUDIOS 4 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/10/Marvel_Studios_2016_logo.svg",MARVEL STUDIOS 4 HD
+#EXTINF:-1 tvg-id="TRMARVELSTUDIOS4HD" tvg-name="MARVEL STUDIOS 4 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Marvel_Studios_2016_logo.svg/512px-Marvel_Studios_2016_logo.svg.png",MARVEL STUDIOS 4 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/33439.m3u8
 
-#EXTINF:-1 tvg-id="TRMARVELSTUDIOS5HD" tvg-name="MARVEL STUDIOS 5 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/10/Marvel_Studios_2016_logo.svg",MARVEL STUDIOS 5 HD
+#EXTINF:-1 tvg-id="TRMARVELSTUDIOS5HD" tvg-name="MARVEL STUDIOS 5 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Marvel_Studios_2016_logo.svg/512px-Marvel_Studios_2016_logo.svg.png",MARVEL STUDIOS 5 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/156173.m3u8
 
-#EXTINF:-1 tvg-id="TRMARVELSTUDIOS6HD" tvg-name="MARVEL STUDIOS 6 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/10/Marvel_Studios_2016_logo.svg",MARVEL STUDIOS 6 HD
+#EXTINF:-1 tvg-id="TRMARVELSTUDIOS6HD" tvg-name="MARVEL STUDIOS 6 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Marvel_Studios_2016_logo.svg/512px-Marvel_Studios_2016_logo.svg.png",MARVEL STUDIOS 6 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/127427.m3u8
 
-#EXTINF:-1 tvg-id="TRMARVELSTUDIOS7HD" tvg-name="MARVEL STUDIOS 7 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/10/Marvel_Studios_2016_logo.svg",MARVEL STUDIOS 7 HD
+#EXTINF:-1 tvg-id="TRMARVELSTUDIOS7HD" tvg-name="MARVEL STUDIOS 7 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Marvel_Studios_2016_logo.svg/512px-Marvel_Studios_2016_logo.svg.png",MARVEL STUDIOS 7 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/76125.m3u8
 
-#EXTINF:-1 tvg-id="TRWESTERNSTUDIOS1HD" tvg-name="WESTERN STUDIOS 1 HD" group-title="Sinema & Dizi" tvg-logo="https://raw.githubusercontent.com/asdasdasfas/steamixtvlive/main/app/public/western-studios.svg",WESTERN STUDIOS 1 HD
+#EXTINF:-1 tvg-id="TRWESTERNSTUDIOS1HD" tvg-name="WESTERN STUDIOS 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Clapperboard.svg/512px-Clapperboard.svg.png",WESTERN STUDIOS 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/158816.m3u8
 
-#EXTINF:-1 tvg-id="TRWESTERNSTUDIOS2HD" tvg-name="WESTERN STUDIOS 2 HD" group-title="Sinema & Dizi" tvg-logo="https://raw.githubusercontent.com/asdasdasfas/steamixtvlive/main/app/public/western-studios.svg",WESTERN STUDIOS 2 HD
+#EXTINF:-1 tvg-id="TRWESTERNSTUDIOS2HD" tvg-name="WESTERN STUDIOS 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Clapperboard.svg/512px-Clapperboard.svg.png",WESTERN STUDIOS 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/30073.m3u8
 
 #EXTINF:-1 tvg-id="TRNETFLIXAksiyon" tvg-name="NETFLIX Aksiyon HD" group-title="Sinema & Dizi" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/international/netflix-int.png",NETFLIX Aksiyon HD
