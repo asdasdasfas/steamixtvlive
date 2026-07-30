@@ -85,16 +85,19 @@ export default function Detail() {
               director: decodeField(md2?.director || iv?.director || ''),
               youtube_trailer: '',
             })
-            searchTrailer(cleanName(urlName || iv?.name || mapi?.name || ''), 'movie').then(vid => {
-              if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
-            })
+            if (urlIcon !== 'adult') {
+              searchTrailer(cleanName(urlName || iv?.name || mapi?.name || ''), 'movie').then(vid => {
+                if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
+              })
+            }
             // Load similar from same category (silent, parallel)
             if (catId || info?.info?.category_id) {
               const cid = catId || info?.info?.category_id
               fetchVods(base_url, xtream_user, xtream_pass, cid).then(allVods => {
                 if (!cancelled && allVods) {
                   const sim = allVods.filter((m: any) => String(m.stream_id) !== id).slice(0, 10)
-                  setSimilar(sim.map((s: any) => ({ id: s.stream_id, name: s.name, stream_icon: s.cover_big || s.stream_icon, cover_big: s.cover_big, stream_type: 'movie' })))
+                  const isAdult = urlIcon === 'adult'
+                  setSimilar(sim.map((s: any) => ({ id: s.stream_id, name: s.name, stream_icon: isAdult ? 'adult' : s.cover_big || s.stream_icon, cover_big: s.cover_big, stream_type: 'movie' })))
                 }
               }).catch(() => {})
             }
@@ -105,10 +108,30 @@ export default function Detail() {
             const si = info?.info
             const episodes: Record<string, any[]> = {}
             if (info?.episodes) {
-              for (const [season, eps] of Object.entries(info.episodes)) {
-                episodes[season] = (eps as any[]).map((e: any) => ({
-                  id: e.id, episode_num: e.episode_num, title: e.title, plot: decodeField(e.plot || e.info?.plot || ''), stream_id: e.stream_id, season: e.season, container_extension: e.container_extension || '',
-                }))
+              if (Array.isArray(info.episodes)) {
+                for (const e of info.episodes) {
+                  const sn = String(e.season || '1')
+                  if (!episodes[sn]) episodes[sn] = []
+                  episodes[sn].push({
+                    id: e.id, episode_num: e.episode_num, title: e.title, plot: decodeField(e.plot || e.info?.plot || ''), stream_id: e.stream_id, season: e.season, container_extension: e.container_extension || '',
+                  })
+                }
+              } else {
+                for (const [season, eps] of Object.entries(info.episodes)) {
+                  if (Array.isArray(eps)) {
+                    episodes[season] = eps.map((e: any) => ({
+                      id: e.id, episode_num: e.episode_num, title: e.title, plot: decodeField(e.plot || e.info?.plot || ''), stream_id: e.stream_id, season: e.season, container_extension: e.container_extension || '',
+                    }))
+                  }
+                }
+              }
+            }
+            // Bazı sunucular episodes map'inde sadece bölümü olan sezonları döndürür,
+            // boş sezonları seasons array'inde ekler. Referans projedeki gibi birleştir.
+            if (info?.seasons && Array.isArray(info.seasons)) {
+              for (const s of info.seasons) {
+                const sn = s.season_number ?? s.season ?? String(Object.keys(episodes).length + 1)
+                if (sn && !episodes[String(sn)]) episodes[String(sn)] = []
               }
             }
             setData({
@@ -126,16 +149,19 @@ export default function Detail() {
               episodes,
               youtube_trailer: '',
             })
-            searchTrailer(cleanName(urlName || si?.name || ''), 'series').then(vid => {
-              if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
-            })
+            if (urlIcon !== 'adult') {
+              searchTrailer(cleanName(urlName || si?.name || ''), 'series').then(vid => {
+                if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
+              })
+            }
             // Load similar from same category (silent, parallel)
             if (catId || si?.category_id) {
               const cid = catId || si?.category_id
               fetchSeries(base_url, xtream_user, xtream_pass, cid).then(allSeries => {
                 if (!cancelled && allSeries) {
                   const sim = allSeries.filter((s: any) => String(s.series_id) !== id).slice(0, 10)
-                  setSimilar(sim.map((s: any) => ({ id: s.series_id, name: s.name, stream_icon: s.cover_big || s.movie_image || s.cover || s.thumbnail, cover_big: s.cover_big, stream_type: 'series' })))
+                  const isAdult = urlIcon === 'adult'
+                  setSimilar(sim.map((s: any) => ({ id: s.series_id, name: s.name, stream_icon: isAdult ? 'adult' : s.cover_big || s.movie_image || s.cover || s.thumbnail, cover_big: s.cover_big, stream_type: 'series' })))
                 }
               }).catch(() => {})
             }

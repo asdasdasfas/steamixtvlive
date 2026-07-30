@@ -149,13 +149,13 @@ async function tryFetchAll<T>(url: string): Promise<T[] | null> {
 }
 
 export async function fetchAllVods(base: string, user: string, pass: string): Promise<XtreamVod[]> {
-  const u = `${xtUrl(base, user, pass)}&action=get_vod_streams`
+  const u = `${xtUrl(base, user, pass)}&action=get_vod_streams&limit=9999`
   const result = await tryFetchAll<XtreamVod>(u)
   return result || []
 }
 
 export async function fetchAllSeries(base: string, user: string, pass: string): Promise<XtreamSeries[]> {
-  const u = `${xtUrl(base, user, pass)}&action=get_series`
+  const u = `${xtUrl(base, user, pass)}&action=get_series&limit=9999`
   const result = await tryFetchAll<XtreamSeries>(u)
   return result || []
 }
@@ -184,10 +184,18 @@ export async function fetchVodInfo(base: string, user: string, pass: string, vod
   return res.json() as Promise<XtreamVodInfo>
 }
 
+
 export async function fetchSeriesInfo(base: string, user: string, pass: string, seriesId: number) {
-  const res = await fetch(`${xtUrl(base, user, pass)}&action=get_series_info&series_id=${seriesId}`)
+  let u = `${xtUrl(base, user, pass)}&action=get_series_info&series_id=${seriesId}`
+  let res = await fetch(u)
+  if (!res.ok) {
+    u = `${xtUrl(base, user, pass)}&action=get_series_info&series=${seriesId}`
+    res = await fetch(u)
+  }
   if (!res.ok) throw new Error('Failed to fetch series info')
-  return res.json() as Promise<XtreamSeriesInfo>
+  const text = await res.text()
+  if (!text || text === '[]' || text === '{}') throw new Error('Empty series info')
+  return JSON.parse(text) as XtreamSeriesInfo
 }
 
 export function liveUrl(base: string, user: string, pass: string, id: number) {

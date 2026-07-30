@@ -11,6 +11,7 @@ interface VideoPlayerProps {
   onEnded?: () => void
   fallbackSrcs?: string[]
   onToggleFullscreen?: () => void
+  onRefreshUrl?: () => string | undefined
 }
 
 const IS_MOBILE = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
@@ -23,7 +24,7 @@ const isDirectFileUrl = (url: string) => {
   return ext.endsWith('.mkv')
 }
 
-export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs, onToggleFullscreen }: VideoPlayerProps) {
+export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs, onToggleFullscreen, onRefreshUrl }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const progressRef = useRef<HTMLDivElement>(null)
@@ -78,8 +79,8 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const startHideTimer = useCallback(() => {
     clearTimeout(hideTimer.current)
     setShowControls(true)
-    hideTimer.current = setTimeout(() => { if (playing) setShowControls(false) }, 3000)
-  }, [playing])
+    hideTimer.current = setTimeout(() => { setShowControls(false) }, 4000)
+  }, [])
 
   const tryPlay = useCallback(async (video: HTMLVideoElement) => {
     try {
@@ -112,7 +113,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     const urlIdx = urlIndexRef.current
     const total = allUrlsRef.current.length
     const currentSrc = allUrlsRef.current[urlIdx] || ''
-    const maxStuck = currentSrc.endsWith('.mkv') ? 15 : 5
+    const maxStuck = currentSrc.endsWith('.mkv') ? 30 : 20
     watchdogRef.current = setInterval(() => {
       if (!video || video.seeking) return
       if (video.readyState >= 2 && video.currentTime > lastProgressRef.current) {
@@ -131,7 +132,14 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         if (urlIndexRef.current < allUrlsRef.current.length) {
           tryUrl(video)
         } else {
-          setLoadError('Hiçbir yayın kaynağı çalışmadı')
+          urlIndexRef.current = 0
+          setTimeout(() => {
+            if (videoRef.current) {
+              setLoadError('')
+              tryUrl(videoRef.current)
+            }
+          }, 8000)
+          setLoadError('Yeniden bağlanıyor...')
         }
       }
     }, 1800)
@@ -166,10 +174,12 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       const isVirtualHls = currentSrc.startsWith('/v/')
       const hls = new Hls({
         enableWorker: false, lowLatencyMode: isVirtualHls, debug: false,
-        fragLoadingTimeOut: isVirtualHls ? 0 : 3000,
-        fragLoadingMaxRetry: 0,
-        fragLoadingRetryDelay: 0,
-        manifestLoadingTimeOut: 3000,
+        fragLoadingTimeOut: isVirtualHls ? 0 : 15000,
+        fragLoadingMaxRetry: 5,
+        fragLoadingRetryDelay: 1000,
+        manifestLoadingTimeOut: 15000,
+        manifestLoadingMaxRetry: 5,
+        manifestLoadingRetryDelay: 2000,
         fetchSetup: (context, init) => {
           let url = context.url
           // Proxy Akamai URLs through our server for CORS
@@ -207,17 +217,28 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         }
       })
       hls.on(Hls.Events.ERROR, (_e, data) => {
-        if (data.fatal) {
-          if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-            hls.swapAudioCodec()
-            hls.recoverMediaError()
+        if (!data.fatal) return
+        if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+          hls.swapAudioCodec()
+          hls.recoverMediaError()
+          return
+        }
+        retryCountRef.current++
+        if (retryCountRef.current <= 3 && onRefreshUrl) {
+          const freshUrl = onRefreshUrl()
+          if (freshUrl && freshUrl !== currentSrc) {
+            clearInterval(watchdogRef.current)
+            hls.destroy(); hlsRef.current = null
+            allUrlsRef.current = [freshUrl, ...allUrlsRef.current.slice(1)]
+            urlIndexRef.current = 0
+            setTimeout(() => tryUrl(video), 1500)
             return
           }
-          clearInterval(watchdogRef.current)
-          hls.destroy(); hlsRef.current = null
-          urlIndexRef.current++
-          tryUrl(video)
         }
+        clearInterval(watchdogRef.current)
+        hls.destroy(); hlsRef.current = null
+        urlIndexRef.current++
+        tryUrl(video)
       })
     } else if (isHls && video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = currentSrc
@@ -280,13 +301,21 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     if (onToggleFullscreen) { onToggleFullscreen(); return }
     if (!containerRef.current) return
     if (!document.fullscreenElement) {
-      await containerRef.current.requestFullscreen()
+      try {
+        await containerRef.current.requestFullscreen()
+      } catch {
+        try { await document.documentElement.requestFullscreen() } catch {}
+      }
       setFullscreen(true)
-      try { (screen as any).orientation?.lock?.('landscape') } catch {}
+      if (IS_MOBILE) {
+        try { (screen as any).orientation?.lock?.('landscape')?.catch(() => {}) } catch {}
+      }
     } else {
       await document.exitFullscreen()
       setFullscreen(false)
-      try { (screen as any).orientation?.unlock?.() } catch {}
+      if (IS_MOBILE) {
+        try { (screen as any).orientation?.unlock?.() } catch {}
+      }
     }
   }
 
@@ -300,7 +329,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
-    const onTime = () => { setCurrentTime(video.currentTime); startHideTimer() }
+    const onTime = () => { setCurrentTime(video.currentTime) }
     const onDur = () => setDuration(video.duration || 0)
     const onPlay = () => setPlaying(true)
     const onPause = () => setPlaying(false)
@@ -323,10 +352,13 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   }, [onEnded, startHideTimer])
 
   useEffect(() => {
-    const onFs = () => setFullscreen(!!document.fullscreenElement)
+    const onFs = () => {
+      setFullscreen(!!document.fullscreenElement)
+      startHideTimer()
+    }
     document.addEventListener('fullscreenchange', onFs)
     return () => document.removeEventListener('fullscreenchange', onFs)
-  }, [])
+  }, [startHideTimer])
 
 
 
@@ -350,16 +382,18 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   }
 
   return (
-    <div ref={containerRef} className="relative bg-black group cursor-pointer" onClick={togglePlay} onMouseMove={startHideTimer}>
-      <video ref={videoRef} className="w-full aspect-video object-contain" poster={poster} playsInline crossOrigin="anonymous" />
+    <div ref={containerRef} className="relative bg-black group cursor-pointer" onClick={togglePlay} onMouseMove={startHideTimer} onTouchStart={startHideTimer}>
+      <video ref={videoRef} className={`w-full ${fullscreen ? 'h-screen w-screen object-cover md:object-contain' : 'aspect-video object-contain'}`} poster={poster} playsInline crossOrigin="anonymous" />
 
       {title && <div className="absolute top-4 left-4 text-white text-sm font-medium drop-shadow-lg bg-black/40 px-3 py-1.5 rounded-lg">{title}</div>}
       {loadError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
+        <div className={`absolute inset-0 flex items-center justify-center z-10 ${loadError.includes('bağlanıyor') ? '' : 'bg-black/60'}`}>
           <div className="text-center max-w-xs">
-            <p className="text-sm text-gray-400 mb-3">{loadError}</p>
-            <button onClick={() => { setLoadError(''); urlIndexRef.current = 0; tryUrl(videoRef.current!) }}
-              className="px-4 py-2 rounded-lg bg-[#0099ff] text-white text-xs">Tekrar Dene</button>
+            <p className={`text-sm mb-3 ${loadError.includes('bağlanıyor') ? 'text-[#0099ff]' : 'text-gray-400'}`}>{loadError}</p>
+            {!loadError.includes('bağlanıyor') && (
+              <button onClick={() => { setLoadError(''); urlIndexRef.current = 0; tryUrl(videoRef.current!) }}
+                className="px-4 py-2 rounded-lg bg-[#0099ff] text-white text-xs">Tekrar Dene</button>
+            )}
           </div>
         </div>
       )}

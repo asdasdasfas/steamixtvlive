@@ -1,14 +1,16 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useEffect, useState, useCallback, useRef, useMemo, memo } from 'react'
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { fetchCategories, fetchVods, fetchSeries, fetchAllVods, fetchAllSeries, posterUrl, proxyUrl } from '@/lib/supabase'
 import { parseRotationData } from '@/lib/rotation'
 import { getFavorites, removeFavorite } from '@/lib/favorites'
 import type { FavoriteItem } from '@/lib/favorites'
 import Navbar from '@/sections/Navbar'
+const MemoNavbar = memo(Navbar)
 import LiveTvScreen from '@/sections/LiveTvScreen'
+import GamesScreen from '@/sections/GamesScreen'
 import Poster from '@/components/Poster'
-import { Loader2, Play, Info, Heart } from 'lucide-react'
+import { Loader2, Play, Info, Heart, Lock } from 'lucide-react'
 
 function parseTitle(raw: string) {
   const m = raw.match(/^(.+?)\s*[\(\[{]?\s*(\d{4})\s*[\)\]}]?\s*(.*)$/)
@@ -29,8 +31,11 @@ export default function Dashboard() {
   const [params, setParams] = useSearchParams()
   const tab = params.get('tab') || 'home'
   const initRef = useRef(false)
+  const location = useLocation()
+  const loadingRef = useRef<Record<string, boolean>>({})
 
-  const { categories: rotCategories } = parseRotationData()
+  const rotData = useMemo(() => parseRotationData(), [])
+  const rotCategories = rotData.categories
 
   const [vodCats, setVodCats] = useState<any[]>([])
   const [seriesCats, setSeriesCats] = useState<any[]>([])
@@ -39,6 +44,49 @@ export default function Dashboard() {
   const [allVods, setAllVods] = useState<any[] | null>(null)
   const [allSeries, setAllSeries] = useState<any[] | null>(null)
   const scrollContainers = useRef<Record<string, HTMLDivElement | null>>({})
+
+  const [adultPassword, setAdultPassword] = useState('')
+  const [adultPrompt, setAdultPrompt] = useState<{ catId: string; type: 'movie' | 'series' } | null>(null)
+  const isAdultCat = (name: string) => {
+    const n = name.toLowerCase()
+    return n.includes('adult') || n.includes('yetişkin') || n.includes('18+') || n.includes('xxx') || n.includes('porno') || n.includes('erotik')
+  }
+  const adultCatIds = useMemo(() => {
+    const ids = new Set<string>()
+    vodCats.forEach(c => { if (isAdultCat(c.category_name)) ids.add(c.category_id) })
+    seriesCats.forEach(c => { if (isAdultCat(c.category_name)) ids.add(c.category_id) })
+    return ids
+  }, [vodCats, seriesCats])
+  const adultCover = '/adult-placeholder.jpg'
+
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<{ movies: any[]; series: any[] }>({ movies: [], series: [] })
+  const [searching, setSearching] = useState(false)
+
+  const doSearch = useCallback(async (q: string) => {
+    if (!q.trim() || !server) { setSearchResults({ movies: [], series: [] }); return }
+    setSearching(true)
+    const ql = q.toLowerCase()
+    const startMs = Date.now()
+    const [mv, sr] = await Promise.all([
+      allVods ? Promise.resolve(allVods) : fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass).then(r => { setAllVods(r || []); return r || [] }),
+      allSeries ? Promise.resolve(allSeries) : fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass).then(r => { setAllSeries(r || []); return r || [] }),
+    ])
+    setSearchResults({
+      movies: (mv || []).filter((i: any) => i.name?.toLowerCase().includes(ql)),
+      series: (sr || []).filter((i: any) => i.name?.toLowerCase().includes(ql) && hasPoster(i, 'series')),
+    })
+    const elapsed = Date.now() - startMs
+    const minShow = 3000
+    if (elapsed < minShow) await new Promise(r => setTimeout(r, minShow - elapsed))
+    setSearching(false)
+  }, [server, allVods, allSeries])
+
+  useEffect(() => {
+    if (!searchQuery.trim()) return
+    const t = setTimeout(() => doSearch(searchQuery), 400)
+    return () => clearTimeout(t)
+  }, [searchQuery])
 
   const selectedCat = params.get('cat') || ''
   const selectedSeriesCat = params.get('scat') || ''
@@ -53,27 +101,27 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (tab === 'live' && liveDisabled) {
-      const sp = new URLSearchParams(params)
-      sp.delete('tab')
-      setParams(sp, { replace: true })
+      navigate('/dashboard', { replace: true })
     }
   }, [tab, liveDisabled])
 
-  // Series keyword filter (for homepage 2+2)
   const seriesKeywords = ['pazartesi', 'salı', 'çarşamba', 'perşembe', 'cuma', 'cumartesi', 'pazar', 'haftanın', 'günün dizisi', 'yerli dizi', 'yabancı dizi']
   const isSeriesCategory = (name: string) => seriesKeywords.some(k => name.toLowerCase().includes(k))
 
-  const filteredVodCats = vodCats.filter(vc => {
+  const filteredVodCats = useMemo(() => vodCats.filter(vc => {
     const vcn = vc.category_name.toLowerCase()
-    if (seriesCats.some(sc => vcn.includes(sc.category_name.toLowerCase()) || sc.category_name.toLowerCase().includes(vcn))) return false
     if (isSeriesCategory(vcn)) return false
     return true
-  })
+  }), [vodCats])
+
+  const twdCat = { category_id: '__twd__', category_name: 'THE WALKING DEAD' }
+  const allSeriesCats = useMemo(() => [twdCat, ...seriesCats], [seriesCats])
+  const displaySeriesCats = useMemo(() => allSeriesCats.slice(0, -3), [allSeriesCats])
 
   const showMovieCategory = tab === 'movies' && (selectedCat || filteredVodCats.length > 0)
-  const showSeriesCategory = tab === 'series' && (selectedSeriesCat || seriesCats.length > 0)
+  const showSeriesCategory = tab === 'series' && (selectedSeriesCat || allSeriesCats.length > 1)
   const activeMovieCat = selectedCat || filteredVodCats[0]?.category_id || ''
-  const activeSeriesCat = selectedSeriesCat || seriesCats[0]?.category_id || ''
+  const activeSeriesCat = selectedSeriesCat || allSeriesCats[0]?.category_id || ''
 
   // Basit yükleme: kategoriler + hero + ana sayfa 2+2 önizleme
   useEffect(() => {
@@ -87,7 +135,7 @@ export default function Dashboard() {
           fetchCategories(server.base_url, server.xtream_user, server.xtream_pass, 'series'),
         ])
         const brandNames = ['netflix', 'disney', 'turkcell', 'apple tv', 'amazon prime', 'hbo', 'hulu', 'paramount', 'blu tv', 'blue tv', 'bein', 'vodafone', 'ttnet', 'milyonlar', 'digiturk', 'd-smart', 'tivibu', 'samsung tv', 'lg tv', 'philips', 'exxen', 'puhu tv', 'gain', 'youtube', 'mubi', 'taboo', 'netd', 'suncity']
-        const banned = ['XXX', '18+', 'Adult', 'Yetişkin', 'Porno', 'Sex', ...brandNames]
+        const banned = [...brandNames]
         const filter = (items: any[]) => items.filter((i: any) => !banned.some(b => (i.category_name || '').toLowerCase().includes(b.toLowerCase())))
         const fvc = filter(vc || [])
         const fsc = filter(sc || [])
@@ -97,18 +145,20 @@ export default function Dashboard() {
         // Hero
         const heroCat = fvc.find(c => !isSeriesCategory(c.category_name)) || fvc[0]
         if (heroCat) {
-          const heroData = await fetchVods(server.base_url, server.xtream_user, server.xtream_pass, heroCat.category_id).then(r => r || []).catch(() => [])
+          const heroData = await fetchVods(server.base_url, server.xtream_user, server.xtream_pass, heroCat.category_id).then(r => (r || []).filter((i: any) => hasPoster(i, 'movie'))).catch(() => [])
           setHeroItems(heroData)
         }
 
         // Ana sayfa 2+2 (tüm öğeler)
         const homeMovieCats = fvc.filter(c => !isSeriesCategory(c.category_name)).slice(0, 2)
         const homeSeriesCats = fsc.slice(0, 2)
+        const filterM = (r: any[]) => (r || []).filter((i: any) => hasPoster(i, 'movie'))
+        const filterS = (r: any[]) => (r || []).filter((i: any) => hasPoster(i, 'series'))
         const [m1, m2, s1, s2] = await Promise.all([
-          homeMovieCats[0] ? fetchVods(server.base_url, server.xtream_user, server.xtream_pass, homeMovieCats[0].category_id).then(r => r || []).catch(() => []) : Promise.resolve([]),
-          homeMovieCats[1] ? fetchVods(server.base_url, server.xtream_user, server.xtream_pass, homeMovieCats[1].category_id).then(r => r || []).catch(() => []) : Promise.resolve([]),
-          homeSeriesCats[0] ? fetchSeries(server.base_url, server.xtream_user, server.xtream_pass, homeSeriesCats[0].category_id).then(r => r || []).catch(() => []) : Promise.resolve([]),
-          homeSeriesCats[1] ? fetchSeries(server.base_url, server.xtream_user, server.xtream_pass, homeSeriesCats[1].category_id).then(r => r || []).catch(() => []) : Promise.resolve([]),
+          homeMovieCats[0] ? fetchVods(server.base_url, server.xtream_user, server.xtream_pass, homeMovieCats[0].category_id).then(filterM).catch(() => []) : Promise.resolve([]),
+          homeMovieCats[1] ? fetchVods(server.base_url, server.xtream_user, server.xtream_pass, homeMovieCats[1].category_id).then(filterM).catch(() => []) : Promise.resolve([]),
+          homeSeriesCats[0] ? fetchSeries(server.base_url, server.xtream_user, server.xtream_pass, homeSeriesCats[0].category_id).then(filterS).catch(() => []) : Promise.resolve([]),
+          homeSeriesCats[1] ? fetchSeries(server.base_url, server.xtream_user, server.xtream_pass, homeSeriesCats[1].category_id).then(filterS).catch(() => []) : Promise.resolve([]),
         ])
         const mv: Record<string, any[]> = {}
         if (homeMovieCats[0]) mv[homeMovieCats[0].category_id] = m1
@@ -131,8 +181,23 @@ export default function Dashboard() {
     return () => clearInterval(slideTimer.current)
   }, [heroItems])
 
+  const hasPoster = (item: any, type: 'movie' | 'series') => {
+    const valid = (v: any) => {
+      if (!v || typeof v !== 'string') return false
+      const t = v.trim()
+      if (t.length === 0) return false
+      if (t === 'null' || t === 'undefined' || t === '/' || t === '-') return false
+      return true
+    }
+    if (type === 'series') return valid(item.cover_big) || valid(item.movie_image) || valid(item.cover) || valid(item.thumbnail)
+    return valid(item.cover_big) || valid(item.stream_icon)
+  }
+
   const loadFullCategory = useCallback(async (catId: string, type: 'movie' | 'series') => {
     if (!server) return
+    const loadingKey = type + '-' + catId
+    if (loadingRef.current[loadingKey]) return
+    loadingRef.current[loadingKey] = true
     try {
       const matchCat = (item: any, id: string) => {
         const cid = item.category_id
@@ -159,37 +224,41 @@ export default function Dashboard() {
         }
         return all
       }
+      const skipPoster = adultCatIds.has(catId)
       if (type === 'movie') {
         if (allVods) {
-          setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId)) }))
+          setVodItems(prev => ({ ...prev, [catId]: allVods.filter((i: any) => matchCat(i, catId) && (skipPoster || hasPoster(i, 'movie'))) }))
           return
         }
         let items = await fetchAllVods(server.base_url, server.xtream_user, server.xtream_pass)
         if (!items || items.length === 0) {
           items = await fetchAllCatsSequential('movie')
         }
-        const matched = (items || []).filter((i: any) => matchCat(i, catId))
+        const matched = (items || []).filter((i: any) => matchCat(i, catId) && (skipPoster || hasPoster(i, 'movie')))
         setAllVods(items || [])
         setVodItems(prev => ({ ...prev, [catId]: matched }))
       } else {
+        if (catId === '__twd__') return
         if (allSeries) {
-          setSeriesItems(prev => ({ ...prev, [catId]: allSeries.filter((i: any) => matchCat(i, catId)) }))
+          setSeriesItems(prev => ({ ...prev, [catId]: allSeries.filter((i: any) => matchCat(i, catId) && (skipPoster || hasPoster(i, 'series'))) }))
           return
         }
         let items = await fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass)
         if (!items || items.length === 0) {
           items = await fetchAllCatsSequential('series')
         }
-        const matched = (items || []).filter((i: any) => matchCat(i, catId))
+        const matched = (items || []).filter((i: any) => matchCat(i, catId) && (skipPoster || hasPoster(i, 'series')))
         setAllSeries(items || [])
         setSeriesItems(prev => ({ ...prev, [catId]: matched }))
       }
-    } catch {}
-  }, [server, allVods, allSeries, vodCats, seriesCats])
+    } catch {} finally {
+      loadingRef.current[loadingKey] = false
+    }
+  }, [server, allVods, allSeries, vodCats, seriesCats, adultCatIds])
 
   // Kategorilere tıklandığında grid açılsın
   const setTab = (t: string) => {
-    const sp = new URLSearchParams(params)
+    const sp = new URLSearchParams(location.search)
     if (t === 'home') sp.delete('tab')
     else sp.set('tab', t)
     if (t === 'movies') {
@@ -197,14 +266,14 @@ export default function Dashboard() {
       if (firstCat) { sp.set('cat', firstCat); loadFullCategory(firstCat, 'movie') }
       sp.delete('scat')
     } else if (t === 'series') {
-      const firstCat = seriesCats[0]?.category_id
+      const firstCat = allSeriesCats[0]?.category_id
       if (firstCat) { sp.set('scat', firstCat); loadFullCategory(firstCat, 'series') }
       sp.delete('cat')
     } else {
       sp.delete('cat')
       sp.delete('scat')
     }
-    setParams(sp, { replace: true })
+    navigate('/dashboard?' + sp.toString(), { replace: true })
   }
 
   // APK'daki birebir kategori adı dönüşümleri
@@ -302,7 +371,7 @@ export default function Dashboard() {
     'TR ✦ EXXEN TV DİZİ': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
     'TR ✦ HBO MAX & BLUETV DİZİLER': 'DİJİTAL PLATFORM DİZİLERİ (ÖZEL)',
     'TR ✦ APPLE TV': 'DİJİTAL PLATFORM DİZİLERİ (ÖZEL)',
-    'TR ✦ TURKCELL TV+': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
+    'TR ✦ TURKCELL TV+': 'TR HOLLYWOOD DİZİLERİ',
     'TR ✦ BEIN TOD SERIES': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
     'TR ✦ TABİİ TV DİZİLER': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
     'TR ✦ GAIN TV DİZİLER': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
@@ -339,8 +408,25 @@ export default function Dashboard() {
     'EU ✦ MULTI NETFLIX SERIES': 'ULUSLARARASI DİZİLER',
     'EU ✦ MULTI NETFLIX KIDS SERIES': 'ULUSLARARASI ÇOCUK DİZİLERİ',
     'EU ✦ MULTI AMAZON PRIME SERIES': 'ULUSLARARASI DİZİLER',
-    'EU ✦ MULTI DISNEY+ SERIES': 'ULUSLARARASI DİZİLER',
+    'EU ✦ MULTI DISNEY+ SERIES': 'TR HOLLYWOOD DİZİLERİ II',
     'EU ✦ MULTI DISNEY+ KIDS SERIES': 'ULUSLARARASI ÇOCUK DİZİLERİ',
+    'ADULT +18 ✦ 4K UHD': 'YETİŞKİN +18 4K ULTRA HD',
+    'ADULT+ 18 ✦ AMATEUR': 'YETİŞKİN +18 AMATÖR',
+    'ADULT +18 ✦ ANAL': 'YETİŞKİN +18 ANAL',
+    'ADULT +18 ✦ ASIAN': 'YETİŞKİN +18 ASYA',
+    'ADULT +18 ✦ BLACK': 'YETİŞKİN +18 SİYAH',
+    'ADULT +18 ✦ BIG ASS': 'YETİŞKİN +18 İRİ POPO',
+    'ADULT +18 ✦ BIG TITS': 'YETİŞKİN +18 BÜYÜK GÖĞÜS',
+    'ADULT +18 ✦ EROTICA FILM': 'YETİŞKİN +18 EROTİK FİLMLER',
+    'ADULT +18 ✦ FAKE HUB': 'YETİŞKİN +18 AMATÖR EV',
+    'ADULT +18 ✦ GROUPS': 'YETİŞKİN +18 GRUP',
+    'ADULT +18 ✦ HARDCORE': 'YETİŞKİN +18 SERT',
+    'ADULT +18 ✦ LESBIAN': 'YETİŞKİN +18 LEZBİYEN',
+    'ADULT +18 ✦ MASSAGE': 'YETİŞKİN +18 MASAJ',
+    'ADULT +18 ✦ MILF': 'YETİŞKİN +18 OLGUN',
+    'ADULT +18 ✦ PUBLIC': 'YETİŞKİN +18 HALK',
+    'ADULT +18 ✦ TEEN': 'YETİŞKİN +18 GENÇ',
+    'ADULT +18 ✦ TURKISH SUB.': 'YETİŞKİN +18 TÜRKÇE ALTYAZILI',
   }
 
   // Yıldız ve özel karakter temizleme
@@ -378,22 +464,18 @@ export default function Dashboard() {
   useEffect(() => {
     if (tab === 'movies' && filteredVodCats.length > 0 && !selectedCat) {
       const firstCat = filteredVodCats[0].category_id
-      const sp = new URLSearchParams(params)
-      sp.set('cat', firstCat)
-      setParams(sp, { replace: true })
+      navigate('/dashboard?tab=movies&cat=' + firstCat, { replace: true })
       loadFullCategory(firstCat, 'movie')
     }
   }, [tab, filteredVodCats])
 
   useEffect(() => {
-    if (tab === 'series' && seriesCats.length > 0 && !selectedSeriesCat) {
-      const firstCat = seriesCats[0].category_id
-      const sp = new URLSearchParams(params)
-      sp.set('scat', firstCat)
-      setParams(sp, { replace: true })
-      loadFullCategory(firstCat, 'series')
+    if (tab === 'series' && allSeriesCats.length > 1 && !selectedSeriesCat) {
+      const firstCat = allSeriesCats[0].category_id
+      navigate('/dashboard?tab=series&scat=' + firstCat, { replace: true })
+      if (firstCat !== '__twd__') loadFullCategory(firstCat, 'series')
     }
-  }, [tab, seriesCats])
+  }, [tab, allSeriesCats])
 
   // Seçili kategori yoksa URL'den güncelle
   useEffect(() => {
@@ -403,7 +485,14 @@ export default function Dashboard() {
   }, [tab, activeMovieCat])
   useEffect(() => {
     if (tab === 'series' && activeSeriesCat && !seriesItems[activeSeriesCat]) {
-      loadFullCategory(activeSeriesCat, 'series')
+      if (activeSeriesCat === '__twd__' && server) {
+        fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass).then(all => {
+          const twd = (all || []).filter((s: any) => s.name?.toLowerCase().includes('the walking dead'))
+          setSeriesItems(prev => ({ ...prev, '__twd__': twd }))
+        })
+      } else {
+        loadFullCategory(activeSeriesCat, 'series')
+      }
     }
   }, [tab, activeSeriesCat])
 
@@ -461,12 +550,25 @@ export default function Dashboard() {
   }
 
   // Determine which categories to show on homepage (2+2)
-  const homeMovieCats = vodCats.filter(c => !isSeriesCategory(c.category_name)).slice(0, 2)
-  const homeSeriesCats = seriesCats.slice(0, 2)
+  const homeMovieCats = useMemo(() => filteredVodCats.filter(c => !isSeriesCategory(c.category_name)).slice(0, 2), [filteredVodCats])
+  const homeSeriesCats = useMemo(() => seriesCats.slice(0, 2), [seriesCats])
+
+  const navCategoryName = useMemo(() => {
+    if (tab === 'movies' && selectedCat) {
+      const cat = filteredVodCats.find(c => c.category_id === selectedCat)
+      return cat ? trName(cat.category_name) : ''
+    }
+    if (tab === 'series' && selectedSeriesCat) {
+      const cat = allSeriesCats.find(c => c.category_id === selectedSeriesCat)
+      return cat ? trName(cat.category_name) : ''
+    }
+    return ''
+  }, [tab, selectedCat, selectedSeriesCat, filteredVodCats, allSeriesCats])
 
   return (
+    <>
     <div className="min-h-screen bg-[#0f172a]">
-      <Navbar />
+      <MemoNavbar categoryName={navCategoryName} />
       <div className="pt-16 md:pt-20">
         {/* ANA SAYFA */}
         {tab === 'home' && (
@@ -599,34 +701,60 @@ export default function Dashboard() {
         )}
 
         {/* LIVE TV TAB */}
-        {tab === 'live' && <LiveTvScreen categories={rotCategories} selectedCat={selectedLiveCat} onSelectCategory={(id) => { const sp = new URLSearchParams(params); sp.set('lcat', id); setParams(sp, { replace: true }) }} />}
+        {tab === 'live' && <LiveTvScreen categories={rotCategories} selectedCat={selectedLiveCat} onSelectCategory={(id) => { navigate('/dashboard?tab=live&lcat=' + id, { replace: true }) }} />}
 
         {/* MOVIES TAB */}
         {tab === 'movies' && (
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
-            {/* Sol panel - kategoriler */}
-            <div className="w-48 md:w-60 shrink-0 border-r border-white/10 overflow-y-auto pt-3 pb-4 scrollbar-hide min-h-0">
-              <div className="px-3 md:px-4 pb-2 mb-2 border-b border-white/10">
-                <h3 className="text-xs font-semibold text-[#0099ff] tracking-widest uppercase" style={{ fontFamily: 'Orbitron, sans-serif' }}>Film Kategorileri</h3>
+            <SlideCategoryPanel title="Film Kategorileri" items={filteredVodCats} selected={selectedCat} onSelect={(id) => {
+              const cat = filteredVodCats.find(c => c.category_id === id)
+              if (cat && isAdultCat(cat.category_name)) { setAdultPrompt({ catId: id, type: 'movie' }); return }
+              setSearchQuery(''); setSearchResults({ movies: [], series: [] })
+              navigate('/dashboard?tab=movies&cat=' + id, { replace: true }); loadFullCategory(id, 'movie')
+            }} />
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <div className="sticky top-0 z-10 bg-[#0f172a]/80 backdrop-blur-xl px-4 md:px-8 py-4 border-b border-white/5">
+                <div className="flex items-center gap-3 max-w-2xl mx-auto">
+                  <div className="relative flex-1 group">
+                    <input type="text" value={searchQuery} onChange={e => { setSearchQuery(e.target.value); if (!e.target.value.trim()) { setSearchResults({ movies: [], series: [] }); setSearching(false) } }} onKeyDown={e => e.key === 'Enter' && doSearch(searchQuery)} placeholder="Dizi veya Film Ara" className="w-full pl-12 pr-10 py-3 rounded-2xl bg-[#1a1f35] border border-[#0099ff]/20 text-white text-sm placeholder:text-gray-500 focus:outline-none focus:border-[#0099ff]/50 focus:bg-[#1e2440] focus:shadow-[0_0_25px_rgba(0,153,255,0.1)] transition-all duration-300 group-hover:border-[#0099ff]/30 tracking-wide" />
+                    <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#0099ff] transition-colors duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+                    {searchQuery && <button onClick={() => { setSearchQuery(''); setSearchResults({ movies: [], series: [] }) }} className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#0099ff]/20 hover:bg-[#0099ff]/40 flex items-center justify-center transition-all duration-200"><svg className="w-3.5 h-3.5 text-[#0099ff]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" /></svg></button>}
+                  </div>
+                  <button onClick={() => doSearch(searchQuery)} className="px-7 py-3 rounded-2xl bg-gradient-to-r from-[#0099ff] to-[#0077cc] text-white text-sm font-semibold hover:from-[#00aaff] hover:to-[#0088dd] hover:shadow-[0_0_25px_rgba(0,153,255,0.3)] active:scale-[0.97] transition-all duration-200 tracking-wide">Ara</button>
+                </div>
               </div>
-              {filteredVodCats.map(cat => (
-                <button key={cat.category_id}
-                  onClick={() => { const sp = new URLSearchParams(params); sp.set('cat', cat.category_id); sp.delete('scat'); setParams(sp, { replace: true }); loadFullCategory(cat.category_id, 'movie') }}
-                  className={`w-full text-left px-3 md:px-4 py-2.5 text-base md:text-lg transition-colors uppercase tracking-wide ${
-                    selectedCat === cat.category_id
-                      ? 'bg-[#0099ff]/10 text-white border-r-2 border-[#0099ff] font-bold'
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
-                  }`}>
-                  {trName(cat.category_name)}
-                </button>
-              ))}
-            </div>
-            {/* Sağ panel - içerik */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0" data-scroll="grid">
-              {showMovieCategory && activeMovieCat ? (
-                <MovieCategoryGrid items={vodItems[activeMovieCat]} loading={!allVods && !vodItems[activeMovieCat]} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} />
+              {searching ? (
+                <div className="flex flex-col items-center justify-center h-full gap-6 px-4 select-none">
+                  <div className="relative w-20 h-20">
+                    <div className="absolute inset-0 rounded-full border-[3px] border-[#0099ff]/10" />
+                    <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-[#0099ff] border-r-[#0099ff]/30 animate-spin" style={{ animationDuration: '1.2s' }} />
+                    <div className="absolute inset-2 rounded-full border-[3px] border-transparent border-b-[#0099ff] border-l-[#0099ff]/30 animate-spin" style={{ animationDuration: '0.8s', animationDirection: 'reverse' }} />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-[#0099ff]/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+                    </div>
+                  </div>
+                  <div className="text-center space-y-1.5">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#0099ff] animate-pulse" />
+                      <span className="text-base font-bold text-white tracking-[0.2em]" style={{ fontFamily: 'Orbitron, sans-serif' }}>ARANIYOR</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#0099ff] animate-pulse" />
+                    </div>
+                    <p className="text-xs text-gray-500 tracking-wide">"{searchQuery}" taranıyor</p>
+                  </div>
+                  <div className="flex gap-1.5">
+                    {[0,1,2,3,4,5].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-[#0099ff]/40 animate-pulse" style={{ animationDelay: `${i * 200}ms`, animationDuration: '1.4s' }} />)}
+                  </div>
+                </div>
+              ) : searchResults.movies.length > 0 ? (
+                <MovieCategoryGrid items={searchResults.movies} loading={false} categoryName={`"${searchQuery}" için sonuçlar`} />
+              ) : searchQuery && searchResults.movies.length === 0 && allVods ? (
+                <div className="flex flex-col items-center justify-center h-48 text-gray-500 text-sm gap-2"><svg className="w-8 h-8 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>Sonuç bulunamadı</div>
+              ) : (
+              showMovieCategory && activeMovieCat ? (
+                <MovieCategoryGrid items={vodItems[activeMovieCat]} loading={!allVods && !vodItems[activeMovieCat]} categoryName={trName(filteredVodCats.find((c: any) => c.category_id === activeMovieCat)?.category_name || 'Filmler')} adultCover={adultCatIds.has(activeMovieCat) ? adultCover : undefined} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
+              )
               )}
             </div>
           </div>
@@ -635,33 +763,77 @@ export default function Dashboard() {
         {/* SERIES TAB */}
         {tab === 'series' && (
           <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
-            {/* Sol panel - kategoriler */}
-            <div className="w-48 md:w-60 shrink-0 border-r border-white/10 overflow-y-auto pt-3 pb-4 scrollbar-hide min-h-0">
-              <div className="px-3 md:px-4 pb-2 mb-2 border-b border-white/10">
-                <h3 className="text-xs font-semibold text-[#0099ff] tracking-widest uppercase" style={{ fontFamily: 'Orbitron, sans-serif' }}>Dizi Kategorileri</h3>
+            <SlideCategoryPanel title="Dizi Kategorileri" items={displaySeriesCats} selected={selectedSeriesCat} onSelect={(id) => {
+              if (id === '__twd__') {
+                setSearchQuery(''); setSearchResults({ movies: [], series: [] })
+                navigate('/dashboard?tab=series&scat=' + id, { replace: true })
+                if (!seriesItems['__twd__'] && server) {
+                  fetchAllSeries(server.base_url, server.xtream_user, server.xtream_pass).then(all => {
+                    const twd = (all || []).filter((s: any) => s.name?.toLowerCase().includes('the walking dead'))
+                    setSeriesItems(prev => ({ ...prev, '__twd__': twd }))
+                  })
+                }
+                return
+              }
+              const cat = seriesCats.find(c => c.category_id === id)
+              if (cat && isAdultCat(cat.category_name)) { setAdultPrompt({ catId: id, type: 'series' }); return }
+              setSearchQuery(''); setSearchResults({ movies: [], series: [] })
+              navigate('/dashboard?tab=series&scat=' + id, { replace: true }); loadFullCategory(id, 'series')
+            }} />
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <div className="sticky top-0 z-10 bg-[#0f172a]/80 backdrop-blur-xl px-4 md:px-8 py-4 border-b border-white/5">
+                <div className="flex items-center gap-3 max-w-2xl mx-auto">
+                  <div className="relative flex-1 group">
+                    <input type="text" value={searchQuery} onChange={e => { setSearchQuery(e.target.value); if (!e.target.value.trim()) { setSearchResults({ movies: [], series: [] }); setSearching(false) } }} onKeyDown={e => e.key === 'Enter' && doSearch(searchQuery)} placeholder="Dizi veya Film Ara" className="w-full pl-12 pr-10 py-3 rounded-2xl bg-[#1a1f35] border border-[#0099ff]/20 text-white text-sm placeholder:text-gray-500 focus:outline-none focus:border-[#0099ff]/50 focus:bg-[#1e2440] focus:shadow-[0_0_25px_rgba(0,153,255,0.1)] transition-all duration-300 group-hover:border-[#0099ff]/30 tracking-wide" />
+                    <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#0099ff] transition-colors duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+                    {searchQuery && <button onClick={() => { setSearchQuery(''); setSearchResults({ movies: [], series: [] }) }} className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#0099ff]/20 hover:bg-[#0099ff]/40 flex items-center justify-center transition-all duration-200"><svg className="w-3.5 h-3.5 text-[#0099ff]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" /></svg></button>}
+                  </div>
+                  <button onClick={() => doSearch(searchQuery)} className="px-7 py-3 rounded-2xl bg-gradient-to-r from-[#0099ff] to-[#0077cc] text-white text-sm font-semibold hover:from-[#00aaff] hover:to-[#0088dd] hover:shadow-[0_0_25px_rgba(0,153,255,0.3)] active:scale-[0.97] transition-all duration-200 tracking-wide">Ara</button>
+                </div>
               </div>
-              {seriesCats.map(cat => (
-                <button key={cat.category_id}
-                  onClick={() => { const sp = new URLSearchParams(params); sp.set('scat', cat.category_id); sp.delete('cat'); setParams(sp, { replace: true }); loadFullCategory(cat.category_id, 'series') }}
-                  className={`w-full text-left px-3 md:px-4 py-2.5 text-base md:text-lg transition-colors uppercase tracking-wide ${
-                    selectedSeriesCat === cat.category_id
-                      ? 'bg-[#0099ff]/10 text-white border-r-2 border-[#0099ff] font-bold'
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
-                  }`}>
-                  {trName(cat.category_name)}
-                </button>
-              ))}
-            </div>
-            {/* Sağ panel - içerik */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0" data-scroll="grid">
-              {showSeriesCategory && activeSeriesCat ? (
-                <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} />
+              {searching ? (
+                <div className="flex flex-col items-center justify-center h-full gap-6 px-4 select-none">
+                  <div className="relative w-20 h-20">
+                    <div className="absolute inset-0 rounded-full border-[3px] border-[#0099ff]/10" />
+                    <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-[#0099ff] border-r-[#0099ff]/30 animate-spin" style={{ animationDuration: '1.2s' }} />
+                    <div className="absolute inset-2 rounded-full border-[3px] border-transparent border-b-[#0099ff] border-l-[#0099ff]/30 animate-spin" style={{ animationDuration: '0.8s', animationDirection: 'reverse' }} />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-[#0099ff]/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+                    </div>
+                  </div>
+                  <div className="text-center space-y-1.5">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#0099ff] animate-pulse" />
+                      <span className="text-base font-bold text-white tracking-[0.2em]" style={{ fontFamily: 'Orbitron, sans-serif' }}>ARANIYOR</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#0099ff] animate-pulse" />
+                    </div>
+                    <p className="text-xs text-gray-500 tracking-wide">"{searchQuery}" taranıyor</p>
+                  </div>
+                  <div className="flex gap-1.5">
+                    {[0,1,2,3,4,5].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-[#0099ff]/40 animate-pulse" style={{ animationDelay: `${i * 200}ms`, animationDuration: '1.4s' }} />)}
+                  </div>
+                </div>
+              ) : searchResults.series.length > 0 ? (
+                <SeriesCategoryGrid items={searchResults.series} loading={false} categoryName={`"${searchQuery}" için sonuçlar`} />
+              ) : searchQuery && searchResults.series.length === 0 && allSeries ? (
+                <div className="flex flex-col items-center justify-center h-48 text-gray-500 text-sm gap-2"><svg className="w-8 h-8 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>Sonuç bulunamadı</div>
+              ) : (
+              activeSeriesCat === '__twd__' ? (
+                <SeriesCategoryGrid items={seriesItems['__twd__']} loading={!allSeries && !seriesItems['__twd__']} categoryName="THE WALKING DEAD" />
+              ) : (
+              showSeriesCategory && activeSeriesCat ? (
+                <SeriesCategoryGrid items={seriesItems[activeSeriesCat]} loading={!allSeries && !seriesItems[activeSeriesCat]} categoryName={trName(seriesCats.find((c: any) => c.category_id === activeSeriesCat)?.category_name || 'Diziler')} adultCover={adultCatIds.has(activeSeriesCat) ? adultCover : undefined} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm px-4">Yükleniyor...</div>
+              )
+              )
               )}
             </div>
           </div>
         )}
+
+        {/* OYUNLAR TAB */}
+        {tab === 'games' && <GamesScreen />}
 
         {/* FAVORİLER TAB */}
         {tab === 'favorites' && (
@@ -680,10 +852,39 @@ export default function Dashboard() {
         )}
       </div>
     </div>
+
+    {/* Adult password modal */}
+    {adultPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 w-80 max-w-[90vw] shadow-2xl shadow-black/50">
+            <div className="flex items-center gap-3 mb-4">
+              <Lock className="w-6 h-6 text-red-500" />
+              <h3 className="text-base font-bold text-white" style={{ fontFamily: 'Orbitron, sans-serif' }}>YETİŞKİN İÇERİK</h3>
+            </div>
+            <p className="text-sm text-gray-400 mb-4">Bu kategori yetişkinlere yönelik içerikler içerir. Devam etmek için şifreyi girin.</p>
+            <input type="password" value={adultPassword} onChange={e => setAdultPassword(e.target.value)}
+              placeholder="Şifre" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm mb-3 focus:outline-none focus:border-[#0099ff]/50" autoFocus />
+            <div className="flex gap-2">
+              <button onClick={() => { setAdultPrompt(null); setAdultPassword('') }}
+                className="flex-1 py-2.5 rounded-xl bg-white/5 text-white text-sm hover:bg-white/10 transition-colors">İptal</button>
+              <button onClick={() => {
+                if (adultPassword === 'bgV7rQk') {
+                  const p = adultPrompt
+                  setAdultPrompt(null); setAdultPassword('')
+                  if (p.type === 'movie') { navigate('/dashboard?tab=movies&cat=' + p.catId, { replace: true }); loadFullCategory(p.catId, 'movie') }
+                  else { navigate('/dashboard?tab=series&scat=' + p.catId, { replace: true }); loadFullCategory(p.catId, 'series') }
+                } else { setAdultPassword('') }
+              }}
+                className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm hover:bg-red-700 transition-colors">Giriş</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
-function MovieCategoryGrid({ items, loading, categoryName }: any) {
+function MovieCategoryGrid({ items, loading, categoryName, adultCover }: any) {
   const navigate = useNavigate()
   const { server } = useAuth()
   const pImg = (url: string) => {
@@ -696,7 +897,8 @@ function MovieCategoryGrid({ items, loading, categoryName }: any) {
 
   const handleDetail = (item: any) => {
     const sp = new URLSearchParams({ id: String(item.stream_id), type: 'movie', cat: item.category_id || '' })
-    if (item.cover_big || item.stream_icon) sp.set('icon', item.cover_big || item.stream_icon)
+    if (adultCover) sp.set('icon', 'adult')
+    else if (item.cover_big || item.stream_icon) sp.set('icon', item.cover_big || item.stream_icon)
     if (item.container_extension) sp.set('ext', item.container_extension)
     if (item.name) sp.set('name', item.name.replace(/[✓✔☑✗✘]/g, ''))
     navigate(`/detail?${sp}`)
@@ -712,20 +914,7 @@ function MovieCategoryGrid({ items, loading, categoryName }: any) {
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
           {(items || []).map((s: any) => (
-            <div key={s.stream_id} className="group">
-              <button onClick={() => handleDetail(s)} className="w-full">
-                <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
-                  <Poster src={pImg(s.cover_big || s.stream_icon)} type="movie" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
-                    <div className="w-14 h-14 rounded-full bg-[#0099ff] flex items-center justify-center shadow-[0_0_20px_rgba(0,153,255,0.6)] backdrop-blur-sm">
-                      <Play className="w-6 h-6 text-white ml-1 fill-white" />
-                    </div>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
-              </button>
-            </div>
+            <GridItem key={s.stream_id} item={s} adultCover={adultCover} pImg={pImg} handleDetail={handleDetail} type="movie" isSeries={false} />
           ))}
         </div>
       )}
@@ -733,7 +922,7 @@ function MovieCategoryGrid({ items, loading, categoryName }: any) {
   )
 }
 
-function SeriesCategoryGrid({ items, loading, categoryName }: any) {
+function SeriesCategoryGrid({ items, loading, categoryName, adultCover }: any) {
   const navigate = useNavigate()
   const { server } = useAuth()
   const pImg = (url: string) => {
@@ -745,7 +934,8 @@ function SeriesCategoryGrid({ items, loading, categoryName }: any) {
   }
   const handleDetail = (item: any) => {
     const sp = new URLSearchParams({ id: String(item.series_id), type: 'series', cat: item.category_id || '' })
-    if (item.cover_big || item.movie_image || item.cover || item.thumbnail) sp.set('icon', item.cover_big || item.movie_image || item.cover || item.thumbnail)
+    if (adultCover) sp.set('icon', 'adult')
+    else if (item.cover_big || item.movie_image || item.cover || item.thumbnail) sp.set('icon', item.cover_big || item.movie_image || item.cover || item.thumbnail)
     if (item.name) sp.set('name', item.name.replace(/[✓✔☑✗✘]/g, ''))
     navigate(`/detail?${sp}`)
   }
@@ -760,24 +950,186 @@ function SeriesCategoryGrid({ items, loading, categoryName }: any) {
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
           {(items || []).map((s: any) => (
-            <div key={s.series_id} className="group">
-              <button onClick={() => handleDetail(s)} className="w-full">
-                <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-2 group-hover:ring-[#14b8a6]/40">
-                  <Poster src={pImg(s.cover_big || s.movie_image || s.cover || s.thumbnail)} type="series" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
-                    <div className="w-14 h-14 rounded-full bg-[#14b8a6] flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.6)] backdrop-blur-sm">
-                      <Play className="w-6 h-6 text-white ml-1 fill-white" />
-                    </div>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{s.name}</p>
-              </button>
-            </div>
+            <GridItem key={s.series_id} item={s} adultCover={adultCover} pImg={pImg} handleDetail={handleDetail} type="series" isSeries={true} />
           ))}
         </div>
       )}
     </div>
+  )
+}
+
+function GridItem({ item, adultCover, pImg, handleDetail, type, isSeries }: any) {
+  const [hide, setHide] = useState(false)
+  const posterSrc = adultCover ? undefined : pImg(item.cover_big || item.stream_icon || item.movie_image || item.cover || item.thumbnail)
+  if (hide) return null
+  return (
+    <div className="group">
+      <button onClick={() => handleDetail(item)} className="w-full">
+        <div className={`aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40 ${isSeries ? 'group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-[#14b8a6]/40' : ''}`}>
+          <Poster src={posterSrc} type={type} onError={() => setHide(true)} />
+          {adultCover ? (
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col items-center justify-center">
+              <span className="text-2xl md:text-3xl font-black text-red-500 opacity-60" style={{ fontFamily: 'Orbitron, sans-serif' }}>18+</span>
+              <span className="text-[10px] text-gray-500 mt-1">YETİŞKİN</span>
+            </div>
+          ) : null}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
+            <div className={`w-14 h-14 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,153,255,0.6)] backdrop-blur-sm ${isSeries ? 'bg-[#14b8a6] shadow-[0_0_20px_rgba(20,184,166,0.6)]' : 'bg-[#0099ff] shadow-[0_0_20px_rgba(0,153,255,0.6)]'}`}>
+              <Play className="w-6 h-6 text-white ml-1 fill-white" />
+            </div>
+          </div>
+        </div>
+        <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{item.name}</p>
+      </button>
+    </div>
+  )
+}
+
+function SlideCategoryPanel({ title, items, selected, onSelect }: { title: string; items: any[]; selected: string; onSelect: (id: string) => void }) {
+  const catName = (cat: any) => {
+    const name = cat.category_name || cat.name || ''
+    const trimmed = name.trim()
+    const n = trimmed.toLowerCase()
+    if (n.includes('adult') || n.includes('yetişkin') || n.includes('18+') || n.includes('xxx') || n.includes('porno') || n.includes('erotik')) {
+      return 'ADULT +18'
+    }
+    const categoryNameOverride: Record<string, string> = {
+      'TR ✦ Pazartesi Dizi': 'PAZARTESİ DİZİLERİ', 'TR ✦ Salı Dizi': 'SALI DİZİLERİ', 'TR ✦ Çarşamba Dizi': 'ÇARŞAMBA DİZİLERİ',
+      'TR ✦ Perşembe Dizi': 'PERŞEMBE DİZİLERİ', 'TR ✦ Cuma Dizi': 'CUMA DİZİLERİ', 'TR ✦ Cumartesi Dizi': 'CUMARTESİ DİZİLERİ',
+      'TR ✦ Pazar Dizi': 'PAZAR DİZİLERİ', 'TR ✦ SİNEVİZYON 2025/2026': 'SİNEMA ARŞİVİ 2025-2026',
+      'TR ✦ SİNEVİZYON 2024/2025': 'SİNEMA ARŞİVİ 2024-2025', 'TR ✦ SİNEVİZYON 2023/2024': 'SİNEMA ARŞİVİ 2023-2024',
+      'TR ✦ SİNEVİZYON 2021/2022': 'SİNEMA ARŞİVİ 2021-2022', 'TR ✦ SİNETÜRK': 'SİNEMA VE FİLM KÜLLİYATI',
+      'TR ✦ 4K SİNEMA': '4K SİNEMA', 'TR ✦ AKSİYON & MACERA': 'AKSİYON VE MACERA',
+      'TR ✦ FANTASTİK & BİLİMKURGU': 'FANTASTİK VE BİLİMKURGU', 'TR ✦ KORKU & GERİLİM': 'KORKU VE GERİLİM',
+      'TR ✦ AŞK & ROMANTİK': 'AŞK VE ROMANTİK', 'TR ✦ KOMEDİ': 'KOMEDİ',
+      'TR ✦ DRAM & TARİH': 'DRAM VE TARİH', 'TR ✦ KOVBOY & WESTERN FİLMLER': 'KOVBOY VE WESTERN',
+      'TR ✦ ÇOCUK & ANİMASYON': 'ÇOCUK VE ANİMASYON', 'TR ✦ KLASİK & NOSTALJİ FİLM': 'KLASİK VE NOSTALJİ',
+      'TR ✦ BoX SeT SINEMA': 'BOX SET FİLMLER', 'TR ✦ H265 FİLMLER': 'YÜKSEK KALİTE FİLMLER',
+      'TR ✦ YEŞİLÇAM': 'YEŞİLÇAM', 'TR ✦ KEMAL SUNAL': 'KEMAL SUNAL FİLMLERİ',
+      'TR ✦ ŞENER ŞEN': 'ŞENER ŞEN FİLMLERİ', 'TR ✦ ZEKİ & METİN': 'ZEKİ VE METİN FİLMLERİ',
+      'TR ✦ KADİR İNANIR': 'KADİR İNANIR FİLMLERİ', 'TR ✦ CÜNEYT ARKIN': 'CÜNEYT ARKIN FİLMLERİ',
+      'TR ✦ SADRİ ALIŞIK': 'SADRİ ALIŞIK FİLMLERİ', 'TR ✦ TÜRKAN ŞORAY': 'TÜRKAN ŞORAY FİLMLERİ',
+      'TR ✦ FERDİ TAYFUR': 'FERDİ TAYFUR FİLMLERİ', 'TR ✦ YILMAZ GÜNEY': 'YILMAZ GÜNEY FİLMLERİ',
+      'TR ✦ TARIK AKAN': 'TARIK AKAN FİLMLERİ', 'TR ✦ BOLLYWOOD': 'DÜNYA SİNEMASI',
+      'TR ✦ JAMES BOND FİLMLER': 'JAMES BOND SERİSİ', 'TR ✦ BELGESEL FİLM': 'BELGESEL FİLMLER',
+      'TR ✦ DİNİ': 'DİNİ İÇERİKLER', 'EU ✦ MULTI NETFLIX 2025/2026': 'ULUSLARARASI FİLMLER 2022-2026',
+      'EU ✦ MULTI NETFLIX 2022/2024': 'ULUSLARARASI FİLMLER 2022-2026',
+      'EU ✦ MULTI NETFLIX CRIMINAL & CRIME': 'ULUSLARARASI SUÇ VE POLİSİYE',
+      'EU ✦ MULTI NETFLIX ACTION & ADVENTURE': 'ULUSLARARASI AKSİYON VE MACERA',
+      'EU ✦ MULTI NETFLIX HORROR & THRILLER': 'ULUSLARARASI KORKU VE GERİLİM',
+      'EU ✦ MULTI NETFLIX SC.FI & FANTASY': 'ULUSLARARASI BİLİMKURGU VE FANTASTİK',
+      'EU ✦ MULTI NETFLIX COMEDY': 'ULUSLARARASI KOMEDİ',
+      'EU ✦ MULTI NETFLIX ROMANTIC': 'ULUSLARARASI ROMANTİK',
+      'EU ✦ MULTI NETFLIX DRAMA & HISTORY': 'ULUSLARARASI DRAM VE TARİH',
+      'EU ✦ MULTI NETFLIX KIDS MOVIES': 'ULUSLARARASI ÇOCUK VE ANİMASYON',
+      'EU ✦ MULTI NETFLIX CHRISTMAS Movies': 'ULUSLARARASI YILBAŞI FİLMLERİ',
+      'EU ✦ MULTI NETFLIX DOCUMENTARY': 'ULUSLARARASI BELGESELLER',
+      'DE ✦ KINOVISION 2025/2026': 'ALMANCA SİNEMA ARŞİVİ', 'DE ✦ ACTION & ABENTEUER': 'ALMANCA AKSİYON VE MACERA',
+      'DE ✦ KRIMI & THRILLER & MYSTERY': 'ALMANCA POLİSİYE VE GİZEM', 'DE ✦ HORROR': 'ALMANCA KORKU',
+      'DE ✦ SCI-FI & FANTASY': 'ALMANCA BİLİMKURGU VE FANTASTİK', 'DE ✦ KOMÖDIE': 'ALMANCA KOMEDİ',
+      'DE ✦ LIEBESFILME': 'ALMANCA ROMANTİK', 'DE ✦ DRAMA': 'ALMANCA DRAMA',
+      'DE ✦ FAMILIE FILME': 'ALMANCA AİLE FİLMLERİ', 'DE ✦ KRIEGSFILME': 'ALMANCA SAVAŞ FİLMLERİ',
+      'DE ✦ KUNGFU & KARATE': 'ALMANCA KUNG FU VE KARATE', 'DE ✦ WESTERN': 'ALMANCA WESTERN',
+      'DE ✦ BOLLYWOOD FILME': 'ALMANCA DÜNYA SİNEMASI', 'DE ✦ Legendäre KINOBOX': 'ALMANCA EFSANE KİNOBOX',
+      'DE ✦ WEIHNACHTEN FILME': 'ALMANCA YILBAŞI FİLMLERİ', 'DE ✦ KINDER ANIMATION': 'ALMANCA ÇOCUK VE ANİMASYON',
+      'DE ✦ THE COLLECTION': 'ALMANCA SEÇKİ FİLMLER', 'DE ✦ KLASSIKER': 'ALMANCA NOSTALJİK FİLMLER',
+      'DE ✦ DOKU FILME': 'ALMANCA BELGESELLER', 'NL ✦ ACTIE & MISDAAD': 'HOLLANDACA AKSİYON VE SUÇ',
+      'NL ✦ THRILLER & MYSTERY': 'HOLLANDACA GERİLİM VE GİZEM', 'NL ✦ HORROR': 'HOLLANDACA KORKU',
+      'NL ✦ SCI-FI & FANTASIE': 'HOLLANDACA BİLİMKURGU VE FANTASTİK', 'NL ✦ KOMEDIE': 'HOLLANDACA KOMEDİ',
+      'NL ✦ ROMANTIEK': 'HOLLANDACA ROMANTİK', 'NL ✦ DRAMA & FAMILIE': 'HOLLANDACA DRAM VE AİLE',
+      'NL ✦ DOCUMENTAIRE': 'HOLLANDACA BELGESELLER', 'ALB ✦ KİNEMAJA 2023/2024': 'ARNAVUTÇA SİNEMA ARŞİVİ',
+      'ALB ✦ SHQIPTAR': 'ARNAVUTÇA FİLMLER', 'ALB ✦ FILMAT TURQISHT': 'ARNAVUTÇA TÜRKÇE FİLMLER',
+      'ALB ✦ AKSION & AVENTURE': 'ARNAVUTÇA AKSİYON VE MACERA', 'ALB ✦ FANTAZI & FANTASHKENCE': 'ARNAVUTÇA FANTASTİK VE BİLİMKURGU',
+      'ALB ✦ HORROR & THRILLER': 'ARNAVUTÇA KORKU VE GERİLİM', 'ALB ✦ ANIMASION': 'ARNAVUTÇA ANİMASYON',
+      'NO✦ NORDIC SCANDINAVIAN MOVIES': 'İSKANDİNAV VE KUZEY AVRUPA FİLMLERİ',
+      'TR ✦ YERLİ GÜNCEL DİZİLER': 'YERLİ GÜNCEL DİZİLER', 'TR ✦ YERLİ FİNAL DİZİLER': 'YERLİ FİNAL YAPMIŞ DİZİLER',
+      'TR ✦ EFSANE HİT DİZİLER': 'EFSANE HİT DİZİLER', 'TR ✦ YABANCI DUBLAJ DİZİLER': 'YABANCI DUBLAJLI DİZİLER',
+      'TR ✦ EXXEN TV DİZİ': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
+      'TR ✦ HBO MAX & BLUETV DİZİLER': 'DİJİTAL PLATFORM DİZİLERİ (ÖZEL)',
+      'TR ✦ APPLE TV': 'DİJİTAL PLATFORM DİZİLERİ (ÖZEL)',
+    'TR ✦ TURKCELL TV+': 'TR HOLLYWOOD DİZİLERİ',
+      'TR ✦ BEIN TOD SERIES': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
+      'TR ✦ TABİİ TV DİZİLER': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
+      'TR ✦ GAIN TV DİZİLER': 'DİJİTAL PLATFORM DİZİLERİ (GENEL)',
+      'TR ✦ ÇOCUK ANİMASYON DİZİLER': 'ÇOCUK VE ANİMASYON DİZİLERİ',
+      'TR ✦ BELGESEL DİZİLER': 'BELGESEL DİZİLER', 'TR ✦ KOMEDİ & STAND UP & TALK SHOW': 'KOMEDİ, STAND UP VE TALK SHOW',
+      'TR ✦ EĞİTİM KURS': 'EĞİTİM VE KURS İÇERİKLERİ', 'DE ✦ NETFLIX SERIEN': 'ALMANCA DİZİLER (GENEL)',
+      'DE ✦ AMAZON PRIME SERIEN': 'ALMANCA DİZİLER (GENEL)', 'DE ✦ DISNEY+ SERIEN': 'ALMANCA DİZİLER (GENEL)',
+      'DE ✦ DISNEY+ KIDS': 'ALMANCA ÇİZGİ FİLM VE ANİMASYON DİZİLERİ',
+      'DE ✦ DISNEY+ MARVEL SERIEN': 'ALMANCA DİZİLER (GENEL)', 'DE ✦ DISNEY+ STAR WARS SERIEN': 'ALMANCA DİZİLER (GENEL)',
+      'DE ✦ SKY ORIGINALS SERIEN': 'ALMANCA DİZİLER (GENEL)', 'DE ✦ APPLE TV SERIEN': 'ALMANCA DİZİLER (GENEL)',
+      'DE ✦ PARAMOUNT SERIEN': 'ALMANCA DİZİLER (GENEL)', 'DE ✦ HBO SERIEN': 'ALMANCA DİZİLER (GENEL)',
+      'DE ✦ STARZ SERIEN': 'ALMANCA DİZİLER (GENEL)', 'DE ✦ JOYN+ SERIEN': 'ALMANCA DİZİLER (GENEL)',
+      'DE ✦ HULU SERIEN': 'ALMANCA DİZİLER (GENEL)', 'DE ✦ RTL+ SERIEN': 'ALMANCA DİZİLER (GENEL)',
+      'DE ✦ ACTION & ABENTEUER SERIEN': 'ALMANCA AKSİYON VE MACERA DİZİLERİ',
+      'DE ✦ KRIMI & THRILLER SERIEN': 'ALMANCA POLİSİYE VE GERİLİM DİZİLERİ',
+      'DE ✦ SyFy & FANTASY SERIEN': 'ALMANCA BİLİMKURGU VE FANTASTİK DİZİLERİ',
+      'DE ✦ DRAMA SERIEN': 'ALMANCA DRAMA DİZİLERİ', 'DE ✦ KOMÖDIE SERIEN': 'ALMANCA KOMEDİ DİZİLERİ',
+      'DE ✦ DOKU SERIEN': 'ALMANCA BELGESEL DİZİLERİ', 'DE ✦ ANIME SERIEN': 'ALMANCA ANİME DİZİLERİ',
+      'DE ✦ CARTOONS & ANIMATION SERIEN': 'ALMANCA ÇİZGİ FİLM VE ANİMASYON DİZİLERİ',
+      'DE ✦ TV NOW & SHOWS SERIEN': 'ALMANCA TELEVİZYON ŞOVLARI',
+      'ALB ✦ SERIALET TURKE': 'ARNAVUTÇA TÜRK DİZİLERİ', 'ALB ✦ SERIALE TË HUAJA': 'ARNAVUTÇA YABANCI DİZİLER',
+      'EX-YU ✦ TURSKE SERIJE': 'BALKAN TÜRK DİZİLERİ', 'EU ✦ MULTI NETFLIX SERIES': 'ULUSLARARASI DİZİLER',
+      'EU ✦ MULTI NETFLIX KIDS SERIES': 'ULUSLARARASI ÇOCUK DİZİLERİ',
+      'EU ✦ MULTI AMAZON PRIME SERIES': 'ULUSLARARASI DİZİLER', 'EU ✦ MULTI DISNEY+ SERIES': 'TR HOLLYWOOD DİZİLERİ II',
+      'EU ✦ MULTI DISNEY+ KIDS SERIES': 'ULUSLARARASI ÇOCUK DİZİLERİ',
+      'ADULT +18 ✦ 4K UHD': 'YETİŞKİN +18 4K ULTRA HD', 'ADULT+ 18 ✦ AMATEUR': 'YETİŞKİN +18 AMATÖR',
+      'ADULT +18 ✦ ANAL': 'YETİŞKİN +18 ANAL', 'ADULT +18 ✦ ASIAN': 'YETİŞKİN +18 ASYA',
+      'ADULT +18 ✦ BLACK': 'YETİŞKİN +18 SİYAH', 'ADULT +18 ✦ BIG ASS': 'YETİŞKİN +18 İRİ POPO',
+      'ADULT +18 ✦ BIG TITS': 'YETİŞKİN +18 BÜYÜK GÖĞÜS', 'ADULT +18 ✦ EROTICA FILM': 'YETİŞKİN +18 EROTİK FİLMLER',
+      'ADULT +18 ✦ FAKE HUB': 'YETİŞKİN +18 AMATÖR EV', 'ADULT +18 ✦ GROUPS': 'YETİŞKİN +18 GRUP',
+      'ADULT +18 ✦ HARDCORE': 'YETİŞKİN +18 SERT', 'ADULT +18 ✦ LESBIAN': 'YETİŞKİN +18 LEZBİYEN',
+      'ADULT +18 ✦ MASSAGE': 'YETİŞKİN +18 MASAJ', 'ADULT +18 ✦ MILF': 'YETİŞKİN +18 OLGUN',
+      'ADULT +18 ✦ PUBLIC': 'YETİŞKİN +18 HALK', 'ADULT +18 ✦ TEEN': 'YETİŞKİN +18 GENÇ',
+      'ADULT +18 ✦ TURKISH SUB.': 'YETİŞKİN +18 TÜRKÇE ALTYAZILI',
+    }
+    const overridden = categoryNameOverride[trimmed]
+    if (overridden) return overridden
+    const cleaned = trimmed.replace(/[★☆✦✧✩✪✫✬✭✮✯✰⭐🌟🌠◆◇◈◉◊○●•¤☆★]/g, ' ').replace(/\s+/g, ' ').trim()
+    if (!cleaned) return name
+    const withoutPrefix = cleaned.replace(/^(?:TR|EU|DE|NL|ALB|NO|AL|EX-YU)\s*✦?\s*/i, '').trim()
+    return withoutPrefix || cleaned
+  }
+  const [open, setOpen] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+
+  const show = () => { clearTimeout(timerRef.current); setOpen(true) }
+  const scheduleHide = () => { timerRef.current = setTimeout(() => setOpen(false), 3000) }
+  const handleMouseEnter = () => { clearTimeout(timerRef.current) }
+  const handleMouseLeave = () => { scheduleHide() }
+  const handleSelect = (id: string) => { onSelect(id); scheduleHide() }
+
+  return (
+    <>
+      {/* Trigger button */}
+      <button onClick={() => open ? scheduleHide() : show()}
+        className="fixed left-0 top-1/2 -translate-y-1/2 z-30 w-7 h-16 rounded-r-xl bg-[#0099ff]/80 hover:bg-[#0099ff] text-white flex items-center justify-center transition-all shadow-lg backdrop-blur-sm group">
+        <svg className={`w-4 h-4 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 18l-6-6 6-6" /></svg>
+      </button>
+      {/* Overlay */}
+      {open && <div className="fixed inset-0 z-20 bg-black/40" onClick={() => scheduleHide()} />}
+      {/* Panel */}
+      <div onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}
+        className={`fixed left-0 top-16 md:top-20 bottom-0 z-20 w-56 bg-[#0f172a]/95 backdrop-blur-xl border-r border-white/10 transition-transform duration-300 ease-out ${open ? 'translate-x-0' : '-translate-x-full'} flex flex-col`}>
+        <div className="px-4 py-3 border-b border-white/10 flex-shrink-0">
+          <h3 className="text-xs font-semibold text-[#0099ff] tracking-widest uppercase" style={{ fontFamily: 'Orbitron, sans-serif' }}>{title}</h3>
+        </div>
+        <div className="overflow-y-auto flex-1 pb-16">
+          {items.map(cat => (
+            <button key={cat.category_id}
+              onClick={() => handleSelect(cat.category_id)}
+              className={`w-full text-left px-4 py-2.5 text-sm transition-colors uppercase tracking-wide ${
+                selected === cat.category_id
+                  ? 'bg-[#0099ff]/10 text-white border-r-2 border-[#0099ff] font-bold'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}>
+              {catName(cat)}
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
   )
 }
 

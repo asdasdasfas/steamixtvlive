@@ -1311,7 +1311,7 @@ export function parseRotationData(): { channels: RotationChannel[], categories: 
   const categories: RotationCategory[] = []
   for (const [name, chs] of groupMap) {
     if (name.toLowerCase() === 'yurtdışı') continue
-    categories.push({ id: name.toLowerCase().replace(/\s+/g, '-'), name, channels: chs })
+    categories.push({ id: name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''), name, channels: chs })
   }
 
   return { channels, categories }

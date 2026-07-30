@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useLang } from '@/lib/language'
 import { useAuth } from '@/hooks/use-auth'
-import { Home, Tv, Film, Clapperboard, Search, Settings, LogOut, Globe, ChevronDown, Heart } from 'lucide-react'
+import { Home, Tv, Film, Clapperboard, Settings, LogOut, Globe, ChevronDown, Heart, Gamepad2 } from 'lucide-react'
 import { useState } from 'react'
 
 const allTabs = [
@@ -10,16 +10,22 @@ const allTabs = [
   { key: 'movies', icon: Film, labelKey: 'nav.movies' },
   { key: 'series', icon: Clapperboard, labelKey: 'nav.series' },
   { key: 'favorites', icon: Heart, labelKey: 'Favoriler' },
+  { key: 'games', icon: Gamepad2, labelKey: 'Oyunlar' },
 ]
 
-export default function Navbar() {
+interface NavbarProps {
+  categoryName?: string
+}
+
+export default function Navbar({ categoryName }: NavbarProps) {
   const { t, lang, setLang, langNames, languages } = useLang()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [langOpen, setLangOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
-  const activeTab = new URLSearchParams(location.search).get('tab') || 'home'
+  const params = new URLSearchParams(location.search)
+  const activeTab = params.get('tab') || 'home'
   const liveDisabled = user?.["canlı tv"] === '0' || user?.["canlı tv"] === 'false' || user?.["canlı tv"] === 'kapalı'
   const tabs = allTabs.filter(t => t.key !== 'live' || !liveDisabled)
 
@@ -37,21 +43,25 @@ export default function Navbar() {
               <img src="/images/steamix-logo.jpg" alt="" className="w-8 h-8 md:w-10 md:h-10 rounded-lg" />
               <span className="text-lg md:text-xl font-bold text-white tracking-wider" style={{ fontFamily: 'Orbitron, sans-serif' }}>Steamix <span className="text-[#0099ff]">TV</span></span>
             </button>
-            <div className="hidden md:flex items-center gap-1 overflow-x-auto scrollbar-hide">
-              {tabs.map(tab => (
+            <div className="hidden md:flex items-center gap-1 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {tabs.map(tab => {
+                const isActive = activeTab === tab.key
+                const showCat = isActive && categoryName && (tab.key === 'movies' || tab.key === 'series')
+                return (
                 <button key={tab.key} onClick={() => handleTab(tab.key)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-                    activeTab === tab.key ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  className={`relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all group ${
+                    isActive ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}>
-                  <tab.icon className="w-4 h-4" />{t(tab.labelKey)}
+                  <tab.icon className="w-4 h-4" />
+                  <span className="flex flex-col items-start leading-tight">
+                    <span>{t(tab.labelKey)}</span>
+                    {showCat && <span className="text-[9px] text-[#0099ff] font-normal opacity-80 group-hover:opacity-100">{categoryName}</span>}
+                  </span>
                 </button>
-              ))}
+              )})}
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => navigate('/dashboard?tab=search')} className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all" title={t('nav.search')}>
-              <Search className="w-4 h-4" />
-            </button>
             <div className="relative">
               <button onClick={() => setLangOpen(!langOpen)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all">
                 <Globe className="w-4 h-4" /><span className="hidden sm:inline">{langNames[lang]}</span><ChevronDown className={`w-3 h-3 transition-transform ${langOpen ? 'rotate-180' : ''}`} />
@@ -102,12 +112,17 @@ export default function Navbar() {
       </div>
       {/* Mobile bottom bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 flex border-t border-white/10 bg-black/95 backdrop-blur-lg z-50">
-        {tabs.map(tab => (
+        {tabs.map(tab => {
+          const isActive = activeTab === tab.key
+          const showCat = isActive && categoryName && (tab.key === 'movies' || tab.key === 'series')
+          return (
           <button key={tab.key} onClick={() => handleTab(tab.key)}
-            className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${activeTab === tab.key ? 'text-[#0099ff]' : 'text-gray-500'}`}>
-            <tab.icon className="w-5 h-5" />{t(tab.labelKey)}
+            className={`flex-1 flex flex-col items-center gap-0 py-1.5 text-[10px] font-medium transition-colors ${isActive ? 'text-[#0099ff]' : 'text-gray-500'}`}>
+            <tab.icon className="w-5 h-5" />
+            <span className="leading-tight">{t(tab.labelKey)}</span>
+            {showCat && <span className="text-[7px] text-[#0099ff]/70 leading-tight truncate max-w-full px-1">{categoryName}</span>}
           </button>
-        ))}
+        )})}
         <button onClick={() => navigate('/profile')} className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors text-gray-500`}>
           <Settings className="w-5 h-5" />{t('nav.profile')}
         </button>

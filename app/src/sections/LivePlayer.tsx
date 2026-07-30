@@ -36,7 +36,7 @@ export default function LivePlayer({ channelId, title, src, onEnded, onChannelCh
 
   return (
     <div ref={fullscreenRef} className="relative bg-black">
-      <VideoPlayer key={src} src={src} title={title} onEnded={onEnded} onToggleFullscreen={toggleFullscreen} />
+      <VideoPlayer src={src} title={title} onEnded={onEnded} onToggleFullscreen={toggleFullscreen} />
       {fullscreen && (
         <>
           <button onClick={() => setPanelOpen(prev => !prev)}
