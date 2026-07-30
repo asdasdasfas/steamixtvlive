@@ -1,9 +1,27 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { Loader2, Maximize2, Minimize2, ChevronDown } from 'lucide-react'
 
-interface Game { name: string; slug: string; cat: string }
+interface Game { name: string; slug: string; cat: string; url: string }
+
+const PC_GAMES: Game[] = [
+  { name: 'GTA: Vice City', slug: 'vc-web', cat: 'Macera', url: 'https://quenq.com/apps/vc-web/' },
+  { name: 'GTA: Vice City (No Ads)', slug: 'vc-web-no-ads', cat: 'Macera', url: 'https://quenq.com/apps/vc-web/' },
+  { name: 'GTA: Vice City (Unofficial)', slug: 'vc-web-unofficial', cat: 'Macera', url: 'https://vcweb.studynotes.top' },
+  { name: 'The Simpsons: Hit & Run', slug: 'simpsons-hit-run', cat: 'Macera', url: 'https://shar-wasm.cjoseph.workers.dev/?skipmovie' },
+  { name: 'Minecraft', slug: 'minecraft', cat: 'Macera', url: 'https://quenq.com/apps/minecraft/' },
+  { name: '3D Pinball: Space Cadet', slug: '3d-pinball', cat: 'Klasik', url: 'https://quenq.com/apps/3d-pinball-space-cadet/' },
+  { name: 'Angry Birds Chrome', slug: 'angry-birds', cat: 'Bulmaca', url: 'https://quenq.com/apps/angry-birds-chrome/' },
+  { name: 'Quake 3 Arena', slug: 'quake3', cat: 'Nişancı', url: 'https://dos.zone/mp/?lobby=q3' },
+  { name: 'Counter-Strike 1.6', slug: 'cs16', cat: 'Nişancı', url: 'https://dos.zone/mp/?lobby=cs16' },
+  { name: 'Half-Life Deathmatch', slug: 'hldm', cat: 'Nişancı', url: 'https://dos.zone/mp/?lobby=hldm' },
+  { name: 'Web Dashers (Geometry Dash)', slug: 'web-dashers', cat: 'Spor', url: 'https://web-dashers.github.io/' },
+]
+
+const PC_CATS = [...new Set(PC_GAMES.map(g => g.cat))]
+const PC_BY_CAT = Object.fromEntries(PC_CATS.map(c => [c, PC_GAMES.filter(g => g.cat === c)]))
 
 export default function GamesScreen() {
+  const [source, setSource] = useState<'easyhub' | 'pc'>('easyhub')
   const [games, setGames] = useState<Game[]>([])
   const [cats, setCats] = useState<string[]>([])
   const [gamesByCat, setGamesByCat] = useState<Record<string, Game[]>>({})
@@ -18,6 +36,15 @@ export default function GamesScreen() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (source === 'pc') {
+      setGames(PC_GAMES)
+      setCats(PC_CATS)
+      setGamesByCat(PC_BY_CAT)
+      const def = PC_GAMES.find(g => g.slug === 'vc-web') || PC_GAMES[0]
+      setPlaying(def.slug)
+      setLoading(false)
+      return
+    }
     fetch('/game-list')
       .then(r => r.json())
       .then((data: Game[]) => {
@@ -30,7 +57,7 @@ export default function GamesScreen() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [])
+  }, [source])
 
   const game = games.find(g => g.slug === playing)
 
@@ -70,14 +97,29 @@ export default function GamesScreen() {
     ? games.filter(g => g.name.toLowerCase().includes(search.toLowerCase()))
     : []
 
+  const switchSource = (s: 'easyhub' | 'pc') => {
+    setSource(s)
+    setGameLoaded(false)
+    setPlaying(null)
+    setLoading(true)
+  }
+
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col bg-black">
       <div ref={playerRef} className="flex-1 flex flex-col min-h-0">
         <div className="flex items-center gap-2 px-3 py-2 bg-black/80 backdrop-blur-sm z-30 shrink-0 border-b border-white/5">
+          <div className="flex items-center gap-1 bg-white/5 rounded-lg p-0.5 shrink-0">
+            <button onClick={() => switchSource('easyhub')}
+              className={`px-2 py-1 text-[10px] rounded-md transition-colors ${source === 'easyhub' ? 'bg-[#0099ff] text-white' : 'text-gray-400 hover:text-white'}`}
+            >EasyHub</button>
+            <button onClick={() => switchSource('pc')}
+              className={`px-2 py-1 text-[10px] rounded-md transition-colors ${source === 'pc' ? 'bg-[#0099ff] text-white' : 'text-gray-400 hover:text-white'}`}
+            >Klasik PC</button>
+          </div>
           <div ref={menuRef} className="relative">
             <button
               onClick={() => setMenuOpen(p => !p)}
-              className="flex items-center gap-1.5 bg-white/10 text-white text-xs rounded-lg px-2 py-1.5 border border-white/10 outline-none cursor-pointer max-w-[180px] sm:max-w-[250px]"
+              className="flex items-center gap-1.5 bg-white/10 text-white text-xs rounded-lg px-2 py-1.5 border border-white/10 outline-none cursor-pointer max-w-[160px] sm:max-w-[210px]"
             >
               <span className="truncate flex-1">{game ? game.name : 'Oyun Seç'}</span>
               <ChevronDown className={`w-3 h-3 shrink-0 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
@@ -140,13 +182,13 @@ export default function GamesScreen() {
           {!gameLoaded && playing && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-20 bg-black">
               <Loader2 className="w-8 h-8 text-[#0099ff] animate-spin" />
-              <span className="text-xs text-gray-400">Oyun yükleniyor...</span>
+              <span className="text-xs text-gray-400">Yükleniyor...</span>
             </div>
           )}
           {playing ? (
             <iframe
-              key={playing}
-              src={`/tr/games/${playing}`}
+              key={source + playing}
+              src={source === 'easyhub' ? `/tr/games/${playing}` : (game?.url || '')}
               className={`w-full h-full ${gameLoaded ? '' : 'invisible'}`}
               allowFullScreen
               allow="autoplay; fullscreen; gamepad"
