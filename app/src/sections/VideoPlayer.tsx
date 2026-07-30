@@ -44,6 +44,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const watchdogRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
   const lastProgressRef = useRef(0)
   const retryCountRef = useRef(0)
+  const [loading, setLoading] = useState(false)
   const [useMediabunny, setUseMediabunny] = useState<boolean | null>(null)
 
   // Detect if Mediabunny should be used for this source
@@ -149,9 +150,10 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const tryUrl = useCallback((video: HTMLVideoElement) => {
     const idx = urlIndexRef.current
     const urls = allUrlsRef.current
-    if (idx >= urls.length) { setLoadError('Hiçbir yayın kaynağı çalışmadı'); return }
+    if (idx >= urls.length) { setLoadError('Hiçbir yayın kaynağı çalışmadı'); setLoading(false); return }
     const currentSrc = urls[idx]
     retryCountRef.current = 0
+    setLoading(true)
 
     const ctrl = new AbortController()
     fetch(currentSrc, { signal: ctrl.signal }).then(r => {
@@ -204,6 +206,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       hls.loadSource(currentSrc)
       hls.attachMedia(video)
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        setLoading(false)
         tryPlay(video)
         startWatchdog(video)
       })
@@ -242,19 +245,19 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
       })
     } else if (isHls && video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = currentSrc
-      const onReady = () => { video.removeEventListener('canplay', onReady); tryPlay(video); startWatchdog(video) }
+      const onReady = () => { video.removeEventListener('canplay', onReady); setLoading(false); tryPlay(video); startWatchdog(video) }
       video.addEventListener('canplay', onReady)
-      video.addEventListener('error', () => {}, { once: true })
+      video.addEventListener('error', () => setLoading(false), { once: true })
       startWatchdog(video)
     } else {
       video.src = currentSrc
       video.onerror = () => {
-        clearInterval(watchdogRef.current)
+        clearInterval(watchdogRef.current); setLoading(false)
         urlIndexRef.current++
         tryUrl(video)
       }
       video.muted = false; setMuted(false)
-      const onReady = () => { video.removeEventListener('canplay', onReady); tryPlay(video); startWatchdog(video) }
+      const onReady = () => { video.removeEventListener('canplay', onReady); setLoading(false); tryPlay(video); startWatchdog(video) }
       video.addEventListener('canplay', onReady)
       startWatchdog(video)
     }
@@ -397,7 +400,17 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
           </div>
         </div>
       )}
-      {!playing && !loadError && (
+      {loading && !playing && !loadError && (
+        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+          <div className="w-16 h-16 rounded-full bg-black/50 flex items-center justify-center backdrop-blur-sm">
+            <svg className="animate-spin w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+          </div>
+        </div>
+      )}
+      {!loading && !playing && !loadError && (
         <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
           <div className="w-16 h-16 rounded-full bg-black/50 flex items-center justify-center backdrop-blur-sm">
             <Play className="w-8 h-8 text-white ml-1" />
