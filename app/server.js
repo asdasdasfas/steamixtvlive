@@ -65,7 +65,8 @@ const m3u8CdnMap = {}
 let m3u8Counter = 0
 
 function cleanHeaders(reqHeaders, targetHost, targetUrl) {
-  return { ...reqHeaders, 'Host': targetHost }
+  const targetOrigin = targetUrl.replace(/\/+$/, '')
+  return { ...reqHeaders, 'Host': targetHost, 'Origin': targetOrigin, 'Referer': targetOrigin + '/' }
 }
 
 function makeHttpOpts(urlStr, method, reqHeaders) {

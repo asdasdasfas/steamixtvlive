@@ -484,9 +484,6 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/101581.m3u8
 
 
 
-#EXTINF:-1 tvg-id="TRTGRTBELGESELFHD" tvg-name="TGRT BELGESEL FHD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/tgrt-belgesel-tr.png",TGRT BELGESEL FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/2820.m3u8
-
 
 
 
