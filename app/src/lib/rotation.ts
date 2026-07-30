@@ -101,11 +101,13 @@ https://tatatam.trt1sultanfatihss.workers.dev/https://ciner.daioncdn.net/bloombe
 #EXTINF:-1 tvg-id="TRTBelgesel" tvg-name="TRT Belgesel" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/trt-belgesel-tr.png",TRT Belgesel
 https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8
 
-#EXTINF:-1 tvg-id="TLC" tvg-name="TLC" group-title="Belgesel" tvg-logo="https://graph.facebook.com/TLCTurkiye/picture?type=large",TLC
-https://dogus.daioncdn.net/tlc/tlc.m3u8?app=tlc_web
-
 #EXTINF:-1 tvg-id="DMAX" tvg-name="DMAX" group-title="Belgesel" tvg-logo="https://graph.facebook.com/DMAXTR/picture?type=large",DMAX
-https://dogus.daioncdn.net/dmax/dmax.m3u8?app=dmax_web
+http://dzcvip1.xyz:2095/live/yasar7062/yasar.7062/27669.m3u8
+http://ctn34.xyz:8080/live/yasar7062/yasar.7062/27669.m3u8
+
+#EXTINF:-1 tvg-id="TLC" tvg-name="TLC" group-title="Belgesel" tvg-logo="https://graph.facebook.com/TLCTurkiye/picture?type=large",TLC
+http://dzcvip1.xyz:2095/live/yasar7062/yasar.7062/117488.m3u8
+http://ctn34.xyz:8080/live/yasar7062/yasar.7062/117488.m3u8
 
 #EXTINF:-1 tvg-id="BelgeselTV" tvg-name="Belgesel TV" group-title="Belgesel" tvg-logo="https://graph.facebook.com/BelgeselTVHD/picture?type=large",Belgesel TV
 https://playlist.fasttvcdn.com/pl/rfrk9821hdy9dayo8wfyha/belgesel-tv/playlist/0.m3u8
