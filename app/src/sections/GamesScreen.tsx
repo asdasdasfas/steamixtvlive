@@ -101,7 +101,7 @@ const GAMES: Game[] = [
 const uniqueGames = GAMES.filter((g, i, a) => a.findIndex(x => x.slug === g.slug) === i)
 
 export default function GamesScreen() {
-  const [playing, setPlaying] = useState<string | null>(null)
+  const [playing, setPlaying] = useState<string | null>('pk-subway-surfers')
   const [gameLoaded, setGameLoaded] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
