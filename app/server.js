@@ -65,7 +65,8 @@ const m3u8CdnMap = {}
 let m3u8Counter = 0
 
 function cleanHeaders(reqHeaders, targetHost, targetUrl) {
-  const targetOrigin = targetUrl.replace(/\/+$/, '')
+  const u = new URL(targetUrl)
+  const targetOrigin = u.origin
   return { ...reqHeaders, 'Host': targetHost, 'Origin': targetOrigin, 'Referer': targetOrigin + '/' }
 }
 
