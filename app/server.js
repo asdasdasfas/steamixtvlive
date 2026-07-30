@@ -545,27 +545,39 @@ http.createServer((req, res) => {
         html = html.replace(/url\(\//g, 'url(https://easyhub.games/')
         html = html.replace(/url\('\/'/g, "url('https://easyhub.games/")
         html = html.replace(/url\("\/"/g, 'url("https://easyhub.games/')
-        // Inject CSS to hide EasyHub chrome (header, sidebar, footer, etc.)
+        // Inject CSS: hide chrome, fill viewport with game, remove scroll
         const style = `<style>
-/* hide header */
-.h-0 > div:first-child, .h-0 { display: none !important; }
+/* reset everything */
+body, html { margin:0!important; padding:0!important; overflow:hidden!important; height:100vh!important; }
+/* hide header nav */
+.h-0, .h-0 > div:first-child, .fixed.top-0.left-0 { display:none!important; }
 /* hide sidebars */
-.drawer-side, aside { display: none !important; }
-/* hide title/buttons/tags below game */
+.drawer-side, aside, .hidden.md\\:flex.md\\:w-0 { display:none!important; }
+/* remove padding from drawer (was for header) */
+.drawer { padding-top:0!important; }
+/* hide title/buttons/tags */
 .flex-wrap.gap-3.items-center.min-h-12,
-.flex-wrap.gap-2 { display: none !important; }
-/* hide article/comments/ads column */
-.flex.flex-col.lg\\:flex-row.gap-4 { display: none !important; }
-/* hide right sidebar ads */
-.hidden.lg\\:flex.flex-col.gap-2 { display: none !important; }
-/* hide footer/legal */
-footer, section, .text-center.py-8 { display: none !important; }
-/* hide comment sections */
-[class*="comment"], [class*="footer"], [class*="legal"] { display: none !important; }
-/* hide ad containers */
-.adsbygoogle, ins.adsbygoogle { display: none !important; }
-/* keep game container at natural position but remove margin/padding */
-body { margin: 0 !important; }
+.flex-wrap.gap-2 { display:none!important; }
+/* hide article/comments/ads columns */
+.flex.flex-col.lg\\:flex-row.gap-4,
+.hidden.lg\\:flex.flex-col.gap-2 { display:none!important; }
+/* hide footer/legal/comment sections */
+footer, section, .text-center.py-8,
+[class*="comment"], [class*="footer"], [class*="legal"] { display:none!important; }
+/* hide ads */
+.adsbygoogle, ins.adsbygoogle { display:none!important; }
+/* make game container fill entire iframe */
+.relative.w-full.flex.justify-center.items-center.bg-black.overflow-hidden {
+  position:fixed!important; top:0!important; left:0!important;
+  width:100vw!important; height:100vh!important;
+  aspect-ratio:auto!important; z-index:9999!important;
+  margin:0!important; padding:0!important; border:none!important; border-radius:0!important;
+}
+.relative.w-full.flex.justify-center.items-center.bg-black.overflow-hidden > div {
+  width:100%!important; height:100%!important;
+}
+/* hide the loading overlay so game shows directly */
+.flex-1.min-w-0.flex.flex-col { margin:0!important; padding:0!important; }
 </style>`
         html = html.replace('</head>', style + '</head>')
         res.writeHead(200, { 'Content-Type': 'text/html', 'Access-Control-Allow-Origin': '*' })
