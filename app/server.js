@@ -8,6 +8,25 @@ import { spawn, execSync } from 'node:child_process'
 import ffmpegPathStatic from 'ffmpeg-static'
 import puppeteer from 'puppeteer-core'
 
+// Find Chrome binary
+function findChrome() {
+  const paths = [
+    process.env.CHROME_PATH,
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable',
+    '/opt/google/chrome/google-chrome',
+    '/opt/google/chrome/chrome',
+    '/snap/bin/chromium',
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser'
+  ].filter(Boolean)
+  for (const p of paths) { try { fs.accessSync(p); return p } catch {} }
+  return null
+}
+const chromePath = findChrome()
+console.log(`[CHROME] path=${chromePath}`)
+import puppeteer from 'puppeteer-core'
+
 // Try to find ffmpeg: first check static, then system PATH, then common locations
 let ffmpegPath = null
 try {
@@ -645,7 +664,7 @@ footer, section, .text-center.py-8,
       try {
         const browser = await puppeteer.launch({
           headless: true,
-          executablePath: process.env.CHROME_PATH || '/usr/bin/google-chrome',
+          executablePath: chromePath,
           args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--single-process', '--disable-gpu', '--no-zygote']
         })
         const page = await browser.newPage()
