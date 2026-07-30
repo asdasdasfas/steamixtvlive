@@ -786,7 +786,7 @@ function proxyUrl(url: string): string {
   // Proxy HTTP backends (dzcvip1, ctn34, ccgbndrby11, dpsmartone, tv8.daioncdn.net)
   // Also proxy HTTPS daioncdn URLs — daioncdn doesn't send CORS headers,
   // so browser blocks direct HTTPS requests. Proxy through our server (same-origin).
-  const needsProxy = url.startsWith('http://') || url.includes('.daioncdn.net')
+  const needsProxy = url.startsWith('http://') || url.includes('.daioncdn.net') || url.includes('medya.trt.com.tr')
   if (needsProxy) {
     const u = new URL(url)
     const port = u.port || (u.protocol === 'https:' ? 443 : 80)

@@ -183,7 +183,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
         fetchSetup: (context, init) => {
           let url = context.url
           // Proxy Akamai URLs through our server for CORS
-          if (url.includes('akamaized.net')) {
+          if (url.includes('akamaized.net') || url.includes('medya.trt.com.tr')) {
             try {
               const u = new URL(url)
               const base = u.protocol + '//' + u.hostname + ':' + (u.port || (u.protocol === 'https:' ? 443 : 80))
