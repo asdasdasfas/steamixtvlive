@@ -217,7 +217,7 @@ export default function ProfilePanel() {
               </div>
               <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
                 <p className="text-xs text-yellow-300 leading-relaxed">
-                  ⚠️ Shopier kuralları gereği abonelikler sınırlıdır; satın aldığınız abonelik tamamlandıktan
+                  ⚠️ Shopier resmi kuralları gereği abonelikler sınırlıdır; satın aldığınız abonelik tamamlandıktan
                   sonra ek olarak yalnızca bir defaya mahsus tekrar alınabilir.
                 </p>
               </div>
