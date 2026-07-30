@@ -449,17 +449,8 @@ http://dzcvip1.xyz:2095/live/yasar7062/yasar.7062/76544.m3u8
 #EXTINF:-1 tvg-id="TRbeINSPORTSHABERHD" tvg-name="BEIN SPORTS HABER HD" group-title="Premium Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/bein-sports-haber-tr.png",BEIN SPORTS HABER HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/155847.m3u8
 
-#EXTINF:-1 tvg-id="TRTRTSPORFHD" tvg-name="TRT SPOR FHD" group-title="Premium Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/trt-spor-hd-tr.png",TRT SPOR FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/94495.m3u8
 
-#EXTINF:-1 tvg-id="TRTRTSPORYILDIZFHD" tvg-name="TRT SPOR YILDIZ FHD" group-title="Premium Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/trt-spor-yildiz-tr.png",TRT SPOR YILDIZ FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/32602.m3u8
 
-#EXTINF:-1 tvg-id="TRTRTSPORYILDIZHD" tvg-name="TRT SPOR YILDIZ HD" group-title="Premium Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/trt-spor-yildiz-tr.png",TRT SPOR YILDIZ HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/161120.m3u8
-
-#EXTINF:-1 tvg-id="TRASPORHD" tvg-name="A SPOR HD" group-title="Premium Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/a-spor-tr.png",A SPOR HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/154011.m3u8
 
 #EXTINF:-1 tvg-id="TRHTSPORFHD" tvg-name="HT SPOR FHD" group-title="Premium Spor" tvg-logo="https://www.digiturkburada.com.tr/kanal3/kanal-buyuk/ht-spor-buyuk.png",HT SPOR FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/146100.m3u8
@@ -470,16 +461,13 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/221530.m3u8
 #EXTINF:-1 tvg-id="TRSPORSMART1FHD" tvg-name="SPOR SMART 1 FHD" group-title="Premium Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/spor-smart-hd-tr.png",SPOR SMART 1 FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/10446.m3u8
 
-#EXTINF:-1 tvg-id="TRSPORSMART1HD" tvg-name="SPOR SMART 1 HD" group-title="Premium Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/spor-smart-hd-tr.png",SPOR SMART 1 HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/44902.m3u8
-
 #EXTINF:-1 tvg-id="TRSPORSMART2HD" tvg-name="SPOR SMART 2 HD" group-title="Premium Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/spor-smart-hd-tr.png",SPOR SMART 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/159350.m3u8
 
-#EXTINF:-1 tvg-id="TREUROSPORT1FHD" tvg-name="EUROSPORT 1 FHD" group-title="Premium Spor" tvg-logo="https://logos-world.net/wp-content/uploads/2022/05/Eurosport-Logo.png",EUROSPORT 1 FHD
+#EXTINF:-1 tvg-id="TREUROSPORT1FHD" tvg-name="EUROSPORT 1 FHD" group-title="Premium Spor" tvg-logo="https://cdn.worldvectorlogo.com/logos/eurosport-1-logo-2015.svg",EUROSPORT 1 FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/145527.m3u8
 
-#EXTINF:-1 tvg-id="TREUROSPORT2FHD" tvg-name="EUROSPORT 2 FHD" group-title="Premium Spor" tvg-logo="https://logos-world.net/wp-content/uploads/2022/05/Eurosport-Logo.png",EUROSPORT 2 FHD
+#EXTINF:-1 tvg-id="TREUROSPORT2FHD" tvg-name="EUROSPORT 2 FHD" group-title="Premium Spor" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/d/d8/Eurosport_2_Logo_2015.svg",EUROSPORT 2 FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/39047.m3u8
 
 #EXTINF:-1 tvg-id="TRFBTVHD" tvg-name="FB TV  HD" group-title="Premium Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/fenerbahce-tv-tr.png",FB TV  HD
@@ -494,13 +482,13 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/101581.m3u8
 #EXTINF:-1 tvg-id="TRDISCOVERYIDHD" tvg-name="DISCOVERY ID HD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/international/investigation-discovery-int.png",DISCOVERY ID HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/126779.m3u8
 
-#EXTINF:-1 tvg-id="TRVASATEXPLOREFHD" tvg-name="VİASAT EXPLORE FHD" group-title="Belgesel" tvg-logo=""
+#EXTINF:-1 tvg-id="TRVASATEXPLOREFHD" tvg-name="VİASAT EXPLORE FHD" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/c/c3/Viasat_Explore-logo.svg"
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/99775.m3u8
 
-#EXTINF:-1 tvg-id="TRPOLSKAMERASIHD" tvg-name="POLİS KAMERASI HD" group-title="Belgesel" tvg-logo="",POLİS KAMERASI HD
+#EXTINF:-1 tvg-id="TRPOLSKAMERASIHD" tvg-name="POLİS KAMERASI HD" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Police_badge.svg/320px-Police_badge.svg.png",POLİS KAMERASI HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220392.m3u8
 
-#EXTINF:-1 tvg-id="TRTRTGENC" tvg-name="TRT GENC" group-title="Belgesel" tvg-logo="",TRT GENC
+#EXTINF:-1 tvg-id="TRTRTGENC" tvg-name="TRT GENC" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/trt-gen%C3%A7-tr.png",TRT GENC
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/213805.m3u8
 
 #EXTINF:-1 tvg-id="TRDOCUSCREENFHD" tvg-name="DOCU SCREEN FHD" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/international/docubox-hd-int.png",DOCU SCREEN FHD
@@ -518,22 +506,22 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/88006.m3u8
 #EXTINF:-1 tvg-id="TRLOVENATUREHD" tvg-name="LOVE NATURE HD" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Love_Nature_logo.svg/320px-Love_Nature_logo.svg.png",LOVE NATURE HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/147538.m3u8
 
-#EXTINF:-1 tvg-id="TRNATUREESCAPE" tvg-name="NATURE ESCAPE" group-title="Belgesel" tvg-logo="",NATURE ESCAPE
+#EXTINF:-1 tvg-id="TRNATUREESCAPE" tvg-name="NATURE ESCAPE" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Nature_%28TV_network%29_logo.svg/320px-Nature_%28TV_network%29_logo.svg.png",NATURE ESCAPE
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/173916.m3u8
 
-#EXTINF:-1 tvg-id="TRLUYSTV" tvg-name="LUYS TV" group-title="Belgesel" tvg-logo="",LUYS TV
+#EXTINF:-1 tvg-id="TRLUYSTV" tvg-name="LUYS TV" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/ArmeniaTV-English-Logo.svg/320px-ArmeniaTV-English-Logo.svg.png",LUYS TV
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/131315.m3u8
 
-#EXTINF:-1 tvg-id="TRDAVINCILEARNING" tvg-name="DA VINCI LEARNING" group-title="Belgesel" tvg-logo="",DA VINCI LEARNING
+#EXTINF:-1 tvg-id="TRDAVINCILEARNING" tvg-name="DA VINCI LEARNING" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Da_Vinci_Learning_2018_logo.svg/320px-Da_Vinci_Learning_2018_logo.svg.png",DA VINCI LEARNING
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/65083.m3u8
 
 #EXTINF:-1 tvg-id="TRCIFTCITV" tvg-name="CIFTCI TV" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/ciftci-tv-tr.png",CIFTCI TV
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/96121.m3u8
 
-#EXTINF:-1 tvg-id="TRVAHDOAFHD" tvg-name="VAHŞİ DOĞA FHD" group-title="Belgesel" tvg-logo="",VAHŞİ DOĞA FHD
+#EXTINF:-1 tvg-id="TRVAHDOAFHD" tvg-name="VAHŞİ DOĞA FHD" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Nature_%28TV_channel%29_logo.svg/320px-Nature_%28TV_channel%29_logo.svg.png",VAHŞİ DOĞA FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/95946.m3u8
 
-#EXTINF:-1 tvg-id="TRCHASSEETPECHE" tvg-name="CHASSE ET PECHE" group-title="Belgesel" tvg-logo="",CHASSE ET PECHE
+#EXTINF:-1 tvg-id="TRCHASSEETPECHE" tvg-name="CHASSE ET PECHE" group-title="Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Chasse_et_Peche_logo.svg/320px-Chasse_et_Peche_logo.svg.png",CHASSE ET PECHE
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/106148.m3u8
 
 #EXTINF:-1 tvg-id="TRFILMSCREENFHD" tvg-name="FILMSCREEN FHD" group-title="Sinema & Dizi" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/filmbox-hd-tr.png",FILMSCREEN FHD
@@ -575,154 +563,154 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/138755.m3u8
 #EXTINF:-1 tvg-id="TRMOVESMARTCLASSCFHD" tvg-name="MOVİE SMART CLASSİC FHD" group-title="Sinema & Dizi" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/movie-smart-classic-hd-tr.png",MOVİE SMART CLASSİC FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/38078.m3u8
 
-#EXTINF:-1 tvg-id="BestofIMDB1" tvg-name="Best of IMDB 1 HD" group-title="Sinema & Dizi" tvg-logo="",Best of IMDB 1 HD
+#EXTINF:-1 tvg-id="BestofIMDB1" tvg-name="Best of IMDB 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg",Best of IMDB 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/9735.m3u8
 
-#EXTINF:-1 tvg-id="BestofIMDB2" tvg-name="Best of IMDB 2 HD" group-title="Sinema & Dizi" tvg-logo="",Best of IMDB 2 HD
+#EXTINF:-1 tvg-id="BestofIMDB2" tvg-name="Best of IMDB 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg",Best of IMDB 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220455.m3u8
 
-#EXTINF:-1 tvg-id="BestofIMDB4" tvg-name="Best of IMDB 4 HD" group-title="Sinema & Dizi" tvg-logo="",Best of IMDB 4 HD
+#EXTINF:-1 tvg-id="BestofIMDB4" tvg-name="Best of IMDB 4 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg",Best of IMDB 4 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220484.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVVizyon3" tvg-name="DOLBY TV Vizyon 3 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Vizyon 3 HD
+#EXTINF:-1 tvg-id="DOLBYTVVizyon3" tvg-name="DOLBY TV Vizyon 3 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Vizyon 3 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/35572.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVAksiyon1" tvg-name="DOLBY TV Aksiyon 1 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Aksiyon 1 HD
+#EXTINF:-1 tvg-id="DOLBYTVAksiyon1" tvg-name="DOLBY TV Aksiyon 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Aksiyon 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/1271.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVMacera1" tvg-name="DOLBY TV Macera 1 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Macera 1 HD
+#EXTINF:-1 tvg-id="DOLBYTVMacera1" tvg-name="DOLBY TV Macera 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Macera 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/120016.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVMacera2" tvg-name="DOLBY TV Macera 2 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Macera 2 HD
+#EXTINF:-1 tvg-id="DOLBYTVMacera2" tvg-name="DOLBY TV Macera 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Macera 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/130392.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVKorku1" tvg-name="DOLBY TV  Korku 1 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV  Korku 1 HD
+#EXTINF:-1 tvg-id="DOLBYTVKorku1" tvg-name="DOLBY TV  Korku 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV  Korku 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/83492.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVKorku2" tvg-name="DOLBY TV  Korku 2 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV  Korku 2 HD
+#EXTINF:-1 tvg-id="DOLBYTVKorku2" tvg-name="DOLBY TV  Korku 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV  Korku 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/2011.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVKorku3" tvg-name="DOLBY TV  Korku 3 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV  Korku 3 HD
+#EXTINF:-1 tvg-id="DOLBYTVKorku3" tvg-name="DOLBY TV  Korku 3 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV  Korku 3 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220125.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVGerilim1" tvg-name="DOLBY TV Gerilim 1 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Gerilim 1 HD
+#EXTINF:-1 tvg-id="DOLBYTVGerilim1" tvg-name="DOLBY TV Gerilim 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Gerilim 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/27174.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVGerilim2" tvg-name="DOLBY TV  Gerilim 2 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV  Gerilim 2 HD
+#EXTINF:-1 tvg-id="DOLBYTVGerilim2" tvg-name="DOLBY TV  Gerilim 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV  Gerilim 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220139.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVFantasy1" tvg-name="DOLBY TV Fantasy 1 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Fantasy 1 HD
+#EXTINF:-1 tvg-id="DOLBYTVFantasy1" tvg-name="DOLBY TV Fantasy 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Fantasy 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/4255.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVFantasy2" tvg-name="DOLBY TV Fantasy 2 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Fantasy 2 HD
+#EXTINF:-1 tvg-id="DOLBYTVFantasy2" tvg-name="DOLBY TV Fantasy 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Fantasy 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/18268.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVBilimkurgu1" tvg-name="DOLBY TV Bilimkurgu 1 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Bilimkurgu 1 HD
+#EXTINF:-1 tvg-id="DOLBYTVBilimkurgu1" tvg-name="DOLBY TV Bilimkurgu 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Bilimkurgu 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/134960.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVBilimkurgu2" tvg-name="DOLBY TV Bilimkurgu 2 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Bilimkurgu 2 HD
+#EXTINF:-1 tvg-id="DOLBYTVBilimkurgu2" tvg-name="DOLBY TV Bilimkurgu 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Bilimkurgu 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/53065.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVBilimkurgu3" tvg-name="DOLBY TV  Bilimkurgu 3 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV  Bilimkurgu 3 HD
+#EXTINF:-1 tvg-id="DOLBYTVBilimkurgu3" tvg-name="DOLBY TV  Bilimkurgu 3 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV  Bilimkurgu 3 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220176.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVKomedi2" tvg-name="DOLBY TV Komedi 2 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Komedi 2 HD
+#EXTINF:-1 tvg-id="DOLBYTVKomedi2" tvg-name="DOLBY TV Komedi 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Komedi 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/102189.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVKomedi3" tvg-name="DOLBY TV Komedi 3 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Komedi 3 HD
+#EXTINF:-1 tvg-id="DOLBYTVKomedi3" tvg-name="DOLBY TV Komedi 3 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Komedi 3 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220330.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVRomantik1" tvg-name="DOLBY TV Romantik 1 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Romantik 1 HD
+#EXTINF:-1 tvg-id="DOLBYTVRomantik1" tvg-name="DOLBY TV Romantik 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Romantik 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/142765.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVRomantik2" tvg-name="DOLBY TV Romantik 2 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Romantik 2 HD
+#EXTINF:-1 tvg-id="DOLBYTVRomantik2" tvg-name="DOLBY TV Romantik 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Romantik 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/144842.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVDram1" tvg-name="DOLBY TV Dram 1 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Dram 1 HD
+#EXTINF:-1 tvg-id="DOLBYTVDram1" tvg-name="DOLBY TV Dram 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Dram 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/56554.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVDram2" tvg-name="DOLBY TV Dram 2 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Dram 2 HD
+#EXTINF:-1 tvg-id="DOLBYTVDram2" tvg-name="DOLBY TV Dram 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Dram 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/164542.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVDram3" tvg-name="DOLBY TV Dram 3 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Dram 3 HD
+#EXTINF:-1 tvg-id="DOLBYTVDram3" tvg-name="DOLBY TV Dram 3 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Dram 3 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220686.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVUzakdou1" tvg-name="DOLBY TV Uzakdoğu 1 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Uzakdoğu 1 HD
+#EXTINF:-1 tvg-id="DOLBYTVUzakdou1" tvg-name="DOLBY TV Uzakdoğu 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Uzakdoğu 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/133453.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVUzakdou2" tvg-name="DOLBY TV Uzakdoğu 2 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Uzakdoğu 2 HD
+#EXTINF:-1 tvg-id="DOLBYTVUzakdou2" tvg-name="DOLBY TV Uzakdoğu 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Uzakdoğu 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/38448.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVWestern1" tvg-name="DOLBY TV Western 1 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Western 1 HD
+#EXTINF:-1 tvg-id="DOLBYTVWestern1" tvg-name="DOLBY TV Western 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Western 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/152940.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVWestern2" tvg-name="DOLBY TV Western 2 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Western 2 HD
+#EXTINF:-1 tvg-id="DOLBYTVWestern2" tvg-name="DOLBY TV Western 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Western 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/75515.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVSava" tvg-name="DOLBY TV Savaş HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Savaş HD
+#EXTINF:-1 tvg-id="DOLBYTVSava" tvg-name="DOLBY TV Savaş HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Savaş HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/36566.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVNostalji" tvg-name="DOLBY TV Nostalji HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Nostalji HD
+#EXTINF:-1 tvg-id="DOLBYTVNostalji" tvg-name="DOLBY TV Nostalji HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Nostalji HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/25512.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVLoca1" tvg-name="DOLBY TV Loca 1 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Loca 1 HD
+#EXTINF:-1 tvg-id="DOLBYTVLoca1" tvg-name="DOLBY TV Loca 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/38875.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVLoca2" tvg-name="DOLBY TV Loca 2 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Loca 2 HD
+#EXTINF:-1 tvg-id="DOLBYTVLoca2" tvg-name="DOLBY TV Loca 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/26452.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVLoca3" tvg-name="DOLBY TV Loca 3 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Loca 3 HD
+#EXTINF:-1 tvg-id="DOLBYTVLoca3" tvg-name="DOLBY TV Loca 3 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 3 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/31813.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVLoca4" tvg-name="DOLBY TV Loca 4 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Loca 4 HD
+#EXTINF:-1 tvg-id="DOLBYTVLoca4" tvg-name="DOLBY TV Loca 4 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 4 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/59316.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVLoca5" tvg-name="DOLBY TV Loca 5 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Loca 5 HD
+#EXTINF:-1 tvg-id="DOLBYTVLoca5" tvg-name="DOLBY TV Loca 5 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 5 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/38575.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVLoca6" tvg-name="DOLBY TV Loca 6 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Loca 6 HD
+#EXTINF:-1 tvg-id="DOLBYTVLoca6" tvg-name="DOLBY TV Loca 6 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 6 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/143756.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVLoca8" tvg-name="DOLBY TV Loca 8 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Loca 8 HD
+#EXTINF:-1 tvg-id="DOLBYTVLoca8" tvg-name="DOLBY TV Loca 8 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 8 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/114629.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVLoca9" tvg-name="DOLBY TV Loca 9 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Loca 9 HD
+#EXTINF:-1 tvg-id="DOLBYTVLoca9" tvg-name="DOLBY TV Loca 9 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 9 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/41440.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVLoca11" tvg-name="DOLBY TV Loca 11HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Loca 11HD
+#EXTINF:-1 tvg-id="DOLBYTVLoca11" tvg-name="DOLBY TV Loca 11HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 11HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220684.m3u8
 
-#EXTINF:-1 tvg-id="DOLBYTVLoca12" tvg-name="DOLBY TV Loca 12 HD" group-title="Sinema & Dizi" tvg-logo="",DOLBY TV Loca 12 HD
+#EXTINF:-1 tvg-id="DOLBYTVLoca12" tvg-name="DOLBY TV Loca 12 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4c/Dolby.Vision.Logo.png",DOLBY TV Loca 12 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220685.m3u8
 
-#EXTINF:-1 tvg-id="TRMAXSTARWARSHD" tvg-name="MAX STAR WARS HD" group-title="Sinema & Dizi" tvg-logo="",MAX STAR WARS HD
+#EXTINF:-1 tvg-id="TRMAXSTARWARSHD" tvg-name="MAX STAR WARS HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/6c/Star_Wars_Logo.svg",MAX STAR WARS HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/132769.m3u8
 
-#EXTINF:-1 tvg-id="TRMARVELSTUDIOS1HD" tvg-name="MARVEL STUDIOS 1 HD" group-title="Sinema & Dizi" tvg-logo="",MARVEL STUDIOS 1 HD
+#EXTINF:-1 tvg-id="TRMARVELSTUDIOS1HD" tvg-name="MARVEL STUDIOS 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/10/Marvel_Studios_2016_logo.svg",MARVEL STUDIOS 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/119025.m3u8
 
-#EXTINF:-1 tvg-id="TRMARVELSTUDIOS2HD" tvg-name="MARVEL STUDIOS 2 HD" group-title="Sinema & Dizi" tvg-logo="",MARVEL STUDIOS 2 HD
+#EXTINF:-1 tvg-id="TRMARVELSTUDIOS2HD" tvg-name="MARVEL STUDIOS 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/10/Marvel_Studios_2016_logo.svg",MARVEL STUDIOS 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/86272.m3u8
 
-#EXTINF:-1 tvg-id="TRMARVELSTUDIOS3HD" tvg-name="MARVEL STUDIOS 3 HD" group-title="Sinema & Dizi" tvg-logo="",MARVEL STUDIOS 3 HD
+#EXTINF:-1 tvg-id="TRMARVELSTUDIOS3HD" tvg-name="MARVEL STUDIOS 3 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/10/Marvel_Studios_2016_logo.svg",MARVEL STUDIOS 3 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/80152.m3u8
 
-#EXTINF:-1 tvg-id="TRMARVELSTUDIOS4HD" tvg-name="MARVEL STUDIOS 4 HD" group-title="Sinema & Dizi" tvg-logo="",MARVEL STUDIOS 4 HD
+#EXTINF:-1 tvg-id="TRMARVELSTUDIOS4HD" tvg-name="MARVEL STUDIOS 4 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/10/Marvel_Studios_2016_logo.svg",MARVEL STUDIOS 4 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/33439.m3u8
 
-#EXTINF:-1 tvg-id="TRMARVELSTUDIOS5HD" tvg-name="MARVEL STUDIOS 5 HD" group-title="Sinema & Dizi" tvg-logo="",MARVEL STUDIOS 5 HD
+#EXTINF:-1 tvg-id="TRMARVELSTUDIOS5HD" tvg-name="MARVEL STUDIOS 5 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/10/Marvel_Studios_2016_logo.svg",MARVEL STUDIOS 5 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/156173.m3u8
 
-#EXTINF:-1 tvg-id="TRMARVELSTUDIOS6HD" tvg-name="MARVEL STUDIOS 6 HD" group-title="Sinema & Dizi" tvg-logo="",MARVEL STUDIOS 6 HD
+#EXTINF:-1 tvg-id="TRMARVELSTUDIOS6HD" tvg-name="MARVEL STUDIOS 6 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/10/Marvel_Studios_2016_logo.svg",MARVEL STUDIOS 6 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/127427.m3u8
 
-#EXTINF:-1 tvg-id="TRMARVELSTUDIOS7HD" tvg-name="MARVEL STUDIOS 7 HD" group-title="Sinema & Dizi" tvg-logo="",MARVEL STUDIOS 7 HD
+#EXTINF:-1 tvg-id="TRMARVELSTUDIOS7HD" tvg-name="MARVEL STUDIOS 7 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/10/Marvel_Studios_2016_logo.svg",MARVEL STUDIOS 7 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/76125.m3u8
 
-#EXTINF:-1 tvg-id="TRWESTERNSTUDIOS1HD" tvg-name="WESTERN STUDIOS 1 HD" group-title="Sinema & Dizi" tvg-logo="",WESTERN STUDIOS 1 HD
+#EXTINF:-1 tvg-id="TRWESTERNSTUDIOS1HD" tvg-name="WESTERN STUDIOS 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Film_reel.svg/320px-Film_reel.svg.png",WESTERN STUDIOS 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/158816.m3u8
 
-#EXTINF:-1 tvg-id="TRWESTERNSTUDIOS2HD" tvg-name="WESTERN STUDIOS 2 HD" group-title="Sinema & Dizi" tvg-logo="",WESTERN STUDIOS 2 HD
+#EXTINF:-1 tvg-id="TRWESTERNSTUDIOS2HD" tvg-name="WESTERN STUDIOS 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Film_reel.svg/320px-Film_reel.svg.png",WESTERN STUDIOS 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/30073.m3u8
 
 #EXTINF:-1 tvg-id="TRNETFLIXAksiyon" tvg-name="NETFLIX Aksiyon HD" group-title="Sinema & Dizi" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/international/netflix-int.png",NETFLIX Aksiyon HD
@@ -779,64 +767,64 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/110639.m3u8
 #EXTINF:-1 tvg-id="TRNETFLIX5" tvg-name="NETFLIX 5 HD" group-title="Sinema & Dizi" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/international/netflix-int.png",NETFLIX 5 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/12850.m3u8
 
-#EXTINF:-1 tvg-id="TRKONUANLAR1" tvg-name="KONUŞANLAR 1 HD" group-title="Sinema & Dizi" tvg-logo="",KONUŞANLAR 1 HD
+#EXTINF:-1 tvg-id="TRKONUANLAR1" tvg-name="KONUŞANLAR 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/d/db/Exxen.png",KONUŞANLAR 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/33747.m3u8
 
-#EXTINF:-1 tvg-id="TRKONUANLAR2" tvg-name="KONUŞANLAR 2 HD" group-title="Sinema & Dizi" tvg-logo="",KONUŞANLAR 2 HD
+#EXTINF:-1 tvg-id="TRKONUANLAR2" tvg-name="KONUŞANLAR 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/d/db/Exxen.png",KONUŞANLAR 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/72359.m3u8
 
-#EXTINF:-1 tvg-id="TRKONUANLAR3" tvg-name="KONUŞANLAR 3 HD" group-title="Sinema & Dizi" tvg-logo="",KONUŞANLAR 3 HD
+#EXTINF:-1 tvg-id="TRKONUANLAR3" tvg-name="KONUŞANLAR 3 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/d/db/Exxen.png",KONUŞANLAR 3 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/76402.m3u8
 
-#EXTINF:-1 tvg-id="TRGB" tvg-name="GİBİ  HD" group-title="Sinema & Dizi" tvg-logo="",GİBİ  HD
+#EXTINF:-1 tvg-id="TRGB" tvg-name="GİBİ  HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/d/db/Exxen.png",GİBİ  HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/44636.m3u8
 
-#EXTINF:-1 tvg-id="TROSESTRKYERAP" tvg-name="O SES TÜRKİYE RAP HD" group-title="Sinema & Dizi" tvg-logo="",O SES TÜRKİYE RAP HD
+#EXTINF:-1 tvg-id="TROSESTRKYERAP" tvg-name="O SES TÜRKİYE RAP HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/tr/c/c7/Osesturkiyelogo.jpg",O SES TÜRKİYE RAP HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/129589.m3u8
 
-#EXTINF:-1 tvg-id="TRLEYLAileMECNUN" tvg-name="LEYLA ile MECNUN HD" group-title="Sinema & Dizi" tvg-logo="",LEYLA ile MECNUN HD
+#EXTINF:-1 tvg-id="TRLEYLAileMECNUN" tvg-name="LEYLA ile MECNUN HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/tr/d/d9/Leyla-ile-mecnun.png",LEYLA ile MECNUN HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/135820.m3u8
 
-#EXTINF:-1 tvg-id="TRBELGESEL" tvg-name="BELGESEL HD" group-title="Sinema & Dizi" tvg-logo="",BELGESEL HD
+#EXTINF:-1 tvg-id="TRBELGESEL" tvg-name="BELGESEL HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/0/09/TRT_Belgesel_logo_%282019-%29.svg",BELGESEL HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/96802.m3u8
 
-#EXTINF:-1 tvg-id="TREXXENTV1" tvg-name="EXXEN TV 1 HD" group-title="Sinema & Dizi" tvg-logo="",EXXEN TV 1 HD
+#EXTINF:-1 tvg-id="TREXXENTV1" tvg-name="EXXEN TV 1 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/d/db/Exxen.png",EXXEN TV 1 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/103232.m3u8
 
-#EXTINF:-1 tvg-id="TREXXENTV2" tvg-name="EXXEN TV 2 HD" group-title="Sinema & Dizi" tvg-logo="",EXXEN TV 2 HD
+#EXTINF:-1 tvg-id="TREXXENTV2" tvg-name="EXXEN TV 2 HD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/d/db/Exxen.png",EXXEN TV 2 HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/136326.m3u8
 
-#EXTINF:-1 tvg-id="DESKYSELECTPROGRAMMUBERSICHT" tvg-name="DE: SKY SELECT  PROGRAMMUBERSICHT" group-title="Sinema & Dizi" tvg-logo="",DE: SKY SELECT  PROGRAMMUBERSICHT
+#EXTINF:-1 tvg-id="DESKYSELECTPROGRAMMUBERSICHT" tvg-name="DE: SKY SELECT  PROGRAMMUBERSICHT" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/67/Sky_Select_DE_Logo_2016.png",DE: SKY SELECT  PROGRAMMUBERSICHT
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/42112.m3u8
 
-#EXTINF:-1 tvg-id="DESKYSELECT1FHD" tvg-name="DE: SKY SELECT  1 FHD" group-title="Sinema & Dizi" tvg-logo="",DE: SKY SELECT  1 FHD
+#EXTINF:-1 tvg-id="DESKYSELECT1FHD" tvg-name="DE: SKY SELECT  1 FHD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/67/Sky_Select_DE_Logo_2016.png",DE: SKY SELECT  1 FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/110613.m3u8
 
-#EXTINF:-1 tvg-id="DESKYSELECT2FHD" tvg-name="DE: SKY SELECT 2 FHD" group-title="Sinema & Dizi" tvg-logo="",DE: SKY SELECT 2 FHD
+#EXTINF:-1 tvg-id="DESKYSELECT2FHD" tvg-name="DE: SKY SELECT 2 FHD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/67/Sky_Select_DE_Logo_2016.png",DE: SKY SELECT 2 FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/92175.m3u8
 
-#EXTINF:-1 tvg-id="DESKYSELECT3FHD" tvg-name="DE: SKY SELECT  3 FHD" group-title="Sinema & Dizi" tvg-logo="",DE: SKY SELECT  3 FHD
+#EXTINF:-1 tvg-id="DESKYSELECT3FHD" tvg-name="DE: SKY SELECT  3 FHD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/67/Sky_Select_DE_Logo_2016.png",DE: SKY SELECT  3 FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/121826.m3u8
 
-#EXTINF:-1 tvg-id="DESKYSELECT4FHD" tvg-name="DE: SKY SELECT 4 FHD" group-title="Sinema & Dizi" tvg-logo="",DE: SKY SELECT 4 FHD
+#EXTINF:-1 tvg-id="DESKYSELECT4FHD" tvg-name="DE: SKY SELECT 4 FHD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/67/Sky_Select_DE_Logo_2016.png",DE: SKY SELECT 4 FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/84278.m3u8
 
-#EXTINF:-1 tvg-id="DESKYSELECT5FHD" tvg-name="DE: SKY SELECT 5 FHD" group-title="Sinema & Dizi" tvg-logo="",DE: SKY SELECT 5 FHD
+#EXTINF:-1 tvg-id="DESKYSELECT5FHD" tvg-name="DE: SKY SELECT 5 FHD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/67/Sky_Select_DE_Logo_2016.png",DE: SKY SELECT 5 FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/32870.m3u8
 
-#EXTINF:-1 tvg-id="DESKYSELECT6FHD" tvg-name="DE: SKY SELECT 6 FHD" group-title="Sinema & Dizi" tvg-logo="",DE: SKY SELECT 6 FHD
+#EXTINF:-1 tvg-id="DESKYSELECT6FHD" tvg-name="DE: SKY SELECT 6 FHD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/67/Sky_Select_DE_Logo_2016.png",DE: SKY SELECT 6 FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/320.m3u8
 
-#EXTINF:-1 tvg-id="DESKYSELECT7FHD" tvg-name="DE: SKY SELECT 7 FHD" group-title="Sinema & Dizi" tvg-logo="",DE: SKY SELECT 7 FHD
+#EXTINF:-1 tvg-id="DESKYSELECT7FHD" tvg-name="DE: SKY SELECT 7 FHD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/67/Sky_Select_DE_Logo_2016.png",DE: SKY SELECT 7 FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/86634.m3u8
 
-#EXTINF:-1 tvg-id="DESKYSELECT8FHD" tvg-name="DE: SKY SELECT 8 FHD" group-title="Sinema & Dizi" tvg-logo="",DE: SKY SELECT 8 FHD
+#EXTINF:-1 tvg-id="DESKYSELECT8FHD" tvg-name="DE: SKY SELECT 8 FHD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/67/Sky_Select_DE_Logo_2016.png",DE: SKY SELECT 8 FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/42275.m3u8
 
-#EXTINF:-1 tvg-id="DESKYSELECT9FHD" tvg-name="DE: SKY SELECT 9 FHD" group-title="Sinema & Dizi" tvg-logo="",DE: SKY SELECT 9 FHD
+#EXTINF:-1 tvg-id="DESKYSELECT9FHD" tvg-name="DE: SKY SELECT 9 FHD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/67/Sky_Select_DE_Logo_2016.png",DE: SKY SELECT 9 FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/91806.m3u8
 
-#EXTINF:-1 tvg-id="DESKYSELECT10FHD" tvg-name="DE: SKY SELECT 10 FHD" group-title="Sinema & Dizi" tvg-logo="",DE: SKY SELECT 10 FHD
+#EXTINF:-1 tvg-id="DESKYSELECT10FHD" tvg-name="DE: SKY SELECT 10 FHD" group-title="Sinema & Dizi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/67/Sky_Select_DE_Logo_2016.png",DE: SKY SELECT 10 FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/2222.m3u8
 `
 function proxyUrl(url: string): string {
