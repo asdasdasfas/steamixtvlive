@@ -119,7 +119,8 @@ function doRequest(reqHeaders, opts, body, redirectCount, res) {
     }
     const headers = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
     delete headers['transfer-encoding']
-    try { res.writeHead(sc, headers); proxyRes.pipe(res) } catch {}
+    const statusCode = sc === 551 ? 502 : sc
+    try { res.writeHead(statusCode, headers); proxyRes.pipe(res) } catch {}
   })
   proxyReq.on('error', () => { if (done) return; done = true; try { res.writeHead(502); res.end('Proxy Error') } catch {} })
   proxyReq.on('timeout', () => { if (done) return; done = true; proxyReq.destroy(); try { res.writeHead(504); res.end('Timeout') } catch {} })
@@ -236,7 +237,7 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
         const headers = { ...proxyRes.headers, 'access-control-allow-origin': '*' }
         delete headers['transfer-encoding']
         delete headers['content-encoding']
-        try { res.writeHead(sc, headers); res.end(bodyStr) } catch {}
+        try { res.writeHead(sc === 551 ? 502 : sc, headers); res.end(bodyStr) } catch {}
       })
     })
     proxyReq.on('error', () => { if (done) return; done = true; try { res.writeHead(502); res.end('Proxy Error') } catch {} })
