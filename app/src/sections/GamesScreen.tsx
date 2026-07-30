@@ -26,7 +26,7 @@ export default function GamesScreen() {
         setGames(data)
         setCats(c)
         setGamesByCat(byCat)
-        setPlaying(data[0]?.slug || null)
+        setPlaying(data.find(g => g.slug === 'pk-subway-surfers')?.slug || data[0]?.slug || null)
         setLoading(false)
       })
       .catch(() => setLoading(false))
