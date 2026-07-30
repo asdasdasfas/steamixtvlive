@@ -494,18 +494,6 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/101581.m3u8
 #EXTINF:-1 tvg-id="TRDISCOVERYIDHD" tvg-name="TR: DISCOVERY ID HD" group-title="Belgesel" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/BELGESELL/ID.png",TR: DISCOVERY ID HD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/126779.m3u8
 
-#EXTINF:-1 tvg-id="TRVASATEXPLOREFHD" tvg-name="TR: VİASAT EXPLORE FHD" group-title="Belgesel" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/BELGESELL/VIASAT.EXPLORE.png",TR: VİASAT EXPLORE FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/99775.m3u8
-
-#EXTINF:-1 tvg-id="TRPOLSKAMERASIHD" tvg-name="TR: POLİS KAMERASI HD" group-title="Belgesel" tvg-logo="https://zorexlogo.dynuddns.com:8080/zrx/BELGESEL/POLIS.KAMERASI.png",TR: POLİS KAMERASI HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/220392.m3u8
-
-#EXTINF:-1 tvg-id="TRTRTGENC" tvg-name="TR: TRT GENC" group-title="Belgesel" tvg-logo="",TR: TRT GENC
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/213805.m3u8
-
-#EXTINF:-1 tvg-id="TRDOCUSCREENFHD" tvg-name="TR: DOCU SCREEN FHD" group-title="Belgesel" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/SONRADAN/DOCUSCREEN.png",TR: DOCU SCREEN FHD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/173948.m3u8
-
 #EXTINF:-1 tvg-id="TRBBCEARTHFHD" tvg-name="TR: BBC EARTH FHD" group-title="Belgesel" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/BELGESELL/BBC.EARTH.png",TR: BBC EARTH FHD
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/17759.m3u8
 
@@ -514,9 +502,6 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/2820.m3u8
 
 #EXTINF:-1 tvg-id="TRFASTFUN" tvg-name="TR: FAST & FUN" group-title="Belgesel" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/BELGESELL/FAST.AND.FUN.png",TR: FAST & FUN
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/88006.m3u8
-
-#EXTINF:-1 tvg-id="TRLOVENATUREHD" tvg-name="TR: LOVE NATURE HD" group-title="Belgesel" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/BELGESELL/LOVE.NATURE.png",TR: LOVE NATURE HD
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/147538.m3u8
 
 #EXTINF:-1 tvg-id="TRNATUREESCAPE" tvg-name="TR: NATURE ESCAPE" group-title="Belgesel" tvg-logo="https://bluelogo8990.duckdns.org:8080/LOGO.YENI/TR/SONRADAN/NATURO.ESPACE.png",TR: NATURE ESCAPE
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/173916.m3u8
