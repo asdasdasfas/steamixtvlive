@@ -1318,9 +1318,13 @@ export function parseRotationData(): { channels: RotationChannel[], categories: 
 }
 
 function parseExtinf(line: string): RotationChannel | null {
-  const match = line.match(/tvg-id="([^"]*)".*tvg-name="([^"]*)".*group-title="([^"]*)".*tvg-logo="([^"]*)".*,(.+)$/)
-  if (!match) return null
-  const [, tvgId, tvgName, groupTitle, tvgLogo, name] = match
+  const idMatch = line.match(/tvg-id="([^"]*)"/)
+  const nameMatch = line.match(/tvg-name="([^"]*)"/)
+  const groupMatch = line.match(/group-title="([^"]*)"/)
+  const logoMatch = line.match(/tvg-logo="([^"]*)"/)
+  const titleMatch = line.match(/,(.+)$/)
+  if (!idMatch || !nameMatch || !groupMatch || !logoMatch || !titleMatch) return null
+  const tvgId = idMatch[1], tvgName = nameMatch[1], groupTitle = groupMatch[1], tvgLogo = logoMatch[1], name = titleMatch[1]
   return { id: tvgId || name, name: name.trim(), tvgId, tvgName, groupTitle, tvgLogo, urls: [] }
 }
 
