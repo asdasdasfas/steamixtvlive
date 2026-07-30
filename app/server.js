@@ -525,6 +525,54 @@ http.createServer((req, res) => {
     return
   }
 
+  // Game list endpoint: fetches EasyHub TR sitemap, returns all game slugs+names+categories
+  if (req.url === '/game-list') {
+    const sitemapUrl = 'https://easyhub.games/tr/sitemaps/index.xml'
+    const opts = makeHttpOpts(sitemapUrl, 'GET', {})
+    httpModule(opts).get(opts, proxyRes => {
+      const chunks = []
+      proxyRes.on('data', c => chunks.push(c))
+      proxyRes.on('end', () => {
+        const body = Buffer.concat(chunks).toString('utf8')
+        const slugs = [...body.matchAll(/easyhub\.games\/tr\/games\/([^<\s\?"]+)/g)].map(m => m[1])
+        const unique = [...new Set(slugs)]
+        const games = unique.map(slug => {
+          let name = slug
+            .replace(/^pk-|^iz-|^btt-|^gd-|^bxt-|^rby-|^hgj-|^nwi-|^swm-|^hni-|^unn-|^kck-|^arq-|^lua-|^pcr-|^pjc-|^xus-|^ufh-|^nmt-|^utk-|^ht-rt-/gi, '')
+            .replace(/^p-[a-z]{2,3}-/gi, '')
+            .replace(/---/g, '-')
+            .replace(/-/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+          name = name.replace(/\b\w/g, c => c.toUpperCase())
+            .replace(/\b3d\b/gi, '3D')
+            .replace(/\bIo\b/g, 'io')
+            .replace(/\bIdle\b/g, 'Idle')
+          if (!name || name.length < 2) name = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+
+          const lslug = slug.toLowerCase()
+          let cat = 'Diğer'
+          if (/\b(racing|race|car|drift|moto|drive|stunt|parking|rider|bike|turbo|ramp|driving|kart|rally|traffic|offroad|truck|highway|drag)\b/.test(lslug)) cat = 'Araba'
+          else if (/\b(zombi|zombie|horror|scary|haunt|slender|korku|krampus|evil|nightmare|skinwalker|halloween|chainsaw|kuzbass|undead|trapped|hell)\b/.test(lslug)) cat = 'Korku'
+          else if (/\b(soccer|football|basketball|sport|golf|penalty|tennis|hoop|mini-caps|puncher|goalkeeper)\b/.test(lslug)) cat = 'Spor'
+          else if (/\b(parkour|obby|jump|run|runner|climb|rooftop|obstacle|only-up|challenge)\b/.test(lslug)) cat = 'Parkur'
+          else if (/\b(murder|escape|flee|stealth|detective|room|mystery|investigation|agent|spy|heist)\b/.test(lslug)) cat = 'Macera'
+          else if (/\b(merge|craft|build|farm|harvest|garden|dig|mine|construction|decorate|design|build)\b/.test(lslug)) cat = 'Yaratıcı'
+          else if (/\b(tycoon|idle|clicker|simulator|shop|store|business|factory|empire|manager|company|fever|hustle)\b/.test(lslug)) cat = 'İşletme'
+          else if (/\b(shoot|gun|sniper|war|fps|battle|army|weapon|bullet|aim|shot|rifle|pistol)\b/.test(lslug)) cat = 'Nişancı'
+          else if (/\b(puzzle|match|sort|tile|block|merge|connect|sort|word|quiz)\b/.test(lslug)) cat = 'Bulmaca'
+          else if (/\b(fighting|fighter|clash|duel|brawl|knockout|punch|kick|boxing|wrestle)\b/.test(lslug)) cat = 'Dövüş'
+          else if (/\b(run|runner|dash|rush|speed)\b/.test(lslug)) cat = 'Koşu'
+          return { slug, name, cat }
+        })
+        res.setHeader('Content-Type', 'application/json')
+        res.setHeader('Access-Control-Allow-Origin', '*')
+        res.end(JSON.stringify(games))
+      })
+    }).on('error', () => { res.writeHead(500); res.end('[]') })
+    return
+  }
+
   // Game proxy: fetches EasyHub game page at the SAME URL path so Next.js works
   // /tr/games/{gameId}  e.g. /tr/games/pk-subway-surfers
   if (req.url.startsWith('/tr/games/')) {
