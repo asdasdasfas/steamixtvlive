@@ -633,36 +633,6 @@ footer, section, .text-center.py-8,
     return
   }
 
-  // Gam.onl proxy: blocks ads, makes fullscreen
-  // /gam-onl/ - embeds gam.onl retro game site
-  if (req.url.startsWith('/gam-onl/')) {
-    const targetUrl = 'https://gam.onl/'
-    const opts = makeHttpOpts(targetUrl, 'GET', {})
-    httpModule(opts).get(opts, proxyRes => {
-      const chunks = []
-      proxyRes.on('data', c => chunks.push(c))
-      proxyRes.on('end', () => {
-        let html = Buffer.concat(chunks).toString('utf8')
-        // Remove ad scripts
-        html = html.replace(/<script[^>]*>[\s\S]*?google-analytics[\s\S]*?<\/script>/gi, '')
-        html = html.replace(/<script[^>]*>[\s\S]*?googletag[\s\S]*?<\/script>/gi, '')
-        html = html.replace(/<script[^>]*src="[^"]*?(doubleclick|google-analytics|googletag|adservice|popup)[^"]*"[^>]*><\/script>/gi, '')
-        html = html.replace(/<iframe[^>]*?src="[^"]*?(doubleclick|google|ads|ad-)[^"]*"[^>]*>.*?<\/iframe>/gis, '')
-        html = html.replace(/<ins[^>]*class="[^"]*?adsbygoogle[^"]*"[^>]*>.*?<\/ins>/gis, '')
-        // Inject fullscreen CSS
-        const style = `<style>
-html,body{margin:0!important;padding:0!important;width:100vw!important;height:100vh!important;overflow:hidden!important;background:#000!important}
-#game{width:100vw!important;height:100vh!important}
-header,nav,footer,.ad,.ads,.adsbygoogle,.popup,[class*="ad-"],[id*="ad-"]{display:none!important}
-</style>`
-        html = html.replace('</head>', style + '</head>')
-        res.writeHead(200, { 'Content-Type': 'text/html', 'Access-Control-Allow-Origin': '*' })
-        res.end(html)
-      })
-    }).on('error', () => { res.writeHead(502); res.end('Proxy Error') })
-    return
-  }
-
   // Console log view endpoint
   if (req.url === '/__logs') {
     res.setHeader('Content-Type', 'application/json')

@@ -197,7 +197,7 @@ export default function GamesScreen() {
           {playing ? (
             <iframe
               key={source + (playing || '')}
-              src={source === 'easyhub' ? `/tr/games/${playing}` : source === 'pc' ? (game?.url || '') : '/gam-onl/'}
+              src={source === 'easyhub' ? `/tr/games/${playing}` : source === 'pc' ? (game?.url || '') : 'https://gam.onl/'}
               className={`w-full h-full ${gameLoaded ? '' : 'invisible'}`}
               allowFullScreen
               allow="autoplay; fullscreen; gamepad"
