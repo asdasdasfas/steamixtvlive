@@ -7,6 +7,7 @@ interface PosterProps {
   className?: string
   onClick?: () => void
   onError?: () => void
+  badge?: boolean
 }
 
 function fixUrl(src?: string): string | undefined {
@@ -16,7 +17,7 @@ function fixUrl(src?: string): string | undefined {
   return src
 }
 
-export default function Poster({ src, type, className, onClick, onError }: PosterProps) {
+export default function Poster({ src, type, className, onClick, onError, badge }: PosterProps) {
   const [failed, setFailed] = useState(false)
   const url = fixUrl(src)
 
@@ -32,6 +33,11 @@ export default function Poster({ src, type, className, onClick, onError }: Poste
   return (
     <div className="w-full h-full relative" onClick={onClick}>
       <img src={url} alt="" className={`w-full h-full object-cover saturate-[1.1] contrast-[1.05] ${className || ''}`} loading="lazy" onError={() => { setFailed(true); onError?.() }} />
+      {badge && (
+        <span className="pointer-events-none absolute top-1.5 left-1.5 z-50 rounded-md bg-gradient-to-r from-red-600 to-orange-500 px-2 py-0.5 text-[11px] font-extrabold text-white shadow-md shadow-black/40 tracking-wider uppercase">
+          Yeni
+        </span>
+      )}
     </div>
   )
 }
