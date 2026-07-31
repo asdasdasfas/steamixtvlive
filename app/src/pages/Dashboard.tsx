@@ -151,7 +151,7 @@ export default function Dashboard() {
 
         // Ana sayfa 2+2 (tüm öğeler)
         const homeMovieCats = fvc.filter(c => !isSeriesCategory(c.category_name)).slice(0, 2)
-        const homeSeriesCats = fsc.slice(0, 2)
+        const homeSeriesCats = pickHomeSeries(fsc)
         const filterM = (r: any[]) => (r || []).filter((i: any) => hasPoster(i, 'movie'))
         const filterS = (r: any[]) => (r || []).filter((i: any) => hasPoster(i, 'series'))
         const [m1, m2, s1, s2] = await Promise.all([
@@ -450,6 +450,18 @@ export default function Dashboard() {
     return withoutPrefix
   }
 
+  // Ana sayfa dizi sıralaması: YERLİ GÜNCEL DİZİLER her zaman ikinci sırada
+  const pickHomeSeries = (cats: any[]) => {
+    const rest = cats.filter((c: any) => trName(c.category_name) !== 'YERLİ GÜNCEL DİZİLER')
+    const guncel = cats.find((c: any) => trName(c.category_name) === 'YERLİ GÜNCEL DİZİLER')
+    const out: any[] = []
+    if (rest[0]) out.push(rest[0])
+    if (guncel) out.push(guncel)
+    let i = 1
+    while (out.length < 2 && i < rest.length) { out.push(rest[i]); i++ }
+    return out
+  }
+
   const proxyImg = (url: string) => {
     if (!url) return url
     if (url.startsWith('/t/p/')) return `https://image.tmdb.org${url}`
@@ -551,7 +563,7 @@ export default function Dashboard() {
 
   // Determine which categories to show on homepage (2+2)
   const homeMovieCats = useMemo(() => filteredVodCats.filter(c => !isSeriesCategory(c.category_name)).slice(0, 2), [filteredVodCats])
-  const homeSeriesCats = useMemo(() => seriesCats.slice(0, 2), [seriesCats])
+  const homeSeriesCats = useMemo(() => pickHomeSeries(seriesCats), [seriesCats])
 
   const navCategoryName = useMemo(() => {
     if (tab === 'movies' && selectedCat) {
@@ -682,7 +694,14 @@ export default function Dashboard() {
               return (
                 <div key={cat.category_id} className={`px-4 md:px-8 ${idx < homeSeriesCats.length - 1 ? 'mb-6' : ''}`}>
                   <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-sm font-semibold text-white">{trName(cat.category_name)}</h2>
+                    <h2 className="flex items-center gap-2 text-sm font-semibold text-white">{trName(cat.category_name)}
+                      {trName(cat.category_name) === 'YERLİ GÜNCEL DİZİLER' && (
+                        <span className="inline-flex items-center gap-1 shrink-0">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_6px_2px_rgba(74,222,128,0.8)]" />
+                          <span className="text-[8px] font-bold text-green-400 tracking-widest">GÜNCEL VERİLER</span>
+                        </span>
+                      )}
+                    </h2>
                     <div className="flex items-center gap-1">
                       <button onClick={() => scrollRow(cat.category_id, 'left')}
                         className="w-7 h-7 rounded-full bg-white/10 hover:bg-[#0099ff] hover:shadow-[0_0_15px_rgba(0,153,255,0.5)] flex items-center justify-center transition-all duration-300">
@@ -955,8 +974,14 @@ function SeriesCategoryGrid({ items, loading, categoryName, adultCover }: any) {
 
   return (
     <div className="px-4 md:px-6 pt-3">
-      <h2 className="text-base font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-        {categoryName}
+      <h2 className="text-base font-bold text-white mb-3 flex items-center gap-2 flex-wrap" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+        {categoryName} <span className="text-xs text-gray-500 font-normal">({items?.length || 0})</span>
+        {categoryName === 'YERLİ GÜNCEL DİZİLER' && (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/30">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_6px_2px_rgba(74,222,128,0.8)]" />
+            <span className="text-[9px] font-bold text-green-400 tracking-widest">GÜNCEL VERİLER</span>
+          </span>
+        )}
       </h2>
       {loading ? (
         <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-[#0099ff] animate-spin" /></div>
@@ -1141,7 +1166,7 @@ function SlideCategoryPanel({ title, items, selected, onSelect }: { title: strin
                 }`}>
                 <span className="flex items-center justify-between gap-2">
                   <span className="truncate">{cName}</span>
-                  {cName === 'GÜNCELLENEN FİLMLER' && (
+                  {cName === 'GÜNCELLENEN FİLMLER' || cName === 'YERLİ GÜNCEL DİZİLER' && (
                     <span className="inline-flex items-center gap-1 shrink-0">
                       <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_6px_2px_rgba(74,222,128,0.8)]" />
                       <span className="text-[8px] font-bold text-green-400 tracking-widest">GÜNCEL VERİLER</span>
