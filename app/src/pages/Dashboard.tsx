@@ -285,7 +285,7 @@ export default function Dashboard() {
     'TR ✦ Cuma Dizi': 'CUMA DİZİLERİ',
     'TR ✦ Cumartesi Dizi': 'CUMARTESİ DİZİLERİ',
     'TR ✦ Pazar Dizi': 'PAZAR DİZİLERİ',
-    'TR ✦ SİNEVİZYON 2025/2026': 'SİNEMA ARŞİVİ 2025-2026',
+    'TR ✦ SİNEVİZYON 2025/2026': 'GÜNCELLENEN FİLMLER',
     'TR ✦ SİNEVİZYON 2024/2025': 'SİNEMA ARŞİVİ 2024-2025',
     'TR ✦ SİNEVİZYON 2023/2024': 'SİNEMA ARŞİVİ 2023-2024',
     'TR ✦ SİNEVİZYON 2021/2022': 'SİNEMA ARŞİVİ 2021-2022',
@@ -997,7 +997,7 @@ function SlideCategoryPanel({ title, items, selected, onSelect }: { title: strin
     const categoryNameOverride: Record<string, string> = {
       'TR ✦ Pazartesi Dizi': 'PAZARTESİ DİZİLERİ', 'TR ✦ Salı Dizi': 'SALI DİZİLERİ', 'TR ✦ Çarşamba Dizi': 'ÇARŞAMBA DİZİLERİ',
       'TR ✦ Perşembe Dizi': 'PERŞEMBE DİZİLERİ', 'TR ✦ Cuma Dizi': 'CUMA DİZİLERİ', 'TR ✦ Cumartesi Dizi': 'CUMARTESİ DİZİLERİ',
-      'TR ✦ Pazar Dizi': 'PAZAR DİZİLERİ', 'TR ✦ SİNEVİZYON 2025/2026': 'SİNEMA ARŞİVİ 2025-2026',
+      'TR ✦ Pazar Dizi': 'PAZAR DİZİLERİ', 'TR ✦ SİNEVİZYON 2025/2026': 'GÜNCELLENEN FİLMLER',
       'TR ✦ SİNEVİZYON 2024/2025': 'SİNEMA ARŞİVİ 2024-2025', 'TR ✦ SİNEVİZYON 2023/2024': 'SİNEMA ARŞİVİ 2023-2024',
       'TR ✦ SİNEVİZYON 2021/2022': 'SİNEMA ARŞİVİ 2021-2022', 'TR ✦ SİNETÜRK': 'SİNEMA VE FİLM KÜLLİYATI',
       'TR ✦ 4K SİNEMA': '4K SİNEMA', 'TR ✦ AKSİYON & MACERA': 'AKSİYON VE MACERA',
