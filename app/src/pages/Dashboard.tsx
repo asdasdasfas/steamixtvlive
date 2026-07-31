@@ -152,19 +152,22 @@ export default function Dashboard() {
         // Ana sayfa satırları: 1) GÜNCELLENEN FİLMLER 2) YERLİ GÜNCEL DİZİLER 3) ikinci film 4) ikinci dizi
         const homeMovieCats = fvc.filter(c => !isSeriesCategory(c.category_name)).slice(0, 2)
         const homeSeriesCats = fsc.slice(0, 2)
+        const sinemaCat = fvc.find((c: any) => trName(c.category_name) === 'GÜNCELLENEN FİLMLER') || fvc.find((c: any) => (c.category_name || '').includes('SİNEVİZYON 2025'))
         const ygdCat = fsc.find((c: any) => trName(c.category_name) === 'YERLİ GÜNCEL DİZİLER')
         const filterM = (r: any[]) => (r || []).filter((i: any) => hasPoster(i, 'movie'))
         const filterS = (r: any[]) => (r || []).filter((i: any) => hasPoster(i, 'series'))
-        const [m1, m2, s1, s2, ygd] = await Promise.all([
+        const [m1, m2, s1, s2, ygd, sine] = await Promise.all([
           homeMovieCats[0] ? fetchVods(server.base_url, server.xtream_user, server.xtream_pass, homeMovieCats[0].category_id).then(filterM).catch(() => []) : Promise.resolve([]),
           homeMovieCats[1] ? fetchVods(server.base_url, server.xtream_user, server.xtream_pass, homeMovieCats[1].category_id).then(filterM).catch(() => []) : Promise.resolve([]),
           homeSeriesCats[0] ? fetchSeries(server.base_url, server.xtream_user, server.xtream_pass, homeSeriesCats[0].category_id).then(filterS).catch(() => []) : Promise.resolve([]),
           homeSeriesCats[1] ? fetchSeries(server.base_url, server.xtream_user, server.xtream_pass, homeSeriesCats[1].category_id).then(filterS).catch(() => []) : Promise.resolve([]),
           ygdCat ? fetchSeries(server.base_url, server.xtream_user, server.xtream_pass, ygdCat.category_id).then(filterS).catch(() => []) : Promise.resolve([]),
+          sinemaCat ? fetchVods(server.base_url, server.xtream_user, server.xtream_pass, sinemaCat.category_id).then(filterM).catch(() => []) : Promise.resolve([]),
         ])
         const mv: Record<string, any[]> = {}
         if (homeMovieCats[0]) mv[homeMovieCats[0].category_id] = m1
         if (homeMovieCats[1]) mv[homeMovieCats[1].category_id] = m2
+        if (sinemaCat) mv[sinemaCat.category_id] = sine
         setVodItems(prev => ({ ...prev, ...mv }))
         const sv: Record<string, any[]> = {}
         if (homeSeriesCats[0]) sv[homeSeriesCats[0].category_id] = s1
@@ -561,14 +564,17 @@ export default function Dashboard() {
   const homeMovieCats = useMemo(() => filteredVodCats.filter(c => !isSeriesCategory(c.category_name)).slice(0, 2), [filteredVodCats])
   const homeSeriesCats = useMemo(() => seriesCats.slice(0, 2), [seriesCats])
   const ygdHomeCat = useMemo(() => seriesCats.find((c: any) => trName(c.category_name) === 'YERLİ GÜNCEL DİZİLER'), [seriesCats])
+  const sinemaHomeCat = useMemo(() => filteredVodCats.find((c: any) => trName(c.category_name) === 'GÜNCELLENEN FİLMLER') || filteredVodCats.find((c: any) => (c.category_name || '').includes('SİNEVİZYON 2025')), [filteredVodCats])
   const homeRows = useMemo(() => {
     const rows: { cat: any; type: 'movie' | 'series' }[] = []
-    if (homeMovieCats[0]) rows.push({ cat: homeMovieCats[0], type: 'movie' })
+    if (sinemaHomeCat) rows.push({ cat: sinemaHomeCat, type: 'movie' })
     if (ygdHomeCat) rows.push({ cat: ygdHomeCat, type: 'series' })
-    if (homeMovieCats[1]) rows.push({ cat: homeMovieCats[1], type: 'movie' })
-    homeSeriesCats.filter(c => c.category_id !== ygdHomeCat?.category_id).forEach(cat => rows.push({ cat, type: 'series' }))
+    const restMovies = homeMovieCats.filter(c => c.category_id !== sinemaHomeCat?.category_id)
+    const restSeries = homeSeriesCats.filter(c => c.category_id !== ygdHomeCat?.category_id)
+    if (restMovies[0]) rows.push({ cat: restMovies[0], type: 'movie' })
+    if (restSeries[0]) rows.push({ cat: restSeries[0], type: 'series' })
     return rows
-  }, [homeMovieCats, homeSeriesCats, ygdHomeCat])
+  }, [homeMovieCats, homeSeriesCats, ygdHomeCat, sinemaHomeCat])
 
   const navCategoryName = useMemo(() => {
     if (tab === 'movies' && selectedCat) {
