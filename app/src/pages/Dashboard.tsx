@@ -149,16 +149,18 @@ export default function Dashboard() {
           setHeroItems(heroData)
         }
 
-        // Ana sayfa 2+2 (tüm öğeler)
+        // Ana sayfa satırları: 1) GÜNCELLENEN FİLMLER 2) YERLİ GÜNCEL DİZİLER 3) ikinci film 4) ikinci dizi
         const homeMovieCats = fvc.filter(c => !isSeriesCategory(c.category_name)).slice(0, 2)
-        const homeSeriesCats = pickHomeSeries(fsc)
+        const homeSeriesCats = fsc.slice(0, 2)
+        const ygdCat = fsc.find((c: any) => trName(c.category_name) === 'YERLİ GÜNCEL DİZİLER')
         const filterM = (r: any[]) => (r || []).filter((i: any) => hasPoster(i, 'movie'))
         const filterS = (r: any[]) => (r || []).filter((i: any) => hasPoster(i, 'series'))
-        const [m1, m2, s1, s2] = await Promise.all([
+        const [m1, m2, s1, s2, ygd] = await Promise.all([
           homeMovieCats[0] ? fetchVods(server.base_url, server.xtream_user, server.xtream_pass, homeMovieCats[0].category_id).then(filterM).catch(() => []) : Promise.resolve([]),
           homeMovieCats[1] ? fetchVods(server.base_url, server.xtream_user, server.xtream_pass, homeMovieCats[1].category_id).then(filterM).catch(() => []) : Promise.resolve([]),
           homeSeriesCats[0] ? fetchSeries(server.base_url, server.xtream_user, server.xtream_pass, homeSeriesCats[0].category_id).then(filterS).catch(() => []) : Promise.resolve([]),
           homeSeriesCats[1] ? fetchSeries(server.base_url, server.xtream_user, server.xtream_pass, homeSeriesCats[1].category_id).then(filterS).catch(() => []) : Promise.resolve([]),
+          ygdCat ? fetchSeries(server.base_url, server.xtream_user, server.xtream_pass, ygdCat.category_id).then(filterS).catch(() => []) : Promise.resolve([]),
         ])
         const mv: Record<string, any[]> = {}
         if (homeMovieCats[0]) mv[homeMovieCats[0].category_id] = m1
@@ -167,6 +169,7 @@ export default function Dashboard() {
         const sv: Record<string, any[]> = {}
         if (homeSeriesCats[0]) sv[homeSeriesCats[0].category_id] = s1
         if (homeSeriesCats[1]) sv[homeSeriesCats[1].category_id] = s2
+        if (ygdCat) sv[ygdCat.category_id] = ygd
         setSeriesItems(prev => ({ ...prev, ...sv }))
       } catch {}
     })()
@@ -450,18 +453,6 @@ export default function Dashboard() {
     return withoutPrefix
   }
 
-  // Ana sayfa dizi sıralaması: YERLİ GÜNCEL DİZİLER her zaman ikinci sırada
-  const pickHomeSeries = (cats: any[]) => {
-    const rest = cats.filter((c: any) => trName(c.category_name) !== 'YERLİ GÜNCEL DİZİLER')
-    const guncel = cats.find((c: any) => trName(c.category_name) === 'YERLİ GÜNCEL DİZİLER')
-    const out: any[] = []
-    if (rest[0]) out.push(rest[0])
-    if (guncel) out.push(guncel)
-    let i = 1
-    while (out.length < 2 && i < rest.length) { out.push(rest[i]); i++ }
-    return out
-  }
-
   const proxyImg = (url: string) => {
     if (!url) return url
     if (url.startsWith('/t/p/')) return `https://image.tmdb.org${url}`
@@ -568,7 +559,16 @@ export default function Dashboard() {
 
   // Determine which categories to show on homepage (2+2)
   const homeMovieCats = useMemo(() => filteredVodCats.filter(c => !isSeriesCategory(c.category_name)).slice(0, 2), [filteredVodCats])
-  const homeSeriesCats = useMemo(() => pickHomeSeries(seriesCats), [seriesCats])
+  const homeSeriesCats = useMemo(() => seriesCats.slice(0, 2), [seriesCats])
+  const ygdHomeCat = useMemo(() => seriesCats.find((c: any) => trName(c.category_name) === 'YERLİ GÜNCEL DİZİLER'), [seriesCats])
+  const homeRows = useMemo(() => {
+    const rows: { cat: any; type: 'movie' | 'series' }[] = []
+    if (homeMovieCats[0]) rows.push({ cat: homeMovieCats[0], type: 'movie' })
+    if (ygdHomeCat) rows.push({ cat: ygdHomeCat, type: 'series' })
+    if (homeMovieCats[1]) rows.push({ cat: homeMovieCats[1], type: 'movie' })
+    homeSeriesCats.filter(c => c.category_id !== ygdHomeCat?.category_id).forEach(cat => rows.push({ cat, type: 'series' }))
+    return rows
+  }, [homeMovieCats, homeSeriesCats, ygdHomeCat])
 
   const navCategoryName = useMemo(() => {
     if (tab === 'movies' && selectedCat) {
@@ -657,14 +657,15 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* 2 FİLM KATEGORİSİ */}
-            {homeMovieCats.map((cat, idx) => {
-              const items = vodItems[cat.category_id]
+            {/* ANA SAYFA SATIRLARI: 1) GÜNCELLENEN FİLMLER 2) YERLİ GÜNCEL DİZİLER 3) ikinci film 4) ikinci dizi */}
+            {homeRows.map(({ cat, type }, idx) => {
+              const items = type === 'movie' ? vodItems[cat.category_id] : seriesItems[cat.category_id]
+              const isLast = idx === homeRows.length - 1
               return (
-                <div key={cat.category_id} className={`px-4 md:px-8 ${idx > 0 ? 'mb-6' : 'mb-6'}`}>
+                <div key={cat.category_id} className={`px-4 md:px-8 ${isLast ? '' : 'mb-6'}`}>
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="flex items-center gap-2 text-sm font-semibold text-white">{trName(cat.category_name)}
-                      {trName(cat.category_name) === 'GÜNCELLENEN FİLMLER' && (
+                      {(trName(cat.category_name) === 'GÜNCELLENEN FİLMLER' || trName(cat.category_name) === 'YERLİ GÜNCEL DİZİLER') && (
                         <span className="inline-flex items-center gap-1 shrink-0">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_6px_2px_rgba(74,222,128,0.8)]" />
                           <span className="text-[8px] font-bold text-green-400 tracking-widest">GÜNCEL VERİLER</span>
@@ -684,43 +685,7 @@ export default function Dashboard() {
                   </div>
                   {items && items.length > 0 ? (
                     <div ref={el => { scrollContainers.current[cat.category_id] = el; }} className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-                      {items.map((item: any) => renderCard(item, 'movie', (it) => gotoDetail(it, 'movie'), 'w-36', trName(cat.category_name) === 'GÜNCELLENEN FİLMLER' && newestByAdded(items)?.stream_id === item.stream_id))}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center py-4"><Loader2 className="w-4 h-4 text-[#0099ff] animate-spin" /></div>
-                  )}
-                </div>
-              )
-            })}
-
-            {/* 2 DİZİ KATEGORİSİ */}
-            {homeSeriesCats.map((cat, idx) => {
-              const items = seriesItems[cat.category_id]
-              return (
-                <div key={cat.category_id} className={`px-4 md:px-8 ${idx < homeSeriesCats.length - 1 ? 'mb-6' : ''}`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <h2 className="flex items-center gap-2 text-sm font-semibold text-white">{trName(cat.category_name)}
-                      {trName(cat.category_name) === 'YERLİ GÜNCEL DİZİLER' && (
-                        <span className="inline-flex items-center gap-1 shrink-0">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_6px_2px_rgba(74,222,128,0.8)]" />
-                          <span className="text-[8px] font-bold text-green-400 tracking-widest">GÜNCEL VERİLER</span>
-                        </span>
-                      )}
-                    </h2>
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => scrollRow(cat.category_id, 'left')}
-                        className="w-7 h-7 rounded-full bg-white/10 hover:bg-[#0099ff] hover:shadow-[0_0_15px_rgba(0,153,255,0.5)] flex items-center justify-center transition-all duration-300">
-                        <ArrowLeftIcon className="w-4 h-4 text-white" />
-                      </button>
-                      <button onClick={() => scrollRow(cat.category_id, 'right')}
-                        className="w-7 h-7 rounded-full bg-white/10 hover:bg-[#0099ff] hover:shadow-[0_0_15px_rgba(0,153,255,0.5)] flex items-center justify-center transition-all duration-300">
-                        <ArrowRightIcon className="w-4 h-4 text-white" />
-                      </button>
-                    </div>
-                  </div>
-                  {items && items.length > 0 ? (
-                    <div ref={el => { scrollContainers.current[cat.category_id] = el; }} className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-                      {items.map((item: any) => renderCard(item, 'series', (it) => gotoDetail(it, 'series')))}
+                      {items.map((item: any) => renderCard(item, type, (it) => gotoDetail(it, type), 'w-36', type === 'movie' && trName(cat.category_name) === 'GÜNCELLENEN FİLMLER' && newestByAdded(items)?.stream_id === item.stream_id))}
                     </div>
                   ) : (
                     <div className="flex items-center justify-center py-4"><Loader2 className="w-4 h-4 text-[#0099ff] animate-spin" /></div>
