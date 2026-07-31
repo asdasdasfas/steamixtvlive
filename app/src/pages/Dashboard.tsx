@@ -541,7 +541,7 @@ export default function Dashboard() {
 
 
   // --- Lightweight card ---
-  const renderCard = (item: any, type: string, onClick: (item: any) => void, sizeClass = 'w-36') => {
+  const renderCard = (item: any, type: string, onClick: (item: any) => void, sizeClass = 'w-36', isNew = false) => {
     const posterSrc = proxyImg(type === 'series' ? (item.cover_big || item.movie_image || item.cover || item.thumbnail) : (item.cover_big || item.stream_icon))
     const cleanName = (item.name || '').replace(/[✓✔☑✗✘]/g, '')
     return (
@@ -549,6 +549,11 @@ export default function Dashboard() {
         className={`flex-shrink-0 ${sizeClass} group`}>
         <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
           <Poster src={posterSrc} type={type as any} />
+          {isNew && (
+            <div className="absolute top-1.5 left-1.5 z-10 px-2 py-0.5 rounded-md bg-gradient-to-r from-[#ff2d55] to-[#ff8c42] shadow-[0_0_12px_rgba(255,45,85,0.7)] border border-white/25">
+              <span className="text-[9px] font-black text-white tracking-widest" style={{ fontFamily: 'Orbitron, sans-serif' }}>YENİ</span>
+            </div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
             <div className="w-14 h-14 rounded-full bg-[#0099ff] flex items-center justify-center shadow-[0_0_20px_rgba(0,153,255,0.6)] backdrop-blur-sm">
@@ -679,7 +684,7 @@ export default function Dashboard() {
                   </div>
                   {items && items.length > 0 ? (
                     <div ref={el => { scrollContainers.current[cat.category_id] = el; }} className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-                      {items.map((item: any) => renderCard(item, 'movie', (it) => gotoDetail(it, 'movie')))}
+                      {items.map((item: any) => renderCard(item, 'movie', (it) => gotoDetail(it, 'movie'), 'w-36', trName(cat.category_name) === 'GÜNCELLENEN FİLMLER' && newestByAdded(items)?.stream_id === item.stream_id))}
                     </div>
                   ) : (
                     <div className="flex items-center justify-center py-4"><Loader2 className="w-4 h-4 text-[#0099ff] animate-spin" /></div>
@@ -910,6 +915,16 @@ export default function Dashboard() {
   )
 }
 
+const newestByAdded = (items: any[]) => {
+  const ts = (it: any) => {
+    const n = Number(it?.added)
+    if (!isNaN(n) && n > 0) return n
+    const p = Date.parse(it?.added || '')
+    return isNaN(p) ? 0 : p
+  }
+  return [...(items || [])].sort((a, b) => ts(b) - ts(a) || Number(b?.stream_id) - Number(a?.stream_id))[0]
+}
+
 function MovieCategoryGrid({ items, loading, categoryName, adultCover }: any) {
   const navigate = useNavigate()
   const { server } = useAuth()
@@ -930,6 +945,8 @@ function MovieCategoryGrid({ items, loading, categoryName, adultCover }: any) {
     navigate(`/detail?${sp}`)
   }
 
+  const newestId = categoryName === 'GÜNCELLENEN FİLMLER' ? newestByAdded(items)?.stream_id : undefined
+
   return (
     <div className="px-4 md:px-6 pt-3">
       <h2 className="text-base font-bold text-white mb-3 flex items-center gap-2 flex-wrap" style={{ fontFamily: 'Orbitron, sans-serif' }}>
@@ -946,7 +963,7 @@ function MovieCategoryGrid({ items, loading, categoryName, adultCover }: any) {
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
           {(items || []).map((s: any) => (
-            <GridItem key={s.stream_id} item={s} adultCover={adultCover} pImg={pImg} handleDetail={handleDetail} type="movie" isSeries={false} />
+            <GridItem key={s.stream_id} item={s} adultCover={adultCover} pImg={pImg} handleDetail={handleDetail} type="movie" isSeries={false} isNew={newestId === s.stream_id} />
           ))}
         </div>
       )}
@@ -996,7 +1013,7 @@ function SeriesCategoryGrid({ items, loading, categoryName, adultCover }: any) {
   )
 }
 
-function GridItem({ item, adultCover, pImg, handleDetail, type, isSeries }: any) {
+function GridItem({ item, adultCover, pImg, handleDetail, type, isSeries, isNew }: any) {
   const [hide, setHide] = useState(false)
   const posterSrc = adultCover ? undefined : pImg(item.cover_big || item.stream_icon || item.movie_image || item.cover || item.thumbnail)
   if (hide) return null
@@ -1005,6 +1022,11 @@ function GridItem({ item, adultCover, pImg, handleDetail, type, isSeries }: any)
       <button onClick={() => handleDetail(item)} className="w-full">
         <div className={`aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40 ${isSeries ? 'group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-[#14b8a6]/40' : ''}`}>
           <Poster src={posterSrc} type={type} onError={() => setHide(true)} />
+          {isNew && (
+            <div className="absolute top-1.5 left-1.5 z-10 px-2 py-0.5 rounded-md bg-gradient-to-r from-[#ff2d55] to-[#ff8c42] shadow-[0_0_12px_rgba(255,45,85,0.7)] border border-white/25">
+              <span className="text-[9px] font-black text-white tracking-widest" style={{ fontFamily: 'Orbitron, sans-serif' }}>YENİ</span>
+            </div>
+          )}
           {adultCover ? (
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col items-center justify-center">
               <span className="text-2xl md:text-3xl font-black text-red-500 opacity-60" style={{ fontFamily: 'Orbitron, sans-serif' }}>18+</span>
