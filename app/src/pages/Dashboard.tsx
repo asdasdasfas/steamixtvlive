@@ -686,7 +686,7 @@ export default function Dashboard() {
                   </div>
                   {items && items.length > 0 ? (
                     <div ref={el => { scrollContainers.current[cat.category_id] = el; }} className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-                      {items.map((item: any) => renderCard(item, type, (it) => gotoDetail(it, type), 'w-36', type === 'movie' && trName(cat.category_name) === 'GÜNCELLENEN FİLMLER' && newestByAdded(items)?.stream_id === item.stream_id))}
+                      {items.map((item: any, i: number) => renderCard(item, type, (it) => gotoDetail(it, type), 'w-36', type === 'movie' && trName(cat.category_name) === 'GÜNCELLENEN FİLMLER' && i === 0))}
                     </div>
                   ) : (
                     <div className="flex items-center justify-center py-4"><Loader2 className="w-4 h-4 text-[#0099ff] animate-spin" /></div>
@@ -881,19 +881,6 @@ export default function Dashboard() {
   )
 }
 
-const newestByAdded = (items: any[]) => {
-  const ts = (it: any) => {
-    const n = Number(it?.added)
-    if (!isNaN(n) && n > 0) return n
-    const p = Date.parse(it?.added || '')
-    return isNaN(p) ? 0 : p
-  }
-  const list = [...(items || [])]
-  const hasAdded = list.some(it => ts(it) > 0)
-  if (hasAdded) return list.sort((a, b) => ts(b) - ts(a) || Number(b?.stream_id) - Number(a?.stream_id))[0]
-  return list[0]
-}
-
 function MovieCategoryGrid({ items, loading, categoryName, adultCover }: any) {
   const navigate = useNavigate()
   const { server } = useAuth()
@@ -914,7 +901,7 @@ function MovieCategoryGrid({ items, loading, categoryName, adultCover }: any) {
     navigate(`/detail?${sp}`)
   }
 
-  const newestId = categoryName === 'GÜNCELLENEN FİLMLER' ? newestByAdded(items)?.stream_id : undefined
+  const newestId = categoryName === 'GÜNCELLENEN FİLMLER' ? (items || [])[0]?.stream_id : undefined
 
   return (
     <div className="px-4 md:px-6 pt-3">
