@@ -4,13 +4,20 @@ export function buildSteamixIntentUrl(
   pass: string,
   streamId: number,
   ext: string,
-  type?: 'movie' | 'series'
+  type?: 'movie' | 'series',
+  subtitleUrl?: string,
+  subtitleLang?: string
 ): string {
   const prefix = type === 'series' ? 'series' : 'movie'
   const path = `/${prefix}/${user}/${pass}/${streamId}.${ext || 'mkv'}`
   const directUrl = base_url.replace(/\/+$/, '') + path
-  return `steamixtv://play?url=${encodeURIComponent(directUrl)}`
+  let intentUrl = `steamixtv://play?url=${encodeURIComponent(directUrl)}`
+  if (subtitleUrl) {
+    intentUrl += `&subtitle=${encodeURIComponent(subtitleUrl)}`
+    if (subtitleLang) intentUrl += `&subtitle_lang=${encodeURIComponent(subtitleLang)}`
+  }
+  return intentUrl
 }
 
-export const APK_DOWNLOAD_URL = 'https://www.dropbox.com/scl/fi/dycgacn48jyb55zcv7u7m/app-arm64-v8a-release.apk?rlkey=gqccyxlnezl5u2if30n4pzmhz&st=1x4v2kl2&dl=1'
+export const APK_DOWNLOAD_URL = 'https://www.dropbox.com/scl/fi/mt1ee120zr9lvcc6k19gt/Steamix-TV-Player.apk?rlkey=68iohmq8ozf6jkuwz9pqg4lac&st=4frr1iw2&dl=1'
 export const INSTALL_FLAG_KEY = 'steamix_player_ready'

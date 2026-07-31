@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.steamixtv.player"
-        minSdk = 23
+        minSdk = 27
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -17,12 +17,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            isMinifyEnabled = false
+            isShrinkResources = false
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -31,7 +27,7 @@ android {
         abi {
             isEnable = true
             reset()
-            include("arm64-v8a", "armeabi-v7a")
+            include("arm64-v8a", "armeabi-v7a", "x86_64")
             isUniversalApk = false
         }
     }
@@ -59,12 +55,11 @@ android {
 }
 
 dependencies {
+    implementation(project(":player"))
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
     implementation(libs.activity.ktx)
-    implementation(libs.media3.exoplayer)
-    implementation(libs.media3.exoplayer.hls)
     implementation(libs.media3.ui)
-
-    implementation(files("../ffmpeg/media3-decoder-ffmpeg-1.9.2.aar"))
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
+    implementation(libs.coroutines.android)
 }
