@@ -541,8 +541,8 @@ export default function Dashboard() {
         <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
           <Poster src={posterSrc} type={type as any} />
           {isNew && (
-            <div className="absolute top-1.5 left-1.5 z-10 px-2 py-0.5 rounded-md bg-gradient-to-r from-[#ff2d55] to-[#ff8c42] shadow-[0_0_12px_rgba(255,45,85,0.7)] border border-white/25">
-              <span className="text-[9px] font-black text-white tracking-widest" style={{ fontFamily: 'Orbitron, sans-serif' }}>YENİ</span>
+            <div className="absolute top-1.5 left-1.5 z-10 px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#ff2d55] to-[#ff8c42] shadow-[0_0_16px_rgba(255,45,85,0.9)] border border-white/30">
+              <span className="text-[10px] font-black text-white tracking-widest drop-shadow" style={{ fontFamily: 'Orbitron, sans-serif' }}>YENİ</span>
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -887,7 +887,10 @@ const newestByAdded = (items: any[]) => {
     const p = Date.parse(it?.added || '')
     return isNaN(p) ? 0 : p
   }
-  return [...(items || [])].sort((a, b) => ts(b) - ts(a) || Number(b?.stream_id) - Number(a?.stream_id))[0]
+  const list = [...(items || [])]
+  const hasAdded = list.some(it => ts(it) > 0)
+  if (hasAdded) return list.sort((a, b) => ts(b) - ts(a) || Number(b?.stream_id) - Number(a?.stream_id))[0]
+  return list[0]
 }
 
 function MovieCategoryGrid({ items, loading, categoryName, adultCover }: any) {
@@ -988,8 +991,8 @@ function GridItem({ item, adultCover, pImg, handleDetail, type, isSeries, isNew 
         <div className={`aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40 ${isSeries ? 'group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-[#14b8a6]/40' : ''}`}>
           <Poster src={posterSrc} type={type} onError={() => setHide(true)} />
           {isNew && (
-            <div className="absolute top-1.5 left-1.5 z-10 px-2 py-0.5 rounded-md bg-gradient-to-r from-[#ff2d55] to-[#ff8c42] shadow-[0_0_12px_rgba(255,45,85,0.7)] border border-white/25">
-              <span className="text-[9px] font-black text-white tracking-widest" style={{ fontFamily: 'Orbitron, sans-serif' }}>YENİ</span>
+            <div className="absolute top-1.5 left-1.5 z-10 px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#ff2d55] to-[#ff8c42] shadow-[0_0_16px_rgba(255,45,85,0.9)] border border-white/30">
+              <span className="text-[10px] font-black text-white tracking-widest drop-shadow" style={{ fontFamily: 'Orbitron, sans-serif' }}>YENİ</span>
             </div>
           )}
           {adultCover ? (
