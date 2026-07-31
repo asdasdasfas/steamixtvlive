@@ -1122,17 +1122,28 @@ function SlideCategoryPanel({ title, items, selected, onSelect }: { title: strin
           <h3 className="text-xs font-semibold text-[#0099ff] tracking-widest uppercase" style={{ fontFamily: 'Orbitron, sans-serif' }}>{title}</h3>
         </div>
         <div className="overflow-y-auto flex-1 pb-16">
-          {items.map(cat => (
-            <button key={cat.category_id}
-              onClick={() => handleSelect(cat.category_id)}
-              className={`w-full text-left px-4 py-2.5 text-sm transition-colors uppercase tracking-wide ${
-                selected === cat.category_id
-                  ? 'bg-[#0099ff]/10 text-white border-r-2 border-[#0099ff] font-bold'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}>
-              {catName(cat)}
-            </button>
-          ))}
+          {items.map(cat => {
+            const cName = catName(cat)
+            return (
+              <button key={cat.category_id}
+                onClick={() => handleSelect(cat.category_id)}
+                className={`w-full text-left px-4 py-2.5 text-sm transition-colors uppercase tracking-wide ${
+                  selected === cat.category_id
+                    ? 'bg-[#0099ff]/10 text-white border-r-2 border-[#0099ff] font-bold'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}>
+                <span className="flex items-center justify-between gap-2">
+                  <span className="truncate">{cName}</span>
+                  {cName === 'GÜNCELLENEN FİLMLER' && (
+                    <span className="inline-flex items-center gap-1 shrink-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_6px_2px_rgba(74,222,128,0.8)]" />
+                      <span className="text-[8px] font-bold text-green-400 tracking-widest">GÜNCEL VERİLER</span>
+                    </span>
+                  )}
+                </span>
+              </button>
+            )
+          })}
         </div>
       </div>
     </>
