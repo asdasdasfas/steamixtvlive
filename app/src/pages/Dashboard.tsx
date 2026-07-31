@@ -543,17 +543,17 @@ export default function Dashboard() {
         className={`flex-shrink-0 ${sizeClass} group`}>
         <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40">
           <Poster src={posterSrc} type={type as any} />
-          {isNew && (
-            <div className="absolute top-1.5 left-1.5 z-10 px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#ff2d55] to-[#ff8c42] shadow-[0_0_16px_rgba(255,45,85,0.9)] border border-white/30">
-              <span className="text-[10px] font-black text-white tracking-widest drop-shadow" style={{ fontFamily: 'Orbitron, sans-serif' }}>YENİ</span>
-            </div>
-          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125">
             <div className="w-14 h-14 rounded-full bg-[#0099ff] flex items-center justify-center shadow-[0_0_20px_rgba(0,153,255,0.6)] backdrop-blur-sm">
               <Play className="w-6 h-6 text-white ml-1 fill-white" />
             </div>
           </div>
+          {isNew && (
+            <div className="absolute top-1.5 left-1.5 z-50 px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#ff2d55] to-[#ff8c42] shadow-[0_0_16px_rgba(255,45,85,0.9)] border border-white/30 pointer-events-none">
+              <span className="text-[10px] font-black text-white tracking-widest drop-shadow" style={{ fontFamily: 'Orbitron, sans-serif' }}>YENİ</span>
+            </div>
+          )}
         </div>
         <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-200">{cleanName}</p>
       </button>
@@ -996,11 +996,6 @@ function GridItem({ item, adultCover, pImg, handleDetail, type, isSeries, isNew 
       <button onClick={() => handleDetail(item)} className="w-full">
         <div className={`aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40 ${isSeries ? 'group-hover:shadow-[0_0_30px_rgba(20,184,166,0.35)] group-hover:ring-[#14b8a6]/40' : ''}`}>
           <Poster src={posterSrc} type={type} onError={() => setHide(true)} />
-          {isNew && (
-            <div className="absolute top-1.5 left-1.5 z-10 px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#ff2d55] to-[#ff8c42] shadow-[0_0_16px_rgba(255,45,85,0.9)] border border-white/30">
-              <span className="text-[10px] font-black text-white tracking-widest drop-shadow" style={{ fontFamily: 'Orbitron, sans-serif' }}>YENİ</span>
-            </div>
-          )}
           {adultCover ? (
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col items-center justify-center">
               <span className="text-2xl md:text-3xl font-black text-red-500 opacity-60" style={{ fontFamily: 'Orbitron, sans-serif' }}>18+</span>
@@ -1013,6 +1008,11 @@ function GridItem({ item, adultCover, pImg, handleDetail, type, isSeries, isNew 
               <Play className="w-6 h-6 text-white ml-1 fill-white" />
             </div>
           </div>
+          {isNew && (
+            <div className="absolute top-1.5 left-1.5 z-50 px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#ff2d55] to-[#ff8c42] shadow-[0_0_16px_rgba(255,45,85,0.9)] border border-white/30 pointer-events-none">
+              <span className="text-[10px] font-black text-white tracking-widest drop-shadow" style={{ fontFamily: 'Orbitron, sans-serif' }}>YENİ</span>
+            </div>
+          )}
         </div>
         <p className="text-xs text-gray-500 truncate group-hover:text-white transition-colors duration-150 text-left">{item.name}</p>
       </button>
