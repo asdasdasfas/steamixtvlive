@@ -906,8 +906,14 @@ function MovieCategoryGrid({ items, loading, categoryName, adultCover }: any) {
 
   return (
     <div className="px-4 md:px-6 pt-3">
-      <h2 className="text-base font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+      <h2 className="text-base font-bold text-white mb-3 flex items-center gap-2 flex-wrap" style={{ fontFamily: 'Orbitron, sans-serif' }}>
         {categoryName} <span className="text-xs text-gray-500 font-normal">({items?.length || 0})</span>
+        {categoryName === 'GÜNCELLENEN FİLMLER' && (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/30">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_6px_2px_rgba(74,222,128,0.8)]" />
+            <span className="text-[9px] font-bold text-green-400 tracking-widest">GÜNCEL VERİLER</span>
+          </span>
+        )}
       </h2>
       {loading ? (
         <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-[#0099ff] animate-spin" /></div>
