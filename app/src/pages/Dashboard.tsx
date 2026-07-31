@@ -646,7 +646,14 @@ export default function Dashboard() {
               return (
                 <div key={cat.category_id} className={`px-4 md:px-8 ${idx > 0 ? 'mb-6' : 'mb-6'}`}>
                   <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-sm font-semibold text-white">{trName(cat.category_name)}</h2>
+                    <h2 className="flex items-center gap-2 text-sm font-semibold text-white">{trName(cat.category_name)}
+                      {trName(cat.category_name) === 'GÜNCELLENEN FİLMLER' && (
+                        <span className="inline-flex items-center gap-1 shrink-0">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_6px_2px_rgba(74,222,128,0.8)]" />
+                          <span className="text-[8px] font-bold text-green-400 tracking-widest">GÜNCEL VERİLER</span>
+                        </span>
+                      )}
+                    </h2>
                     <div className="flex items-center gap-1">
                       <button onClick={() => scrollRow(cat.category_id, 'left')}
                         className="w-7 h-7 rounded-full bg-white/10 hover:bg-[#0099ff] hover:shadow-[0_0_15px_rgba(0,153,255,0.5)] flex items-center justify-center transition-all duration-300">
