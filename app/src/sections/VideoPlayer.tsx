@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Hls from 'hls.js'
-import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForward } from 'lucide-react'
+import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForward, Captions } from 'lucide-react'
 import MediabunnyPlayer from './MediabunnyPlayer'
 
 
@@ -10,6 +10,7 @@ interface VideoPlayerProps {
   title?: string
   onEnded?: () => void
   fallbackSrcs?: string[]
+  subtitleUrls?: string[]
   onToggleFullscreen?: () => void
   onRefreshUrl?: () => string | undefined
 }
@@ -24,7 +25,26 @@ const isDirectFileUrl = (url: string) => {
   return ext.endsWith('.mkv')
 }
 
-export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs, onToggleFullscreen, onRefreshUrl }: VideoPlayerProps) {
+const srtToVtt = (srt: string): string => {
+  const lines = srt.replace(/\r/g, '').split(/\n{2,}/)
+  const out = ['WEBVTT']
+  for (const block of lines) {
+    const parts = block.split('\n')
+    if (parts.length < 2) continue
+    let i = 0
+    if (/^\d+$/.test(parts[0].trim())) i = 1
+    const m = parts[i]?.match(/(\d{1,2}):(\d{2}):(\d{2})[,.](\d{3})\s*-->\s*(\d{1,2}):(\d{2}):(\d{2})[,.](\d{3})/)
+    if (!m) continue
+    const start = `${m[1].padStart(2, '0')}:${m[2]}:${m[3]}.${m[4]}`
+    const end = `${m[5].padStart(2, '0')}:${m[6]}:${m[7]}.${m[8]}`
+    const text = parts.slice(i + 1).join('\n').trim()
+    if (!text) continue
+    out.push('', `${start} --> ${end}`, text)
+  }
+  return out.join('\n')
+}
+
+export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs, subtitleUrls, onToggleFullscreen, onRefreshUrl }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const progressRef = useRef<HTMLDivElement>(null)
@@ -46,6 +66,9 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const retryCountRef = useRef(0)
   const [loading, setLoading] = useState(false)
   const [useMediabunny, setUseMediabunny] = useState<boolean | null>(null)
+  const [subtitleUrl, setSubtitleUrl] = useState('')
+  const [subtitleOn, setSubtitleOn] = useState(false)
+  const trackRef = useRef<HTMLTrackElement | null>(null)
 
   // Detect if Mediabunny should be used for this source
   useEffect(() => {
@@ -263,6 +286,71 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     }
   }, [startWatchdog])
 
+  // Subtitle: try candidate URLs (SRT/VTT) in order — desktop only
+  useEffect(() => {
+    if (IS_MOBILE || !subtitleUrls || subtitleUrls.length === 0) {
+      setSubtitleUrl('')
+      return
+    }
+    let cancelled = false
+    let foundUrl: string | null = null
+    const tryNext = async (i: number) => {
+      if (cancelled || foundUrl || i >= subtitleUrls.length) {
+        if (!cancelled && !foundUrl) setSubtitleUrl('')
+        return
+      }
+      try {
+        const res = await fetch(subtitleUrls[i])
+        if (!res.ok) { await tryNext(i + 1); return }
+        const text = await res.text()
+        const ct = (res.headers.get('content-type') || '').toLowerCase()
+        const isVtt = ct.includes('webvtt') || ct.includes('vtt') || /^WEBVTT/.test(text.trim())
+        const isSrt = ct.includes('srt') || !isVtt && /^\d+\s*\n\s*\d{1,2}:\d{2}:\d{2}[,.]\d{3}\s*-->\s*\d{1,2}:\d{2}:\d{2}[,.]\d{3}/.test(text)
+        if (!isVtt && !isSrt) { await tryNext(i + 1); return }
+        const vtt = isVtt ? text : srtToVtt(text)
+        if (cancelled) return
+        foundUrl = URL.createObjectURL(new Blob([vtt], { type: 'text/vtt' }))
+        setSubtitleUrl(foundUrl)
+      } catch {
+        await tryNext(i + 1)
+      }
+    }
+    tryNext(0)
+    return () => {
+      cancelled = true
+      if (foundUrl) URL.revokeObjectURL(foundUrl)
+    }
+  }, [subtitleUrls])
+
+  // Bind the found subtitle track to the video element
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    if (!subtitleUrl) {
+      if (trackRef.current) { trackRef.current.remove(); trackRef.current = null }
+      setSubtitleOn(false)
+      return
+    }
+    if (trackRef.current) trackRef.current.remove()
+    const track = document.createElement('track')
+    track.kind = 'subtitles'
+    track.label = 'Altyazı'
+    track.src = subtitleUrl
+    video.appendChild(track)
+    trackRef.current = track
+    const onLoad = () => {
+      const tt = video.textTracks[0]
+      if (tt) tt.mode = 'showing'
+    }
+    track.addEventListener('load', onLoad)
+    setSubtitleOn(true)
+    return () => {
+      track.removeEventListener('load', onLoad)
+      if (trackRef.current === track) trackRef.current = null
+      track.remove()
+    }
+  }, [subtitleUrl])
+
   // Initialize on src change
   useEffect(() => {
     const video = videoRef.current
@@ -288,6 +376,16 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
     if (!video) return
     video.muted = !video.muted
     setMuted(video.muted)
+  }
+
+  const toggleSubtitles = () => {
+    const track = trackRef.current
+    if (!track) return
+    const next = !subtitleOn
+    const tt = videoRef.current?.textTracks[0]
+    try { if (tt) tt.mode = next ? 'showing' : 'hidden' } catch {}
+    setSubtitleOn(next)
+    startHideTimer()
   }
 
   const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -438,6 +536,13 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
           </div>
           <div className="flex items-center gap-1 sm:gap-3">
             <span className="text-[10px] sm:text-xs text-gray-400 sm:hidden">{formatTime(currentTime)} / {formatTime(duration)}</span>
+            {subtitleUrl && !IS_MOBILE && (
+              <button onClick={e => { e.stopPropagation(); toggleSubtitles() }}
+                className={`p-2 sm:p-0 hover:text-[#0099ff] ${subtitleOn ? 'text-[#0099ff]' : 'text-white'}`}
+                title="Altyazı">
+                <Captions className="w-5 h-5" />
+              </button>
+            )}
             <button onClick={e => { e.stopPropagation(); toggleFullscreen() }} className="p-2 sm:p-0 hover:text-[#0099ff]">{fullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}</button>
           </div>
         </div>
