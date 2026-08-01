@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Hls from 'hls.js'
-import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForward } from 'lucide-react'
+import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForward, Wrench } from 'lucide-react'
 import MediabunnyPlayer from './MediabunnyPlayer'
 
 
@@ -150,7 +150,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
   const tryUrl = useCallback((video: HTMLVideoElement) => {
     const idx = urlIndexRef.current
     const urls = allUrlsRef.current
-    if (idx >= urls.length) { setLoadError('Hiçbir yayın kaynağı çalışmadı'); setLoading(false); return }
+    if (idx >= urls.length) { setLoadError('Bu kanal bakımdadır'); setLoading(false); return }
     const currentSrc = urls[idx]
     retryCountRef.current = 0
     setLoading(true)
@@ -392,14 +392,22 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
 
       {title && <div className="absolute top-4 left-4 text-white text-sm font-medium drop-shadow-lg bg-black/40 px-3 py-1.5 rounded-lg">{title}</div>}
       {loadError && (
-        <div className={`absolute inset-0 flex items-center justify-center z-10 ${loadError.includes('bağlanıyor') ? '' : 'bg-black/60'}`}>
-          <div className="text-center max-w-xs">
-            <p className={`text-sm mb-3 ${loadError.includes('bağlanıyor') ? 'text-[#0099ff]' : 'text-gray-400'}`}>{loadError}</p>
-            {!loadError.includes('bağlanıyor') && (
+        <div className={`absolute inset-0 flex items-center justify-center z-10 ${loadError.includes('bağlanıyor') ? '' : 'bg-black/70'}`}>
+          {loadError.includes('bağlanıyor') ? (
+            <div className="text-center max-w-xs">
+              <p className="text-sm text-[#0099ff]">{loadError}</p>
+            </div>
+          ) : (
+            <div className="text-center max-w-xs px-6">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#0099ff]/10 flex items-center justify-center">
+                <Wrench className="w-8 h-8 text-[#0099ff]" />
+              </div>
+              <p className="text-base font-semibold text-white mb-1.5">{loadError}</p>
+              <p className="text-sm text-gray-400 mb-6">Bir süre sonra düzelecektir.<br/>Sabrınız için teşekkürler.</p>
               <button onClick={() => { setLoadError(''); urlIndexRef.current = 0; tryUrl(videoRef.current!) }}
-                className="px-4 py-2 rounded-lg bg-[#0099ff] text-white text-xs">Tekrar Dene</button>
-            )}
-          </div>
+                className="px-5 py-2.5 rounded-xl bg-[#0099ff] text-white text-sm font-medium hover:bg-[#0077cc] transition-colors">Tekrar Dene</button>
+            </div>
+          )}
         </div>
       )}
       {loading && !playing && !loadError && (
