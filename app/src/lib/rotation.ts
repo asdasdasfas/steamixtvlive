@@ -39,7 +39,7 @@ http://tv8.daioncdn.net/tv8/tv8_720p.m3u8?app=7ddc255a-ef47-4e81-ab14-c0e5f29497
 https://tv8.daioncdn.net/tv8bucuk/tv8bucuk.m3u8?app=tv8bucuk_web
 
 #EXTINF:-1 tvg-id="KANAL7" tvg-name="KANAL 7" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/kanal-7-tr.png",KANAL 7
-https://kanal7-live.daioncdn.net/kanal7/kanal7_720p.m3u8
+http://ctn34.xyz:2095/live/aziz6486/aziz.6486/71260.m3u8
 
 #EXTINF:-1 tvg-id="BEYAZTV" tvg-name="BEYAZ TV" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/beyaz-tv-tr.png",BEYAZ TV
 https://beyaztv-live.daioncdn.net/beyaztv/beyaztv_720p.m3u8
