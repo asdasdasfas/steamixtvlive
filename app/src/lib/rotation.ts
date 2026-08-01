@@ -17,14 +17,23 @@ export interface RotationCategory {
 const rawM3U = `#EXTINF:-1 tvg-id="TRT1" tvg-name="TRT 1" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/trt-1-tr.png",TRT 1
 https://tv-trt1.medya.trt.com.tr/master_720.m3u8
 
-#EXTINF:-1 tvg-id="STARTV" tvg-name="STAR TV" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/star-tv-tr.png",STAR TV
-https://dogus.daioncdn.net/startv/startv.m3u8?app=startv_web
+#EXTINF:-1 tvg-id="STARTVFHD" tvg-name="STAR TV FHD" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/star-tv-tr.png",STAR TV FHD
+http://ctn34.xyz:8080/live/aziz6486/aziz.6486/107672.m3u8
 
-#EXTINF:-1 tvg-id="KANALD" tvg-name="KANAL D" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/kanal-d-tr.png",KANAL D
-https://demiroren.daioncdn.net/kanald/kanald.m3u8?app=kanald_web&ce=3
+#EXTINF:-1 tvg-id="STARTVHD" tvg-name="STAR TV HD" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/star-tv-tr.png",STAR TV HD
+http://ctn34.xyz:8080/live/aziz6486/aziz.6486/125579.m3u8
 
-#EXTINF:-1 tvg-id="SHOWTV" tvg-name="SHOW TV" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/show-tr.png",SHOW TV
-https://ciner.daioncdn.net/showtv/showtv_1080p.m3u8?ex=1664766175&st=RBzhSuGauna0OGld-DJUVA&tv=1&sid=7ggzjgei1u7i&app=4bc856ef-4c68-4a94-bc87-37dfaaa66558&ce=3
+#EXTINF:-1 tvg-id="KANALDFHD" tvg-name="KANAL D FHD" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/kanal-d-tr.png",KANAL D FHD
+http://ctn34.xyz:8080/live/aziz6486/aziz.6486/72368.m3u8
+
+#EXTINF:-1 tvg-id="KANALDHD" tvg-name="KANAL D HD" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/kanal-d-tr.png",KANAL D HD
+http://ctn34.xyz:8080/live/aziz6486/aziz.6486/77318.m3u8
+
+#EXTINF:-1 tvg-id="SHOWTVFHD" tvg-name="SHOW TV FHD" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/show-tr.png",SHOW TV FHD
+http://ctn34.xyz:8080/live/aziz6486/aziz.6486/35060.m3u8
+
+#EXTINF:-1 tvg-id="SHOWTVHD" tvg-name="SHOW TV HD" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/show-tr.png",SHOW TV HD
+http://ctn34.xyz:8080/live/aziz6486/aziz.6486/130955.m3u8
 
 #EXTINF:-1 tvg-id="ATV" tvg-name="ATV" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/atv-tr.png",ATV
 https://rnttwmjcin.turknet.ercdn.net/lcpmvefbyo/atv/atv_480p.m3u8
@@ -35,8 +44,11 @@ https://uycyyuuzyh.turknet.ercdn.net/nphindgytw/nowtv/nowtv_480p.m3u8
 #EXTINF:-1 tvg-id="TV8" tvg-name="TV8 HD" group-title="Ulusal" tvg-logo="https://img.tv8.com.tr/s/template/v2/img/tv8-logo.png",TV8 HD
 http://tv8.daioncdn.net/tv8/tv8_720p.m3u8?app=7ddc255a-ef47-4e81-ab14-c0e5f2949788&ce=3
 
-#EXTINF:-1 tvg-id="TV85" tvg-name="TV8.5" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/tv85-tr.png",TV8.5
-https://tv8.daioncdn.net/tv8bucuk/tv8bucuk.m3u8?app=tv8bucuk_web
+#EXTINF:-1 tvg-id="TV85FHD" tvg-name="TV8.5 FHD" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/tv85-tr.png",TV8.5 FHD
+http://ctn34.xyz:8080/live/aziz6486/aziz.6486/98024.m3u8
+
+#EXTINF:-1 tvg-id="TV85HD" tvg-name="TV8.5 HD" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/tv85-tr.png",TV8.5 HD
+http://ctn34.xyz:8080/live/aziz6486/aziz.6486/120893.m3u8
 
 #EXTINF:-1 tvg-id="KANAL7" tvg-name="KANAL 7" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/kanal-7-tr.png",KANAL 7
 https://kanal7-live.daioncdn.net/kanal7/kanal7_720p.m3u8
@@ -50,8 +62,8 @@ https://tv-trt2.medya.trt.com.tr/master_720.m3u8
 #EXTINF:-1 tvg-id="A2" tvg-name="A2" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/a2-tr.png",A2
 https://rnttwmjcin.turknet.ercdn.net/lcpmvefbyo/a2tv/a2tv.m3u8
 
-#EXTINF:-1 tvg-id="DreamTrkTV" tvg-name="Dream Türk TV" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/dream-turk-tr.png",Dream Türk TV
-https://live.duhnet.tv/S2/HLS_LIVE/dreamturknp/playlist.m3u8
+#EXTINF:-1 tvg-id="DreamTrkTVHD" tvg-name="Dream Türk TV HD" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/dream-turk-tr.png",Dream Türk TV HD
+http://ctn34.xyz:8080/live/aziz6486/aziz.6486/60742.m3u8
 
 #EXTINF:-1 tvg-id="lkeTV" tvg-name="Ülke TV" group-title="Ulusal" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/ulke-tv-tr.png",Ülke TV
 https://livetv.radyotvonline.net/kanal7live/ulketv/chunklist.m3u8
@@ -65,8 +77,11 @@ https://tv.ensonhaber.com/haberturk/haberturk.m3u8
 #EXTINF:-1 tvg-id="CNNTURK" tvg-name="CNN TURK" group-title="Haber" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/cnn-turk-tr.png",CNN TURK
 http://dzcvip1.xyz:2095/live/yasar7062/yasar.7062/110239.m3u8
 
-#EXTINF:-1 tvg-id="NTV" tvg-name="NTV" group-title="Haber" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/ntv-tr.png",NTV
-https://dogus.daioncdn.net/ntv/ntv.m3u8?app=ntv_web
+#EXTINF:-1 tvg-id="NTVFHD" tvg-name="NTV FHD" group-title="Haber" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/ntv-tr.png",NTV FHD
+http://ctn34.xyz:8080/live/aziz6486/aziz.6486/70659.m3u8
+
+#EXTINF:-1 tvg-id="NTVHD" tvg-name="NTV HD" group-title="Haber" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/ntv-tr.png",NTV HD
+http://ctn34.xyz:8080/live/aziz6486/aziz.6486/99133.m3u8
 
 #EXTINF:-1 tvg-id="HaberGlobal" tvg-name="Haber Global" group-title="Haber" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/haber-global-tr.png",Haber Global
 https://tv.ensonhaber.com/haberglobal/haberglobal.m3u8
@@ -175,8 +190,11 @@ http://dzcvip1.xyz:2095/live/yasar7062/yasar.7062/208876.m3u8
 #EXTINF:-1 tvg-id="TRTSpor" tvg-name="TRT Spor" group-title="TR Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/trt-spor-tr.png",TRT Spor
 https://tv-trtspor1.medya.trt.com.tr/master.m3u8
 
-#EXTINF:-1 tvg-id="TRTSporYldz" tvg-name="TRT Spor Yıldız" group-title="TR Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/trt-spor-yildiz-tr.png",TRT Spor Yıldız
-https://trt.daioncdn.net/trtspor-yildiz/master_1080p.m3u8?app=web&platform=trtspor
+#EXTINF:-1 tvg-id="TRTSporYldzFHD" tvg-name="TRT Spor Yıldız FHD" group-title="TR Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/trt-spor-yildiz-tr.png",TRT Spor Yıldız FHD
+http://ctn34.xyz:8080/live/aziz6486/aziz.6486/32602.m3u8
+
+#EXTINF:-1 tvg-id="TRTSporYldzHD" tvg-name="TRT Spor Yıldız HD" group-title="TR Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/trt-spor-yildiz-tr.png",TRT Spor Yıldız HD
+http://ctn34.xyz:8080/live/aziz6486/aziz.6486/161120.m3u8
 
 #EXTINF:-1 tvg-id="ASpor" tvg-name="A Spor" group-title="TR Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/a-spor-tr.png",A Spor
 https://rnttwmjcin.turknet.ercdn.net/lcpmvefbyo/aspor/aspor.m3u8
@@ -260,7 +278,7 @@ https://lbl.netmedya.net/hls/lalegultv.m3u8
 https://live.artidijitalmedya.com/artidijital_sat7turk/sat7turk/playlist.m3u8
 
 #EXTINF:-1 tvg-id="eurod" tvg-name="Euro D" group-title="Yurtdışı" tvg-logo="https://eurod.kanald.com.tr/assets/img/logo.v5.png",Euro D
-https://live.duhnet.tv/S2/HLS_LIVE/eurodnp/track_4_1000/playlist.m3u8
+http://ctn34.xyz:8080/live/aziz6486/aziz.6486/161451.m3u8
 
 #EXTINF:-1 tvg-id="kanal7avrupa" tvg-name="Kanal 7 Avrupa" group-title="Yurtdışı" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/kanal-7-tr.png",Kanal 7 Avrupa
 https://livetv.radyotvonline.net/kanal7live/kanal7avr/playlist.m3u8
@@ -370,8 +388,8 @@ https://b01c02nl.mediatriple.net/videoonlylive/mtkgeuihrlfwlive/broadcast_5c9e18
 #EXTINF:-1 tvg-id="Number1TV" tvg-name="Number 1 TV" group-title="Müzik" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/nr1-tr.png",Number 1 TV
 https://b01c02nl.mediatriple.net/videoonlylive/mtkgeuihrlfwlive/broadcast_5c9e17cd59e8b.smil/playlist.m3u8
 
-#EXTINF:-1 tvg-id="KralPopTV" tvg-name="Kral Pop TV" group-title="Müzik" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/kral-pop-tr.png",Kral Pop TV
-https://dogus.daioncdn.net/kralpoptv/kralpoptv.m3u8?app=kralpoptv_web
+#EXTINF:-1 tvg-id="KralPopTVHD" tvg-name="Kral Pop TV HD" group-title="Müzik" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/kral-pop-tr.png",Kral Pop TV HD
+http://ctn34.xyz:8080/live/aziz6486/aziz.6486/76544.m3u8
 
 #EXTINF:-1 tvg-id="PowerTurkTaptaze" tvg-name="PowerTurk Taptaze" group-title="Müzik" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/powerturk-tr.png",PowerTurk Taptaze
 https://livetv.powerapp.com.tr/pturktaptaze/taptaze.smil/playlist.m3u8
@@ -443,7 +461,7 @@ https://live.artidijitalmedya.com/artidijital_tempotv/tempotv/chunks.m3u8
 https://cdn4.yayin.com.tr/kntv/video.m3u8
 
 #EXTINF:-1 tvg-id="KralPopTV2link" tvg-name="Kral Pop TV (2. link)" group-title="Diğer" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/kral-pop-tr.png",Kral Pop TV (2. link)
-https://dogus.daioncdn.net/kralpoptv/kralpoptv.m3u8?app=f38a38b4-ce55-4040-8676-9826937d6128
+http://ctn34.xyz:8080/live/aziz6486/aziz.6486/76544.m3u8
 
 #EXTINF:-1 tvg-id="KRALPOP" tvg-name="KRAL POP" group-title="Diğer" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/kral-pop-tr.png",KRAL POP
 http://dzcvip1.xyz:2095/live/yasar7062/yasar.7062/76544.m3u8
