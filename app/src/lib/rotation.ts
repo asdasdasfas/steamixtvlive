@@ -765,9 +765,10 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/2222.m3u8
 `
 function proxyUrl(url: string): string {
   // Proxy HTTP backends (dzcvip1, ctn34, ccgbndrby11, dpsmartone, tv8.daioncdn.net)
-  // Also proxy HTTPS daioncdn URLs — daioncdn doesn't send CORS headers,
-  // so browser blocks direct HTTPS requests. Proxy through our server (same-origin).
-  const needsProxy = url.startsWith('http://')
+  // Also proxy HTTPS daioncdn/duhnet URLs — these CDNs don't send CORS headers,
+  // so the browser blocks direct HTTPS requests. Proxy through our server (same-origin).
+  const needsProxy = url.startsWith('http://') ||
+    (url.startsWith('https://') && /(daioncdn|duhnet)/.test(new URL(url).hostname))
   if (needsProxy) {
     const u = new URL(url)
     const base = u.origin
