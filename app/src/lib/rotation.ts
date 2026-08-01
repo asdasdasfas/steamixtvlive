@@ -490,10 +490,6 @@ http://ctn34.xyz:2095/live/aziz6486/aziz.6486/101581.m3u8
 
 
 
-#EXTINF:-1 tvg-id="TRCIFTCITV" tvg-name="CIFTCI TV" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/ciftci-tv-tr.png",CIFTCI TV
-http://ctn34.xyz:2095/live/aziz6486/aziz.6486/96121.m3u8
-
-
 #EXTINF:-1 tvg-id="TRCHASSEETPECHE" tvg-name="CHASSE ET PECHE" group-title="Belgesel" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/france/chasse-et-peche-fr.png",CHASSE ET PECHE
 http://ctn34.xyz:2095/live/aziz6486/aziz.6486/106148.m3u8
 
@@ -769,7 +765,7 @@ function proxyUrl(url: string): string {
   // so the browser blocks direct HTTPS requests. Proxy through our server (same-origin).
   const needsProxy = url.startsWith('http://') ||
     (url.startsWith('https://') && /(daioncdn|duhnet)/.test(new URL(url).hostname) &&
-      !/^kanal7-live\.daioncdn\.net$/i.test(new URL(url).hostname))
+      !/^(kanal7-live|tv8-live)\.daioncdn\.net$/i.test(new URL(url).hostname))
   if (needsProxy) {
     const u = new URL(url)
     const base = u.origin

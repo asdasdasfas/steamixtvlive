@@ -207,6 +207,9 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
         for (const absUrl of allUrlMatches) {
           try {
             const u = new URL(absUrl)
+            // ACAO gönderen host'lar proxy'lenmez — tarayıcı doğrudan çeker
+            // (kanal7-live, tv8-live: GET+Origin isteğinde Access-Control-Allow-Origin yansıtıyor)
+            if (/^(kanal7-live|tv8-live)\.daioncdn\.net$/i.test(u.hostname)) continue
             const key = u.hostname + ':' + (u.port || (u.protocol === 'https:' ? 443 : 80))
             const proto = u.protocol // 'http:' or 'https:'
             // Rewrite ALL segment/sub-playlist URLs through /hls/ — even when the
