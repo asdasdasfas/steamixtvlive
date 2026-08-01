@@ -40,7 +40,6 @@ export default function Watch() {
   const { server } = useAuth()
   const [url, setUrl] = useState('')
   const [fallbackUrls, setFallbackUrls] = useState<string[]>([])
-  const [subtitleUrls, setSubtitleUrls] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState('')
@@ -65,7 +64,7 @@ export default function Watch() {
       if (rotationId) {
         const ch = getChannelById(rotationId)
         if (!ch || ch.urls.length === 0) throw new Error('Kanal bulunamadı')
-        if (!cancelled) { setUrl(ch.urls[0]); setFallbackUrls(ch.urls.slice(1)); setTitle(ch.name); setSubtitleUrls([]) }
+        if (!cancelled) { setUrl(ch.urls[0]); setFallbackUrls(ch.urls.slice(1)); setTitle(ch.name) }
       } else if (streamId) {
         const sid = parseInt(streamId)
         const { base_url, xtream_user, xtream_pass } = server
@@ -75,7 +74,6 @@ export default function Watch() {
             : vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid)))
           if (!cancelled) { 
             setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1))
-            setSubtitleUrls(allUrls.flatMap(u => [u + '.srt', u + '.vtt']))
           }
           try {
             const info = await fetchVodInfo(base_url, xtream_user, xtream_pass, sid)
@@ -104,7 +102,6 @@ export default function Watch() {
           if (!cancelled) {
             const ordered = reorderUrls(allUrls)
             setUrl(ordered[0]); setFallbackUrls(ordered.slice(1))
-            setSubtitleUrls(allUrls.flatMap(u => [u + '.srt', u + '.vtt']))
           }
           try {
             const info = await fetchSeriesInfo(base_url, xtream_user, xtream_pass, sid)
@@ -114,7 +111,7 @@ export default function Watch() {
         } else {
           const primaryUrl = liveUrl(base_url, xtream_user, xtream_pass, sid)
           const fbUrl = proxyUrl(base_url, `/live/${xtream_user}/${xtream_pass}/${sid}.m3u8`)
-          if (!cancelled) { setUrl(primaryUrl); setFallbackUrls([fbUrl]); setTitle(`Kanal ${streamId}`); setSubtitleUrls([]) }
+          if (!cancelled) { setUrl(primaryUrl); setFallbackUrls([fbUrl]); setTitle(`Kanal ${streamId}`) }
         }
       } else {
         throw new Error('Yayın ID belirtilmedi')
@@ -192,7 +189,6 @@ export default function Watch() {
               <LivePlayer channelId={rotationId} title={title} src={url} onEnded={() => navigate(-1)} onChannelChange={handleChannelChange} />
             ) : (
               <VideoPlayer src={url} fallbackSrcs={fallbackUrls} title={title} onEnded={() => navigate(-1)}
-                subtitleUrls={type === 'movie' || type === 'series' ? subtitleUrls : undefined}
                 onRefreshUrl={() => {
                   if (streamId && server && type === 'live') {
                     const sid = parseInt(streamId)
