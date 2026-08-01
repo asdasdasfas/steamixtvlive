@@ -209,9 +209,11 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
             const u = new URL(absUrl)
             const key = u.hostname + ':' + (u.port || (u.protocol === 'https:' ? 443 : 80))
             const proto = u.protocol // 'http:' or 'https:'
-            // Only rewrite URLs if they're on the same host as the M3U8 (same CDN serves both)
-            // If a different host (e.g. TRT CDN from daioncdn M3U8), keep absolute URL — browser hits CDN directly
-            if (u.host === m3u8Url.host) {
+            // Rewrite ALL segment/sub-playlist URLs through /hls/ — even when the
+            // segment host differs from the M3U8 host (e.g. dogus.daioncdn.net master
+            // → dogus-live.daioncdn.net segments, trt.daioncdn.net → tv-trtspor2.medya.trt.com.tr).
+            // Keeping them absolute makes the browser hit the CDN directly and get CORS-blocked.
+            {
               // Register in m3u8CdnMap with a short hash
               let hash = m3u8CdnMap[key]
               if (!hash) {
@@ -227,8 +229,6 @@ function hlsFetchAndProxy(req, res, targetBase, pathPrefix) {
               const proxyPath = '/hls/' + hash + urlPath
               bodyStr = bodyStr.replace(absUrl, proxyPath)
               console.log(`[HLS-REWRITE] ${absUrl.substring(0,60)} -> ${proxyPath.substring(0,60)}`)
-            } else {
-              console.log(`[HLS-KEEP] ${absUrl.substring(0,60)} (different host, keeping absolute)`)
             }
           } catch (e) {
             console.log(`[HLS-REWRITE-ERR] ${e.message} for ${absUrl.substring(0,60)}`)
@@ -756,6 +756,11 @@ footer, section, .text-center.py-8,
     // For upstream hashes (MD5 from backend M3U8), keep the full /hls/{hash}/... path
     const isCustomHash = hash && m3u8CdnMap[hash] != null
     const pathPrefix = isCustomHash ? '/hls/' + hash : ''
+    // Sub-playlists (.m3u8) must be rewritten too (their segments may be on yet another CDN host)
+    const hlsPathNoQuery = req.url.split('?')[0]
+    if (hlsPathNoQuery.endsWith('.m3u8') || hlsPathNoQuery.endsWith('.m3u')) {
+      return hlsFetchAndProxy(req, res, target, pathPrefix)
+    }
     return fetchAndProxy(req, res, target, pathPrefix)
   }
 
