@@ -142,9 +142,6 @@ http://dzcvip1.xyz:2095/live/yasar7062/yasar.7062/122537.m3u8
 #EXTINF:-1 tvg-id="S5" tvg-name="beIN Sports 5" group-title="Premium Spor" tvg-logo="https://images.seeklogo.com/logo-png/48/2/bein-sports-logo-png_seeklogo-481582.png",beIN Sports 5
 http://dzcvip1.xyz:2095/live/yasar7062/yasar.7062/149161.m3u8
 
-#EXTINF:-1 tvg-id="SP1" tvg-name="S Sport Plus 1" group-title="Premium Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/s-sport-plus-tr.png",S Sport Plus 1
-http://dzcvip1.xyz:2095/live/yasar7062/yasar.7062/193970.m3u8
-
 #EXTINF:-1 tvg-id="SS1HD" tvg-name="S-SPORT 1 HD" group-title="Premium Spor" tvg-logo="https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/turkey/s-sport-tr.png",S-SPORT 1 HD
 http://dzcvip1.xyz:8080/live/yasar7062/yasar.7062/71749.m3u8
 

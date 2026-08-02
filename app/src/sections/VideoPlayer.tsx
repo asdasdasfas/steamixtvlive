@@ -406,7 +406,7 @@ export default function VideoPlayer({ src, poster, title, onEnded, fallbackSrcs,
               <p className="text-sm text-gray-400 mb-2">Bir süre sonra düzelecektir.<br/>Kesintisiz izleme deneyimi için lütfen <span className="text-[#0099ff] font-medium">profil bölümündeki uygulamayı</span> indirin.</p>
               <p className="text-xs text-gray-500 mb-5">Uygulamada tüm kanallar sorunsuz çalışmaktadır.</p>
               <div className="flex flex-col gap-2">
-                <a href="https://www.dropbox.com/scl/fi/723r2n6411avoretshe8z/SteamixTV_v1.0.38.apk?rlkey=8h91porgse846prav9sjp5d4j&st=vmgajz2k&dl=1"
+                <a href="https://www.dropbox.com/scl/fi/s4xd90qed7yzhhkr62c8l/SteamixTV_v1.0.40_release.apk?rlkey=2fyqec4ycscfhrjcp2terbog8&st=hs29oh6o&dl=1"
                   target="_blank" rel="noopener noreferrer"
                   className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white text-sm font-medium hover:opacity-90 transition-all flex items-center justify-center gap-2">
                   <Download className="w-4 h-4" />Uygulamayı İndir
