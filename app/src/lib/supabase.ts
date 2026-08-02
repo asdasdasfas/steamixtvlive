@@ -24,23 +24,6 @@ async function supabasePatch(path: string, body: Record<string, any>): Promise<b
   return res.ok
 }
 
-async function supabasePost(path: string, body: Record<string, any>): Promise<boolean> {
-  const res = await fetch(`${SUPABASE_URL}${path}`, {
-    method: 'POST',
-    headers: { ...headers, Prefer: 'return=minimal' },
-    body: JSON.stringify(body),
-  })
-  return res.ok
-}
-
-async function supabaseDelete(path: string): Promise<boolean> {
-  const res = await fetch(`${SUPABASE_URL}${path}`, {
-    method: 'DELETE',
-    headers,
-  })
-  return res.ok
-}
-
 export interface UserRow {
   id: number
   username: string
@@ -78,42 +61,6 @@ export async function updateAvatar(username: string, avatarNum: number): Promise
 
 export async function updatePassword(username: string, newPass: string): Promise<boolean> {
   return supabasePatch(`/rest/v1/users?username=eq.${encodeURIComponent(username)}`, { password: newPass })
-}
-
-export interface KanalKomutu {
-  id: number
-  sunucu: string
-  kategori_id: number
-  islem: string
-  stream_id: number
-  kanal_adi: string
-  durum: string
-  tarih: string
-}
-
-export async function insertKanalKomutu(komut: {
-  sunucu?: string
-  kategori_id?: number
-  islem: string
-  stream_id: number
-  kanal_adi?: string
-}): Promise<boolean> {
-  return supabasePost('/rest/v1/kanal_yonetim', {
-    sunucu: komut.sunucu || '',
-    kategori_id: komut.kategori_id ?? 0,
-    islem: komut.islem,
-    stream_id: komut.stream_id,
-    kanal_adi: komut.kanal_adi || '',
-  })
-}
-
-export async function getKanalKomutlari(): Promise<KanalKomutu[]> {
-  const data = await supabaseGet<KanalKomutu[]>('/rest/v1/kanal_yonetim?select=*&order=id.desc&limit=50')
-  return data || []
-}
-
-export async function deleteKanalKomutu(id: number): Promise<boolean> {
-  return supabaseDelete(`/rest/v1/kanal_yonetim?id=eq.${id}`)
 }
 
 function encBase(base: string): string {

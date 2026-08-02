@@ -3,10 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { parseSureDuration } from '@/lib/supabase'
 import { ArrowLeft, Check, Loader2, ShoppingCart, LogOut, Edit3, User, Clock, Calendar, ChevronDown, Download } from 'lucide-react'
-import KanalYonetimPanel from '@/sections/KanalYonetimPanel'
 
 const avatars = [1, 2, 3, 4, 5]
-const ADMIN_USERS = ['admin', 'steamixtv']
 
 function calcRemaining(startMs: number | null | undefined, sure: string, now: number) {
   if (!sure || sure === '0' || !startMs) return { remaining: -1, total: -1, endDate: null }
@@ -226,11 +224,6 @@ export default function ProfilePanel() {
             </div>
           </div>
         </div>
-
-        {/* YAYIN YÖNETİMİ - Sadece yönetici */}
-        {ADMIN_USERS.includes((user?.username || '').toLowerCase()) && (
-          <KanalYonetimPanel />
-        )}
 
         {/* Hesap Bilgileri */}
         <div className="space-y-3">
