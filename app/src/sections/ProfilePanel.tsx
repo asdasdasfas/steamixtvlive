@@ -6,7 +6,7 @@ import { ArrowLeft, Check, Loader2, ShoppingCart, LogOut, Edit3, User, Clock, Ca
 import KanalYonetimPanel from '@/sections/KanalYonetimPanel'
 
 const avatars = [1, 2, 3, 4, 5]
-const ADMIN_USERS = ['admin']
+const ADMIN_USERS = ['admin', 'steamixtv']
 
 function calcRemaining(startMs: number | null | undefined, sure: string, now: number) {
   if (!sure || sure === '0' || !startMs) return { remaining: -1, total: -1, endDate: null }
