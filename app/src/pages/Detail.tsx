@@ -193,7 +193,7 @@ export default function Detail() {
   }
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0f172a]/80 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#0099ff] animate-spin" />
       </div>
     )
@@ -201,7 +201,7 @@ export default function Detail() {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0f172a]/80 flex items-center justify-center">
         <p className="text-gray-500">İçerik bulunamadı</p>
       </div>
     )

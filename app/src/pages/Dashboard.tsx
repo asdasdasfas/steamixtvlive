@@ -585,7 +585,7 @@ export default function Dashboard() {
 
   return (
     <>
-    <div className="min-h-screen bg-[#0f172a]">
+    <div className="min-h-screen bg-[#0f172a]/80">
       <MemoNavbar categoryName={navCategoryName} />
       <div className="pt-16 md:pt-20">
         {/* ANA SAYFA */}

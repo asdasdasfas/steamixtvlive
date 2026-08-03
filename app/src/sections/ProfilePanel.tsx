@@ -67,7 +67,7 @@ export default function ProfilePanel() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f172a] pt-20 md:pt-24 pb-24">
+    <div className="min-h-screen bg-[#0f172a]/80 pt-20 md:pt-24 pb-24">
       <div className="max-w-3xl mx-auto px-4">
         <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" />Geri
