@@ -1,11 +1,11 @@
-import { useNavigate } from 'react-router-dom'
+﻿import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ShoppingCart, Check } from 'lucide-react'
 
 export default function Subscription() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen bg-[#0f172a]/80">
+    <div className="min-h-screen bg-[#0f172a]/60">
       <div className="max-w-5xl mx-auto px-4 py-8">
         <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors">
           <ArrowLeft className="w-4 h-4" />Geri
@@ -67,3 +67,4 @@ export default function Subscription() {
     </div>
   )
 }
+

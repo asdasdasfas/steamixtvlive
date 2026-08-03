@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '@/lib/language'
 import { useAuth } from '@/hooks/use-auth'
@@ -22,7 +22,7 @@ export default function AvatarSelect() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f172a]/80 flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-[#0f172a]/60 flex flex-col items-center justify-center px-4">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-[#0099ff]/10 rounded-full blur-[150px]" />
         <div className="absolute -bottom-40 -left-40 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[120px]" />
@@ -56,3 +56,4 @@ export default function AvatarSelect() {
     </div>
   )
 }
+

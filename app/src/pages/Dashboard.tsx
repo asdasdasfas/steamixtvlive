@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef, useMemo, memo } from 'react'
+﻿import { useEffect, useState, useCallback, useRef, useMemo, memo } from 'react'
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { fetchCategories, fetchVods, fetchSeries, fetchAllVods, fetchAllSeries, posterUrl, proxyUrl } from '@/lib/supabase'
@@ -585,7 +585,7 @@ export default function Dashboard() {
 
   return (
     <>
-    <div className="min-h-screen bg-[#0f172a]/80">
+    <div className="min-h-screen bg-[#0f172a]/60">
       <MemoNavbar categoryName={navCategoryName} />
       <div className="pt-16 md:pt-20">
         {/* ANA SAYFA */}
@@ -1273,3 +1273,4 @@ function FavoritesSection() {
     </div>
   )
 }
+
