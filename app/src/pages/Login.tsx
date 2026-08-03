@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useLang } from '@/lib/language'
 import { useAuth } from '@/hooks/use-auth'
@@ -19,23 +19,6 @@ export default function Login() {
   const [langOpen, setLangOpen] = useState(false)
   const [showSubModal, setShowSubModal] = useState(false)
   const [showTestModal, setShowTestModal] = useState(false)
-  const bgRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const el = bgRef.current
-    if (!el) return
-    el.style.transform = 'translateX(0px)'
-    const startTime = Date.now()
-    let raf: number
-    const animate = () => {
-      const elapsed = (Date.now() - startTime) / 1000
-      const offset = Math.sin(elapsed * 0.03) * 25
-      el.style.transform = `translateX(${offset}px)`
-      raf = requestAnimationFrame(animate)
-    }
-    raf = requestAnimationFrame(animate)
-    return () => cancelAnimationFrame(raf)
-  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,12 +46,14 @@ export default function Login() {
     <div className="min-h-screen bg-[#0f172a] flex flex-col relative overflow-hidden">
       {/* Arka plan - transform ile kaydırma, boşluksuz */}
       <div className="absolute inset-0 overflow-hidden">
-        <div ref={bgRef} className="absolute" style={{
-          top: '-30px', bottom: '-30px', left: '-30px', right: '-30px',
+        <style>{`@keyframes slowPanRight { 0% { transform: translateX(-150px) } 50% { transform: translateX(150px) } 100% { transform: translateX(-150px) } }`}</style>
+        <div className="absolute" style={{
+          top: '-165px', bottom: '-165px', left: '-165px', right: '-165px',
           backgroundImage: 'url(/images/login.jpg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           filter: 'brightness(0.5) blur(1px)',
+          animation: 'slowPanRight 60s ease-in-out infinite',
         }} />
       </div>
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black/70" />
