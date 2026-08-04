@@ -206,41 +206,44 @@ export default function Login() {
                 { name: '3 AYLIK', price: '600 TL', link: 'https://www.shopier.com/platool/45181945', popular: true, features: ['4K Ultra HD', 'Sınırsız İzleme', 'Tüm Kategoriler', 'VOD + Arşiv', '7/24 Destek', 'En Popüler Seçim'] },
                 { name: '12 AYLIK', price: '1.200 TL', link: 'https://www.shopier.com/platool/44083927', features: ['4K Ultra HD', 'Sınırsız İzleme', 'Tüm Kategoriler', 'VOD + Arşiv', '7/24 Destek'] },
               ].map(p => (
-                <div key={p.name} className={`relative rounded-2xl p-5 border transition-all duration-300 hover:scale-[1.03] ${p.popular ? 'border-[#0099ff] bg-[#0099ff]/5 shadow-lg shadow-[#0099ff]/10' : 'border-white/10 bg-white/5'}`}>
+                <div key={p.name} className={`relative rounded-3xl p-6 border transition-all duration-300 hover:-translate-y-1.5 ${p.popular ? 'border-[#0099ff]/60 bg-gradient-to-b from-[#0099ff]/[0.14] to-[#0099ff]/[0.02] shadow-[0_0_45px_rgba(0,153,255,0.18)]' : 'border-white/10 bg-gradient-to-b from-white/[0.07] to-white/[0.02] hover:border-white/25 hover:shadow-[0_0_30px_rgba(0,153,255,0.1)]'}`}>
+                  <div className={`absolute top-0 inset-x-0 h-1 rounded-t-3xl ${p.popular ? 'bg-gradient-to-r from-[#0099ff] via-blue-400 to-purple-500' : 'bg-gradient-to-r from-white/15 to-white/5'}`} />
                   {p.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-[#0099ff] to-purple-500 text-white text-xs font-semibold whitespace-nowrap shadow-lg">
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#0099ff] to-purple-500 text-white text-[11px] font-bold tracking-wide whitespace-nowrap shadow-lg shadow-[#0099ff]/40 ring-2 ring-[#0099ff]/20">
                       En Popüler
                     </div>
                   )}
-                  <div className="text-center mb-4 mt-2">
-                    <p className="text-xs text-gray-500 tracking-widest mb-2">{p.name}</p>
-                    <div className="text-3xl font-bold text-[#0099ff] mb-1">{p.price}</div>
+                  <div className="text-center mb-5 mt-3">
+                    <p className="text-[11px] font-semibold text-gray-400 tracking-[0.25em] uppercase mb-3">{p.name}</p>
+                    <div className="text-4xl font-extrabold bg-gradient-to-r from-[#0099ff] to-purple-400 bg-clip-text text-transparent mb-1 drop-shadow-[0_0_15px_rgba(0,153,255,0.35)]">{p.price}</div>
                   </div>
-                  <ul className="space-y-2 mb-5">
+                  <ul className="space-y-2.5 mb-6">
                     {p.features.map((f, i) => (
-                      <li key={i} className="flex items-center gap-2 text-[11px] text-gray-400">
-                        <Check className="w-3.5 h-3.5 text-[#0099ff] shrink-0" />{f}
+                      <li key={i} className="flex items-center gap-2.5 text-xs text-gray-300">
+                        <span className="w-4 h-4 rounded-full bg-[#0099ff]/15 flex items-center justify-center shrink-0">
+                          <Check className="w-2.5 h-2.5 text-[#0099ff]" />
+                        </span>{f}
                       </li>
                     ))}
                   </ul>
                   <a href={p.link} target="_blank" rel="noopener noreferrer"
-                    className="block w-full py-2.5 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-xs text-center hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#0099ff]/20">
-                    <ShoppingCart className="w-3.5 h-3.5" />Satın Al
+                    className="block w-full py-3 rounded-xl bg-gradient-to-r from-[#0099ff] via-blue-500 to-purple-600 text-white font-bold text-xs tracking-wide text-center hover:shadow-[0_0_25px_rgba(0,153,255,0.5)] hover:scale-[1.02] active:scale-[0.97] transition-all flex items-center justify-center gap-2">
+                    <ShoppingCart className="w-4 h-4" />Satın Al
                   </a>
                 </div>
               ))}
             </div>
-            <div className="space-y-3">
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+            <div className="mt-5 space-y-3">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-yellow-500/[0.07] to-transparent border border-yellow-500/15 border-l-4 border-l-yellow-500/50">
                 <p className="text-xs text-gray-400 leading-relaxed">
-                  <span className="text-yellow-400 font-semibold">📌 Önemli:</span> Satın aldıktan sonra{' '}
-                  <span className="text-[#0099ff] font-medium">steamixgame@yandex.com</span> mail adresine
+                  <span className="text-yellow-400 font-bold">📌 Önemli:</span> Satın aldıktan sonra{' '}
+                  <span className="text-[#0099ff] font-semibold">steamixgame@yandex.com</span> mail adresine
                   satın aldığınıza dair ekran görüntüsü atın. Yönetici tarafından onaylanıp en kısa sürede
                   abonelik giriş bilgileriniz size teslim edilecektir.
                 </p>
               </div>
-              <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
-                <p className="text-xs text-yellow-300 leading-relaxed">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-orange-500/[0.08] to-transparent border border-orange-500/15 border-l-4 border-l-orange-500/50">
+                <p className="text-xs text-orange-300 leading-relaxed">
                   ⚠️ Shopier resmi kuralları gereği abonelikler sınırlıdır; satın aldığınız abonelik tamamlandıktan
                   sonra ek olarak yalnızca bir defaya mahsus tekrar alınabilir.
                 </p>
