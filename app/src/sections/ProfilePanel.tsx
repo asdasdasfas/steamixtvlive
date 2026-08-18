@@ -267,7 +267,7 @@ export default function ProfilePanel() {
                 <h3 className="text-white font-bold text-base">Mobil Uygulamayı İndir</h3>
                 <p className="text-sm text-gray-400 mt-1">Steamix TV uygulamasını şimdi TV box'unuzda ve mobil cihazlarınızda deneyin</p>
               </div>
-              <a href="https://www.dropbox.com/scl/fi/ea5k1tvfeyt7yonzg9oa8/SteamixTV_v1.0.42_release.apk?rlkey=k6cn1dhxkg32exafl2vojtmua&st=rlhgghqx&dl=1"
+              <a href="https://www.dropbox.com/scl/fi/bb8449z1zpq85n1lsjgxa/SteamixTV_v1.0.42_release.apk?rlkey=oansz9wkg2firu8e7fazkbapa&st=mret97f0&dl=1"
                 target="_blank" rel="noopener noreferrer"
                 className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white text-sm font-semibold hover:shadow-[0_0_30px_rgba(0,153,255,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap">
                 <Download className="w-4 h-4" />İndir
