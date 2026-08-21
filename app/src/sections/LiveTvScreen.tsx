@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Play, Tv, Lock } from 'lucide-react'
 import type { RotationCategory, RotationChannel } from '@/lib/rotation'
 import { STEAMIX_TV_APK_URL } from '@/lib/constants'
+import { slugify } from '@/lib/utils'
 import LockedCategoryModal from './LockedCategoryModal'
 
 const LOCKED_GROUPS = ['Premium Spor', 'Sinema & Dizi']
@@ -21,7 +22,7 @@ export default function LiveTvScreen({ categories, selectedCat, onSelectCategory
   const channels = (currentCat && !LOCKED_GROUPS.includes(currentCat.name)) ? currentCat.channels : []
 
   const handleWatch = (ch: RotationChannel) => {
-    navigate(`/watch?rotation_id=${ch.id}`)
+    navigate(`/watch/rotation/${ch.id}/${slugify(ch.name)}`)
   }
 
   const handleCategoryClick = (cat: RotationCategory) => {

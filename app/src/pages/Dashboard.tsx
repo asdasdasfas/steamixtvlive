@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { fetchCategories, fetchVods, fetchSeries, fetchAllVods, fetchAllSeries, posterUrl, proxyUrl } from '@/lib/supabase'
 import { parseRotationData } from '@/lib/rotation'
 import { getFavorites, removeFavorite } from '@/lib/favorites'
+import { slugify } from '@/lib/utils'
 import type { FavoriteItem } from '@/lib/favorites'
 import Navbar from '@/sections/Navbar'
 const MemoNavbar = memo(Navbar)
@@ -503,26 +504,17 @@ export default function Dashboard() {
   }, [tab, activeSeriesCat])
 
   const gotoWatch = (item: any, type: string) => {
-    const sp = new URLSearchParams()
     const id = type === 'series' ? item.series_id : item.stream_id
-    sp.set('stream_id', id)
-    sp.set('type', type)
-    if (item.container_extension) sp.set('ext', item.container_extension)
-    if (item.stream_icon) sp.set('icon', item.stream_icon)
-    if (item.category_id) sp.set('cat', item.category_id)
-    navigate(`/watch?${sp}`)
+    if (type === 'series') {
+      navigate(`/watch/series/${id}/1/1/${id}/${slugify(item.name || '')}`)
+    } else {
+      navigate(`/watch/${type}/${id}/${slugify(item.name || '')}`)
+    }
   }
 
   const gotoDetail = (item: any, type: string) => {
-    const sp = new URLSearchParams()
     const id = type === 'series' ? item.series_id : item.stream_id
-    sp.set('id', id)
-    sp.set('type', type)
-    if (item.container_extension) sp.set('ext', item.container_extension)
-    if (item.stream_icon) sp.set('icon', item.stream_icon)
-    if (item.category_id) sp.set('cat', item.category_id)
-    if (item.name) sp.set('name', item.name.replace(/[✓✔☑✗✘]/g, ''))
-    navigate(`/detail?${sp}`)
+    navigate(`/detail/${type}/${id}/${slugify(item.name || '')}`)
   }
 
   const scrollRow = (catId: string, dir: 'left' | 'right') => {
@@ -893,12 +885,7 @@ function MovieCategoryGrid({ items, loading, categoryName, adultCover }: any) {
   }
 
   const handleDetail = (item: any) => {
-    const sp = new URLSearchParams({ id: String(item.stream_id), type: 'movie', cat: item.category_id || '' })
-    if (adultCover) sp.set('icon', 'adult')
-    else if (item.cover_big || item.stream_icon) sp.set('icon', item.cover_big || item.stream_icon)
-    if (item.container_extension) sp.set('ext', item.container_extension)
-    if (item.name) sp.set('name', item.name.replace(/[✓✔☑✗✘]/g, ''))
-    navigate(`/detail?${sp}`)
+    navigate(`/detail/movie/${item.stream_id}/${slugify(item.name || '')}`)
   }
 
   const newestId = categoryName === 'GÜNCELLENEN FİLMLER' ? (items || [])[0]?.stream_id : undefined
@@ -938,11 +925,7 @@ function SeriesCategoryGrid({ items, loading, categoryName, adultCover }: any) {
     return url
   }
   const handleDetail = (item: any) => {
-    const sp = new URLSearchParams({ id: String(item.series_id), type: 'series', cat: item.category_id || '' })
-    if (adultCover) sp.set('icon', 'adult')
-    else if (item.cover_big || item.movie_image || item.cover || item.thumbnail) sp.set('icon', item.cover_big || item.movie_image || item.cover || item.thumbnail)
-    if (item.name) sp.set('name', item.name.replace(/[✓✔☑✗✘]/g, ''))
-    navigate(`/detail?${sp}`)
+    navigate(`/detail/series/${item.series_id}/${slugify(item.name || '')}`)
   }
 
   return (
@@ -1242,10 +1225,7 @@ function FavoritesSection() {
           return (
             <button key={key} onClick={() => {
               if (selectMode) { toggleSelect(key); return }
-              const sp = new URLSearchParams({ id: String(item.id), type: item.type })
-              if (item.image) sp.set('icon', item.image)
-              if (item.name) sp.set('name', item.name)
-              navigate(`/detail?${sp}`)
+              navigate(`/detail/${item.type}/${item.id}/${slugify(item.name || '')}`)
             }} className="group">
               <div className={`aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative transition-all duration-300 ${selectMode ? '' : 'group-hover:scale-[1.07] group-hover:shadow-[0_0_30px_rgba(0,153,255,0.35)] group-hover:ring-2 group-hover:ring-[#0099ff]/40'} ${isSelected ? 'ring-2 ring-red-500' : ''}`}>
                 <img src={item.image} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).src = ''; (e.target as HTMLImageElement).style.background = '#1e293b' }} />

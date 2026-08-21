@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { fetchVodInfo, fetchSeriesInfo, fetchVods, fetchSeries, proxyUrl } from '@/lib/supabase'
 import DetailView from '@/sections/DetailView'
@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react'
 import { isFavorite, toggleFavorite } from '@/lib/favorites'
 import { buildSteamixIntentUrl } from '@/lib/player-intents'
 import { searchTrailer } from '@/lib/youtube'
+import { slugify } from '@/lib/utils'
 
 function decodeField(v: string): string {
   if (!v) return ''
@@ -41,19 +42,14 @@ function proxyImg(base: string | undefined, url: string): string {
 }
 
 export default function Detail() {
-  const [params] = useSearchParams()
+  const { type, id } = useParams()
   const navigate = useNavigate()
   const { server } = useAuth()
-  const id = params.get('id')
-  const type = params.get('type') || 'live'
-  const urlIcon = params.get('icon') || ''
-  const urlName = params.get('name') || ''
-  const ext = params.get('ext') || ''
-  const catId = params.get('cat') || ''
+  const [ext, setExt] = useState('')
   const [data, setData] = useState<any>(null)
   const [similar, setSimilar] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [isFav, setIsFav] = useState(isFavorite(parseInt(id || '0'), type as 'movie' | 'series'))
+  const [isFav, setIsFav] = useState(isFavorite(parseInt(id || '0'), (type as 'movie' | 'series') || 'movie'))
 
   useEffect(() => {
     if (!id || !server) return
@@ -70,34 +66,32 @@ export default function Detail() {
             const iv = info?.info
             const md2 = iv?.movie_data?.info || info?.movie_data?.info
             const mapi = info?.movie_data
+            setExt(mapi?.container_extension || md2?.container_extension || '')
             setData({
-              id: parseInt(id), name: urlName || iv?.name || mapi?.name || 'İsimsiz',
-              stream_icon: proxyImg(base_url, urlIcon || iv?.movie_image || iv?.cover_big || md2?.cover_big || iv?.cover || iv?.stream_icon || mapi?.stream_icon || ''),
+              id: parseInt(id), name: iv?.name || mapi?.name || 'İsimsiz',
+              stream_icon: proxyImg(base_url, iv?.movie_image || iv?.cover_big || md2?.cover_big || iv?.cover || iv?.stream_icon || mapi?.stream_icon || ''),
               stream_type: 'movie',
               plot: decodeField(md2?.plot || iv?.plot || ''),
               genre: decodeField(md2?.genre || iv?.genre || ''),
               rating: iv?.rating || md2?.rating || '',
               releasedate: iv?.releaseDate || iv?.releasedate || md2?.releasedate || '',
               duration: iv?.duration || md2?.duration || '',
-              backdrop_path: [proxyImg(base_url, urlIcon || iv?.movie_image || iv?.cover_big || md2?.cover_big || iv?.cover || '')],
-              category_id: catId || iv?.category_id || mapi?.category_id || '',
+              backdrop_path: [proxyImg(base_url, iv?.movie_image || iv?.cover_big || md2?.cover_big || iv?.cover || '')],
+              category_id: iv?.category_id || mapi?.category_id || '',
               cast: decodeField(md2?.cast || iv?.cast || ''),
               director: decodeField(md2?.director || iv?.director || ''),
               youtube_trailer: '',
             })
-            if (urlIcon !== 'adult') {
-              searchTrailer(cleanName(urlName || iv?.name || mapi?.name || ''), 'movie').then(vid => {
-                if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
-              })
-            }
+            searchTrailer(cleanName(iv?.name || mapi?.name || ''), 'movie').then(vid => {
+              if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
+            })
             // Load similar from same category (silent, parallel)
-            if (catId || info?.info?.category_id) {
-              const cid = catId || info?.info?.category_id
+            if (info?.info?.category_id) {
+              const cid = info?.info?.category_id
               fetchVods(base_url, xtream_user, xtream_pass, cid).then(allVods => {
                 if (!cancelled && allVods) {
                   const sim = allVods.filter((m: any) => String(m.stream_id) !== id).slice(0, 10)
-                  const isAdult = urlIcon === 'adult'
-                  setSimilar(sim.map((s: any) => ({ id: s.stream_id, name: s.name, stream_icon: isAdult ? 'adult' : s.cover_big || s.stream_icon, cover_big: s.cover_big, stream_type: 'movie' })))
+                  setSimilar(sim.map((s: any) => ({ id: s.stream_id, name: s.name, stream_icon: s.cover_big || s.stream_icon, cover_big: s.cover_big, stream_type: 'movie' })))
                 }
               }).catch(() => {})
             }
@@ -135,33 +129,30 @@ export default function Detail() {
               }
             }
             setData({
-              id: parseInt(id), name: urlName || si?.name || 'İsimsiz',
-              stream_icon: proxyImg(base_url, urlIcon || si?.cover_big || si?.movie_image || si?.cover || si?.thumbnail || ''),
+              id: parseInt(id), name: si?.name || 'İsimsiz',
+              stream_icon: proxyImg(base_url, si?.cover_big || si?.movie_image || si?.cover || si?.thumbnail || ''),
               stream_type: 'series',
               plot: decodeField(si?.plot || si?.description || ''),
               genre: decodeField(si?.genre || ''),
               rating: si?.rating || '',
               releasedate: si?.releaseDate || si?.releasedate || '',
-              backdrop_path: [proxyImg(base_url, urlIcon || si?.cover_big || si?.movie_image || si?.cover || '')],
-              category_id: catId || si?.category_id || '',
+              backdrop_path: [proxyImg(base_url, si?.cover_big || si?.movie_image || si?.cover || '')],
+              category_id: si?.category_id || '',
               cast: decodeField(si?.cast || ''),
               director: decodeField(si?.director || ''),
               episodes,
               youtube_trailer: '',
             })
-            if (urlIcon !== 'adult') {
-              searchTrailer(cleanName(urlName || si?.name || ''), 'series').then(vid => {
-                if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
-              })
-            }
+            searchTrailer(cleanName(si?.name || ''), 'series').then(vid => {
+              if (!cancelled && vid) setData((prev: any) => prev ? { ...prev, youtube_trailer: vid } : prev)
+            })
             // Load similar from same category (silent, parallel)
-            if (catId || si?.category_id) {
-              const cid = catId || si?.category_id
+            if (si?.category_id) {
+              const cid = si?.category_id
               fetchSeries(base_url, xtream_user, xtream_pass, cid).then(allSeries => {
                 if (!cancelled && allSeries) {
                   const sim = allSeries.filter((s: any) => String(s.series_id) !== id).slice(0, 10)
-                  const isAdult = urlIcon === 'adult'
-                  setSimilar(sim.map((s: any) => ({ id: s.series_id, name: s.name, stream_icon: isAdult ? 'adult' : s.cover_big || s.movie_image || s.cover || s.thumbnail, cover_big: s.cover_big, stream_type: 'series' })))
+                  setSimilar(sim.map((s: any) => ({ id: s.series_id, name: s.name, stream_icon: s.cover_big || s.movie_image || s.cover || s.thumbnail, cover_big: s.cover_big, stream_type: 'series' })))
                 }
               }).catch(() => {})
             }
@@ -172,21 +163,18 @@ export default function Detail() {
     }
     load()
     return () => { cancelled = true }
-  }, [id, type, ext, urlIcon, catId, server])
+  }, [id, type, server])
 
   const handleSimilarClick = (item: any) => {
-    const sp = new URLSearchParams({ id: String(item.id), type: item.stream_type })
-    if (item.stream_icon || item.cover_big) sp.set('icon', item.stream_icon || item.cover_big)
-    if (item.name) sp.set('name', item.name)
-    navigate(`/detail?${sp}`)
+    navigate(`/detail/${item.stream_type || 'movie'}/${item.id}/${slugify(item.name || '')}`)
   }
 
   const handleToggleFav = () => {
     const nowFav = toggleFavorite({
       id: data?.id || parseInt(id || '0'),
-      type: type as 'movie' | 'series',
+      type: (type as 'movie' | 'series') || 'movie',
       name: data?.name || '',
-      image: data?.stream_icon || urlIcon,
+      image: data?.stream_icon || '',
       addedAt: Date.now(),
     })
     setIsFav(nowFav)
@@ -227,23 +215,12 @@ export default function Detail() {
           const firstSeason = Object.keys(data.episodes || {})[0] || '1'
           const firstEp = data.episodes?.[firstSeason]?.[0]
           if (firstEp) {
-            const sp = new URLSearchParams({ stream_id: String(firstEp.id || firstEp.stream_id), type: 'series', season: firstSeason, episode: firstEp.episode_num })
-            if (firstEp.container_extension) sp.set('ext', firstEp.container_extension)
-            if (data.stream_icon) sp.set('icon', data.stream_icon)
-            sp.set('series_id', String(data.id))
-            navigate(`/watch?${sp}`)
+            navigate(`/watch/series/${firstEp.id || firstEp.stream_id}/${firstSeason}/${firstEp.episode_num}/${data.id}/${slugify(data.name)}`)
           } else {
-            const sp = new URLSearchParams({ stream_id: id!, type: 'series', season: '1', episode: '1' })
-            if (ext) sp.set('ext', ext)
-            if (data.stream_icon) sp.set('icon', data.stream_icon)
-            sp.set('series_id', String(data.id))
-            navigate(`/watch?${sp}`)
+            navigate(`/watch/series/${id}/1/1/${data.id}/${slugify(data.name)}`)
           }
         } else {
-          const sp = new URLSearchParams({ stream_id: id!, type })
-          if (ext) sp.set('ext', ext)
-          if (data.stream_icon) sp.set('icon', data.stream_icon)
-          navigate(`/watch?${sp}`)
+          navigate(`/watch/${type}/${id}/${slugify(data?.name || '')}`)
         }
       }}
     />

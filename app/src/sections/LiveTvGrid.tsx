@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Play } from 'lucide-react'
 import Poster from '@/components/Poster'
+import { slugify } from '@/lib/utils'
 
 interface Channel {
   id: number
@@ -30,7 +31,7 @@ export default function LiveTvGrid({ channels }: Props) {
       {channels.map(ch => (
         <button
           key={ch.id}
-          onClick={() => navigate(`/watch?stream_id=${ch.id}&type=live`)}
+          onClick={() => navigate(`/watch/live/${ch.id}`)}
           className="group relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-800 transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_25px_rgba(0,153,255,0.25)] hover:ring-2 hover:ring-[#0099ff]/40"
         >
           <Poster src={ch.stream_icon} type="channel" className="group-hover:scale-110 transition-transform duration-300" />

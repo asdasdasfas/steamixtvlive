@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
+import { slugify } from '@/lib/utils'
 import { liveUrl, seriesUrls, fetchVodInfo, fetchSeriesInfo, fetchLiveStreams, vodUrlTesters, vodUrlWithExt, proxyUrl } from '@/lib/supabase'
 import { getChannelById } from '@/lib/rotation'
 import VideoPlayer from '@/sections/VideoPlayer'
@@ -35,7 +36,7 @@ const reorderUrls = (urls: string[]) => {
 }
 
 export default function Watch() {
-  const [params, setParams] = useSearchParams()
+  const { type: routeType, id, season: seasonParam, episode: episodeParam, seriesId: seriesIdParam } = useParams()
   const navigate = useNavigate()
   const { server } = useAuth()
   const [url, setUrl] = useState('')
@@ -46,14 +47,19 @@ export default function Watch() {
   const [refreshKey, setRefreshKey] = useState(0)
   const refreshTimerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
 
-
-  const streamId = params.get('stream_id')
-  const rotationId = params.get('rotation_id')
-  const type = params.get('type') || 'live'
-  const season = params.get('season') || '1'
-  const episode = params.get('episode') || '1'
-  const ext = params.get('ext') || ''
-  const seriesId = params.get('series_id') || ''
+  let streamId: string | null = null
+  let rotationId: string | null = null
+  let type = 'live'
+  if (routeType === 'rotation') {
+    rotationId = id ?? null
+  } else {
+    streamId = id ?? null
+    type = routeType || 'live'
+  }
+  const season = seasonParam || '1'
+  const episode = episodeParam || '1'
+  const seriesId = seriesIdParam || ''
+  const ext = ''
 
 
   const resolveStream = useCallback(async () => {
@@ -120,7 +126,7 @@ export default function Watch() {
       if (!cancelled) setError(err.message || 'Yayın yüklenirken hata oluştu')
     } finally { if (!cancelled) setLoading(false) }
     return () => { cancelled = true }
-  }, [streamId, rotationId, type, season, episode, ext, seriesId, server])
+  }, [streamId, rotationId, type, season, episode, seriesId, server])
 
   useEffect(() => { resolveStream() }, [resolveStream])
 
@@ -144,10 +150,7 @@ export default function Watch() {
 
   const handleChannelChange = (newId: string, newUrl: string, newTitle: string) => {
     setUrl(newUrl); setTitle(newTitle); setLoading(false); setError(null)
-    const sp = new URLSearchParams(params)
-    sp.set('rotation_id', newId)
-    sp.delete('stream_id')
-    setParams(sp, { replace: true })
+    navigate(`/watch/rotation/${newId}/${slugify(newTitle)}`, { replace: true })
   }
 
   if (!streamId && !rotationId) {

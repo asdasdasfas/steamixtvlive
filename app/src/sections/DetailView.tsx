@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Play, Star, Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight, Eye, Heart, Volume2, VolumeX } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Poster from '@/components/Poster'
+import { slugify } from '@/lib/utils'
 import { buildSteamixIntentUrl, APK_DOWNLOAD_URL } from '@/lib/player-intents'
 import type { ServerRow } from '@/lib/supabase'
 
@@ -256,11 +257,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
                           const { base_url, xtream_user, xtream_pass } = server
                           window.location.href = buildSteamixIntentUrl(base_url, xtream_user, xtream_pass, parseInt(sid), ep.container_extension || ext || '', 'series')
                         } else if (!mobile && server) {
-                          const sp = new URLSearchParams({ stream_id: sid, type: 'series', season: snum, episode: enum_ })
-                          if (ep.container_extension) sp.set('ext', ep.container_extension)
-                          if (data.stream_icon) sp.set('icon', data.stream_icon)
-                          sp.set('series_id', String(data.id))
-                          navigate(`/watch?${sp}`)
+                          navigate(`/watch/series/${sid}/${snum}/${enum_}/${String(data.id)}/${slugify(data.name)}`)
                         }
                       }}
                         className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] hover:bg-white/10 transition-colors text-left border border-white/[0.03] hover:border-white/10">
@@ -300,10 +297,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
             <div ref={similarRef} className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
               {similarItems.map(item => (
                 <button key={item.id} onClick={() => {
-                  const sp = new URLSearchParams({ id: String(item.id), type: item.stream_type || 'movie' })
-                  if (item.stream_icon) sp.set('icon', item.stream_icon)
-                  if (item.name) sp.set('name', item.name)
-                  onSimilarClick ? onSimilarClick(item) : navigate(`/detail?${sp}`)
+                  onSimilarClick ? onSimilarClick(item) : navigate(`/detail/${item.stream_type || 'movie'}/${item.id}/${slugify(item.name || '')}`)
                 }}
                   className="flex-shrink-0 w-28 md:w-36 group">
                   <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 mb-2 relative shadow-lg shadow-black/30 ring-1 ring-white/[0.03] group-hover:ring-[#0099ff]/30 transition-all">
