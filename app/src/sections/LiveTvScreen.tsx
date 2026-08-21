@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { Play, Tv, Lock } from 'lucide-react'
 import type { RotationCategory, RotationChannel } from '@/lib/rotation'
+import { STEAMIX_TV_APK_URL } from '@/lib/constants'
 import LockedCategoryModal from './LockedCategoryModal'
 
 const LOCKED_GROUPS = ['Premium Spor', 'Sinema & Dizi']
@@ -87,7 +88,7 @@ export default function LiveTvScreen({ categories, selectedCat, onSelectCategory
           </div>
         )}
       </div>
-      <LockedCategoryModal open={lockedOpen} onClose={() => setLockedOpen(false)} />
+      <LockedCategoryModal open={lockedOpen} onClose={() => setLockedOpen(false)} apkUrl={STEAMIX_TV_APK_URL} />
     </div>
   )
 }
