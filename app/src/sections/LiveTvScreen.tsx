@@ -1,6 +1,10 @@
 import { useNavigate } from 'react-router-dom'
-import { Play, Tv } from 'lucide-react'
+import { useState } from 'react'
+import { Play, Tv, Lock } from 'lucide-react'
 import type { RotationCategory, RotationChannel } from '@/lib/rotation'
+import LockedCategoryModal from './LockedCategoryModal'
+
+const LOCKED_GROUPS = ['Premium Spor', 'Sinema & Dizi']
 
 interface Props {
   categories: RotationCategory[]
@@ -10,29 +14,42 @@ interface Props {
 
 export default function LiveTvScreen({ categories, selectedCat, onSelectCategory }: Props) {
   const navigate = useNavigate()
+  const [lockedOpen, setLockedOpen] = useState(false)
 
   const currentCat = categories.find(c => c.id === selectedCat) || categories[0]
-  const channels = currentCat?.channels || []
+  const channels = (currentCat && !LOCKED_GROUPS.includes(currentCat.name)) ? currentCat.channels : []
 
   const handleWatch = (ch: RotationChannel) => {
     navigate(`/watch?rotation_id=${ch.id}`)
+  }
+
+  const handleCategoryClick = (cat: RotationCategory) => {
+    if (LOCKED_GROUPS.includes(cat.name)) {
+      setLockedOpen(true)
+    } else {
+      onSelectCategory(cat.id)
+    }
   }
 
   return (
     <div className="flex flex-col md:flex-row h-[calc(100vh-80px)]">
       {/* Category Sidebar */}
       <div className="flex md:flex-col overflow-x-auto md:overflow-y-hidden gap-1 p-2 md:p-3 bg-black/20 md:w-44 shrink-0 md:justify-center md:h-full">
-        {categories.map(cat => (
-          <button key={cat.id} onClick={() => onSelectCategory(cat.id)}
-            className={`flex-shrink-0 px-3 py-1.5 md:py-1.5 rounded-lg text-[10px] md:text-[10px] font-medium transition-colors text-left whitespace-nowrap md:whitespace-normal leading-tight ${
-              selectedCat === cat.id
-                ? 'bg-[#0099ff]/20 text-[#0099ff] border border-[#0099ff]/30'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`}>
-            {cat.name}
-            <span className="block text-[8px] text-gray-600 mt-0.5">{cat.channels.length} kanal</span>
-          </button>
-        ))}
+        {categories.map(cat => {
+          const locked = LOCKED_GROUPS.includes(cat.name)
+          return (
+            <button key={cat.id} onClick={() => handleCategoryClick(cat)}
+              className={`flex-shrink-0 px-3 py-1.5 md:py-1.5 rounded-lg text-[10px] md:text-[10px] font-medium transition-colors text-left whitespace-nowrap md:whitespace-normal leading-tight flex items-center gap-1.5 ${
+                selectedCat === cat.id && !locked
+                  ? 'bg-[#0099ff]/20 text-[#0099ff] border border-[#0099ff]/30'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}>
+              {locked && <Lock className="w-3 h-3 text-[#0099ff] shrink-0" />}
+              <span>{cat.name}</span>
+              <span className="block text-[8px] text-gray-600 mt-0.5">{cat.channels.length} kanal</span>
+            </button>
+          )
+        })}
       </div>
 
       {/* Channel List */}
@@ -70,6 +87,7 @@ export default function LiveTvScreen({ categories, selectedCat, onSelectCategory
           </div>
         )}
       </div>
+      <LockedCategoryModal open={lockedOpen} onClose={() => setLockedOpen(false)} />
     </div>
   )
 }
