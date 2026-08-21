@@ -75,17 +75,19 @@ export default function Watch() {
         const sid = parseInt(streamId)
         const { base_url, xtream_user, xtream_pass } = server
         if (type === 'movie') {
-          const allUrls = reorderUrls(ext
-            ? [vodUrlWithExt(base_url, xtream_user, xtream_pass, sid, ext), ...vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))]
-            : vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid)))
-          if (!cancelled) { 
-            setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1))
-          }
+          let resolvedExt = ''
           try {
             const info = await fetchVodInfo(base_url, xtream_user, xtream_pass, sid)
+            resolvedExt = (info as any)?.movie_data?.container_extension || ''
             if (!cancelled) setTitle((info as any)?.info?.name || `Film ${streamId}`)
           } catch {}
           if (!cancelled) setTitle(`Film ${streamId}`)
+          const allUrls = reorderUrls(resolvedExt
+            ? [vodUrlWithExt(base_url, xtream_user, xtream_pass, sid, resolvedExt), ...vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid))]
+            : vodUrlTesters.map(fn => fn(base_url, xtream_user, xtream_pass, sid)))
+          if (!cancelled) {
+            setUrl(allUrls[0]); setFallbackUrls(allUrls.slice(1))
+          }
         } else if (type === 'series') {
           const allUrls: string[] = []
           const sidNum = seriesId ? parseInt(seriesId) : sid
