@@ -1,2 +1,2 @@
 export const STEAMIX_TV_APK_URL =
-  'https://www.dropbox.com/scl/fi/bb8449z1zpq85n1lsjgxa/SteamixTV_v1.0.42_release.apk?rlkey=oansz9wkg2firu8e7fazkbapa&st=mret97f0&dl=1'
+  'https://www.dropbox.com/scl/fi/xekk1y1xtaa9dhnx5swsa/SteamixTV_v1.0.43_release.apk?rlkey=2p4vlzejpqzncli2u0m0zghib&st=67prm5zp&dl=1'
