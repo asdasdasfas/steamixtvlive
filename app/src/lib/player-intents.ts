@@ -19,5 +19,5 @@ export function buildSteamixIntentUrl(
   return intentUrl
 }
 
-export const APK_DOWNLOAD_URL = 'https://www.dropbox.com/scl/fi/xekk1y1xtaa9dhnx5swsa/SteamixTV_v1.0.43_release.apk?rlkey=2p4vlzejpqzncli2u0m0zghib&st=67prm5zp&dl=1'
+export const APK_DOWNLOAD_URL = 'https://www.dropbox.com/scl/fi/5bw5nsyelezwrxmyb5hwt/SteamixTV_v1.0.45_release.apk?rlkey=ghc5phabjucqlrq540zjdqgaz&st=36xy08me&dl=1'
 export const INSTALL_FLAG_KEY = 'steamix_player_ready'
