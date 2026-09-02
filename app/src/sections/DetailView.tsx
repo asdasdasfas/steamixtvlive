@@ -45,11 +45,14 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
     let timer: any = null
     const create = () => {
       if (!wrapRef.current || !(window as any).YT?.Player) { timer = setTimeout(create, 200); return }
-      p = new (window as any).YT.Player(wrapRef.current, {
+        p = new (window as any).YT.Player(wrapRef.current, {
         height: '200%', width: '200%',
         videoId: trailerId,
         playerVars: { autoplay: 1, mute: 1, controls: 0, loop: 1, playlist: trailerId, modestbranding: 1, rel: 0, playsinline: 1, fs: 0, cc_load_policy: 0, disablekb: 1 },
-        events: { onReady: (e: any) => { e.target.mute(); e.target.playVideo(); playerRef.current = e.target } }
+        events: {
+          onReady: (e: any) => { e.target.mute(); e.target.playVideo(); playerRef.current = e.target },
+          onStateChange: (e: any) => { if (e.data === 0) { try { e.target.seekTo(0, true); e.target.playVideo() } catch {} } }
+        }
       })
     }
     if (!(window as any).YT?.Player) {
@@ -96,7 +99,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
       {/* Backdrop */}
       <div className="relative h-[50vh] md:h-[80vh] overflow-hidden bg-black">
         {trailerId ? (
-          <div ref={wrapRef} className="absolute inset-0 overflow-hidden pointer-events-none" style={{ top: '-50%', left: '-50%', width: '200%', height: '200%' }}></div>
+          <div ref={wrapRef} className="absolute inset-0 overflow-hidden pointer-events-none" style={{ top: '-50%', left: '-50%', width: '200%', height: '200%', filter: 'brightness(1.18) contrast(1.12) saturate(1.14)' }}></div>
         ) : (
           data.backdrop_path?.[0] || data.stream_icon ? (
             data.stream_icon === 'adult' ? (
@@ -112,7 +115,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
             <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900" />
           )
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/80 via-[#0f172a]/25 to-transparent" />
         <button onClick={() => navigate(-1)}
           className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors backdrop-blur-sm">
           <ArrowLeft className="w-5 h-5" />
@@ -135,7 +138,7 @@ export default function DetailView({ data, onPlay, similarItems, onSimilarClick,
       </div>
 
       {/* Content */}
-      <div className="relative -mt-40 md:-mt-48 z-10 px-4 md:px-8 max-w-5xl mx-auto pb-16">
+      <div className="relative z-10 px-4 md:px-8 max-w-5xl mx-auto pb-16">
         <div className="flex flex-col md:flex-row gap-6 md:gap-10">
           {/* Poster */}
           <div className="w-28 md:w-56 shrink-0 mx-auto md:mx-0 -mt-8 md:mt-0">
