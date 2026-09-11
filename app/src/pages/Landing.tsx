@@ -12,6 +12,49 @@ const PLANS = [
 
 const POSTERS = ['poster01.jpg', 'poster02.jpg', 'poster03.jpg', 'poster04.jpg', 'poster05.jpg', 'poster06.jpg', 'poster07.jpg', 'poster08.jpg', 'poster10.jpg', 'poster11.jpg', 'poster12.jpg', 'poster13.jpg']
 
+const TESTLER = [
+  {
+    id: '3saat', etiket: 'Hızlı başlangıç', ad: '3 Saatlik Ücretsiz Test', fiyat: '0 TL', sure: '/ 3 saat',
+    aciklama: 'Steamix TV ile ilk kez tanışanlar için ücretsiz hızlı deneme seçeneğidir.',
+    ozellikler: ['3 saatlik erişim süresi', 'Görüntü ve ses kontrolü', 'Cihaz uyumluluğu denemesi', 'Kurulum desteği'],
+    buton: 'Ücretsiz Test İste',
+    konu: '3 Saatlik Ücretsiz Test İstiyorum',
+    govde: 'Merhaba, 3 saatlik ücretsiz test yayını istiyorum.\nCihazım: ',
+  },
+  {
+    id: '12saat', etiket: 'Kısa deneme', ad: '12 Saatlik Ücretsiz Test', fiyat: '0 TL', sure: '/ 12 saat',
+    aciklama: 'Yarım gün boyunca farklı saatlerde yayını denemek isteyenler için ücretsiz seçenektir.',
+    ozellikler: ['12 saatlik erişim süresi', 'Sabah ve akşam kontrolü', 'Kanal geçiş hızı denemesi', 'Kurulum desteği'],
+    buton: 'Ücretsiz Test İste',
+    konu: '12 Saatlik Ücretsiz Test İstiyorum',
+    govde: 'Merhaba, 12 saatlik ücretsiz test yayını istiyorum.\nCihazım: ',
+  },
+  {
+    id: '24saat', etiket: 'Tüm saatlerde dene', ad: '24 Saatlik Ücretsiz Test', fiyat: '0 TL', sure: '/ 24 saat',
+    aciklama: 'Normal paketi ilk kez kendi cihazında denemek isteyenler için ücretsiz başlangıç seçeneğidir.',
+    ozellikler: ['Normal paket testi', 'Görüntü ve ses kontrolü', 'Cihaz uyumluluğu denemesi', 'Kurulum desteği'],
+    buton: 'Ücretsiz Test İste',
+    konu: '24 Saatlik Ücretsiz Test İstiyorum',
+    govde: 'Merhaba, 24 saatlik ücretsiz test yayını istiyorum.\nCihazım: ',
+  },
+  {
+    id: '3gun', etiket: 'Geniş test', ad: '3 Günlük Geniş Test', fiyat: '169 TL', sure: '/ 3 gün',
+    aciklama: 'Yayınları hafta içi, akşam yoğunluğunda ve farklı internet koşullarında daha ayrıntılı denemek isteyenler içindir.',
+    ozellikler: ['72 saatlik erişim süresi', 'Farklı saatlerde performans kontrolü', 'Birden fazla içerik türünü inceleme', 'Kurulum ve kullanım desteği'],
+    buton: '3 Günlük Test İste',
+    konu: '3 Günlük Test Yayını İstiyorum',
+    govde: 'Merhaba, 3 günlük test yayını istiyorum.\nCihazım: ',
+  },
+  {
+    id: '7gun', etiket: 'Özel VIP deneyimi', ad: '7 Günlük VIP Strong Test', fiyat: '250 TL', sure: '/ 7 gün', vip: true,
+    aciklama: 'VIP Strong altyapısını bir hafta boyunca farklı gün ve saatlerde ayrıntılı şekilde değerlendirmek isteyenler için özel test seçeneğidir.',
+    ozellikler: ['7 günlük VIP Strong deneyimi', 'Yoğun saatlerde uzun süreli kontrol', 'Geniş kullanım senaryosu', 'Kurulum sırasında hızlı destek'],
+    buton: 'VIP Strong Test İste',
+    konu: '7 Günlük VIP Strong Test İstiyorum',
+    govde: 'Merhaba, 7 günlük VIP Strong test yayını istiyorum.\nCihazım: ',
+  },
+]
+
 const STATS = [
   { icon: Tv, value: 7500, suffix: '+', label: 'Canlı TV Kanalı' },
   { icon: Clapperboard, value: 35000, suffix: '+', label: 'Film & Dizi Arşivi' },
@@ -105,6 +148,7 @@ function MiniEkran({ kucuk = false }: { kucuk?: boolean }) {
 export default function Landing() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [seciliPlan, setSeciliPlan] = useState<typeof PLANS[0] | null>(null)
+  const [seciliTest, setSeciliTest] = useState<typeof TESTLER[0] | null>(null)
 
   return (
     <div className="min-h-screen bg-[#0f172a] flex flex-col relative overflow-hidden">
@@ -146,6 +190,7 @@ export default function Landing() {
             <span className="text-base md:text-lg font-bold text-white tracking-wider" style={{ fontFamily: 'Orbitron, sans-serif' }}>Steamix <span className="text-[#0099ff]">TV</span></span>
           </a>
           <div className="hidden md:flex items-center gap-1 text-sm">
+            <a href="#test" className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">Test</a>
             <a href="#cihazlar" className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">Cihazlar</a>
             <a href="#icerik" className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">İçerik</a>
             <a href="#uygulama" className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">Uygulama</a>
@@ -158,7 +203,7 @@ export default function Landing() {
         </div>
         {menuOpen && (
           <div className="md:hidden border-t border-white/10 bg-black/70 px-4 py-3 space-y-1 text-sm">
-            {[['Cihazlar', '#cihazlar'], ['İçerik', '#icerik'], ['Uygulama', '#uygulama'], ['Planlar', '#planlar'], ['Test Al', '#test']].map(([t, h]) => (
+            {[['Test', '#test'], ['Cihazlar', '#cihazlar'], ['İçerik', '#icerik'], ['Uygulama', '#uygulama'], ['Planlar', '#planlar']].map(([t, h]) => (
               <a key={h} href={h} onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 rounded-lg text-gray-300 hover:text-white hover:bg-white/5">{t}</a>
             ))}
           </div>
@@ -212,6 +257,57 @@ export default function Landing() {
               <span>📡 4K Ultra HD</span><span className="text-[#0099ff]">•</span>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Test alanı */}
+      <div id="test" className="relative z-10 max-w-6xl mx-auto px-4 py-12 md:py-16 w-full">
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <Check className="w-4 h-4 text-green-400" />
+          <span className="text-xs text-gray-300 tracking-widest uppercase">Satın almadan önce gerçek deneyim</span>
+        </div>
+        <div className="text-center mb-6">
+          <h2 className="text-2xl md:text-4xl font-bold text-white mb-4" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+            IPTV Teste: Önce Deneyin, <span className="text-[#0099ff]">Sonra Karar Verin</span>
+          </h2>
+          <p className="text-sm text-gray-400 leading-relaxed max-w-2xl mx-auto">
+            IPTV teste, paket satın almadan önce görüntü kalitesini, kanal geçişlerini ve sunucu
+            kararlılığını kendi cihazınızda görmenizi sağlar. Normal paketimizi 24 saat boyunca ücretsiz
+            deneyebilir, size uygun olup olmadığına gerçek kullanım koşullarında karar verebilirsiniz.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3 mb-8">
+          {['24 saat ücretsiz', 'Kolay kurulum', 'Tüm cihazlarda', 'Hızlı destek'].map(b => (
+            <span key={b} className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-gray-300">{b}</span>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {TESTLER.map(t => (
+            <div key={t.id} className={`relative rounded-2xl p-5 border transition-all duration-300 hover:scale-[1.03] flex flex-col ${t.vip ? 'border-purple-500/60 bg-purple-500/5 shadow-lg shadow-purple-500/10' : 'border-white/10 bg-white/5'}`}>
+              <p className="text-[11px] text-gray-500 tracking-widest uppercase mb-2">{t.etiket}</p>
+              <h3 className="text-base font-bold text-white mb-1">{t.ad}</h3>
+              <div className="mb-3"><span className="text-2xl font-extrabold text-[#0099ff]">{t.fiyat}</span><span className="text-xs text-gray-500"> {t.sure}</span></div>
+              <p className="text-[11px] text-gray-400 leading-relaxed mb-4 flex-1">{t.aciklama}</p>
+              <ul className="space-y-1.5 mb-5">
+                {t.ozellikler.map(o => (
+                  <li key={o} className="flex items-center gap-2 text-[11px] text-gray-300">
+                    <Check className="w-3 h-3 text-green-400 shrink-0" />{o}
+                  </li>
+                ))}
+              </ul>
+              <button onClick={() => setSeciliTest(t)}
+                className={`block w-full py-2.5 rounded-xl font-semibold text-xs text-center transition-all ${t.vip ? 'bg-gradient-to-r from-purple-500 to-purple-700 text-white hover:shadow-[0_0_20px_rgba(168,85,247,0.4)]' : 'bg-gradient-to-r from-[#0099ff] to-blue-600 text-white hover:shadow-[0_0_20px_rgba(0,153,255,0.4)]'}`}>
+                {t.buton}
+              </button>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8 p-4 rounded-xl bg-white/5 border border-white/10 max-w-2xl mx-auto">
+          <p className="text-xs text-gray-400 leading-relaxed text-center">
+            <span className="text-[#0099ff] font-semibold">Kısa cevap:</span> İlk kez deneyecekseniz 24 saatlik ücretsiz
+            IPTV teste seçeneğiyle başlayın. Günün farklı saatlerinde yayın açarak görüntü kalitesini,
+            ses uyumunu ve sunucu kararlılığını kontrol edin.
+          </p>
         </div>
       </div>
 
@@ -369,40 +465,6 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* Test yayını */}
-      <div id="test" className="relative z-10 max-w-xl mx-auto px-4 py-12 md:py-16 w-full">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-            Test <span className="text-[#0099ff]">Yayını</span>
-          </h2>
-          <p className="text-sm text-gray-500">3 saatlik ücretsiz test ile tüm içerikleri deneyin</p>
-        </div>
-        <div className="p-5 rounded-xl bg-gradient-to-br from-yellow-500/10 to-orange-500/5 border border-yellow-500/20 space-y-3">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0 mt-0.5">
-              <Mail className="w-5 h-5 text-yellow-400" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-300 font-semibold mb-2">3 Saatlik Ücretsiz Test Yayını</p>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                Steamix TV'yi denemek için 3 saatlik ücretsiz test yayını talep edebilirsiniz.
-                Test yayını tüm içerikleri kapsamaktadır. Talebinizi aşağıdaki
-                e-posta adresine ilettikten sonra yöneticimiz tarafından en kısa sürede
-                giriş bilgileriniz size teslim edilecektir.
-              </p>
-            </div>
-          </div>
-          <a href="mailto:steamixgame@yandex.com"
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-semibold text-sm hover:opacity-90 hover:shadow-[0_0_20px_rgba(234,179,8,0.3)] transition-all">
-            <Mail className="w-4 h-4" /> steamixgame@yandex.com
-          </a>
-          <p className="text-[11px] text-gray-500 text-center leading-relaxed">
-            E-posta konusuna <span className="text-white font-medium">"Test Talebi"</span> yazmanız
-            yeterlidir. En geç 24 saat içinde dönüş sağlanacaktır.
-          </p>
-        </div>
-      </div>
-
       {/* Alt bilgi */}
       <div className="relative z-10 text-center pb-10 pt-4">
         <span className="text-xs text-gray-600 tracking-widest uppercase">Steamix TV Company</span>
@@ -423,33 +485,15 @@ export default function Landing() {
               </div>
             </div>
             <div className="space-y-3 mb-6">
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-yellow-500/[0.07] to-transparent border border-yellow-500/15 border-l-4 border-l-yellow-500/50">
-                <p className="text-xs text-gray-400 leading-relaxed">
-                  <span className="text-yellow-400 font-bold">📌 Önemli:</span> Satın aldıktan sonra{' '}
-                  <span className="text-[#0099ff] font-semibold">steamixgame@yandex.com</span> mail adresine
-                  satın aldığınıza dair ekran görüntüsü atın. Yönetici tarafından onaylanıp en kısa sürede
-                  abonelik giriş bilgileriniz size teslim edilecektir.
-                </p>
-              </div>
               <div className="p-4 rounded-2xl bg-gradient-to-r from-[#0099ff]/[0.08] to-transparent border border-[#0099ff]/20 border-l-4 border-l-[#0099ff]/60">
                 <p className="text-xs text-gray-300 leading-relaxed">
-                  <span className="text-[#0099ff] font-bold">📩 Teslimat:</span> Aboneliğiniz satın alındıktan sonra
-                  size özel oynatıcı bağlantınız mail üzerinden gönderilir. Bağlantı gönderildikten sonra
-                  yukarıdaki uygulamayı indirip kullanabilirsiniz.
-                </p>
-              </div>
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-orange-500/[0.08] to-transparent border border-orange-500/15 border-l-4 border-l-orange-500/50">
-                <p className="text-xs text-orange-300 leading-relaxed">
-                  ⚠️ Shopier resmi kuralları gereği abonelikler sınırlıdır; satın aldığınız abonelik tamamlandıktan
-                  sonra ek olarak yalnızca bir defaya mahsus tekrar alınabilir.
-                </p>
-              </div>
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-500/[0.08] to-transparent border border-purple-500/20 border-l-4 border-l-purple-500/60">
-                <p className="text-xs text-gray-300 leading-relaxed flex gap-2">
-                  <Gauge className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-                  <span><span className="text-purple-300 font-bold">Donanım şartı:</span> Steamix TV'yi cihazlarınızda
-                    oynatabilmek için en az 100 Mbps internet hızı ve güncel donanım özelliklerine sahip bir
-                    akıllı televizyon ya da TV Box kullanmanız şarttır. Aksi halde donma ve takılmalar yaşanabilir.</span>
+                  Satın aldıktan sonra <span className="text-[#0099ff] font-semibold">steamixgame@yandex.com</span> mail
+                  adresine satın aldığınıza dair ekran görüntüsü atın; yönetici onayının ardından abonelik giriş
+                  bilgileriniz en kısa sürede size teslim edilir ve size özel oynatıcı bağlantınız mail üzerinden
+                  gönderilir — bağlantıyla birlikte yukarıdaki uygulamayı indirip kullanabilirsiniz. Shopier resmi
+                  kuralları gereği abonelikler sınırlıdır; tamamlanan abonelik yalnızca bir defaya mahsus tekrar
+                  alınabilir. Steamix TV'yi cihazlarınızda oynatabilmek için en az 100 Mbps internet hızı ve güncel
+                  donanımlı bir akıllı televizyon ya da TV Box kullanmanız şarttır, aksi halde donma ve takılmalar yaşanabilir.
                 </p>
               </div>
             </div>
@@ -461,6 +505,62 @@ export default function Landing() {
               <button onClick={() => setSeciliPlan(null)}
                 className="flex-1 py-3 rounded-xl bg-white/10 text-white font-semibold text-sm hover:bg-white/20 transition-all">
                 Hayır, Vazgeçtim
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Test modalı */}
+      {seciliTest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSeciliTest(null)} />
+          <div className="relative z-10 bg-gradient-to-b from-gray-900 to-gray-950 rounded-3xl p-6 md:p-8 max-w-lg w-full border border-white/10 shadow-2xl shadow-[#0099ff]/10 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-11 h-11 rounded-full bg-[#0099ff]/15 flex items-center justify-center shrink-0">
+                <Mail className="w-5 h-5 text-[#0099ff]" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white" style={{ fontFamily: 'Orbitron, sans-serif' }}>{seciliTest.ad}</h2>
+                <p className="text-xs text-gray-500">{seciliTest.fiyat} {seciliTest.sure}</p>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 leading-relaxed mb-4">{seciliTest.aciklama}</p>
+            <ul className="space-y-2 mb-5">
+              {seciliTest.ozellikler.map(o => (
+                <li key={o} className="flex items-center gap-2 text-xs text-gray-300">
+                  <Check className="w-3.5 h-3.5 text-green-400 shrink-0" />{o}
+                </li>
+              ))}
+            </ul>
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 mb-5">
+              <p className="text-xs text-gray-400 leading-relaxed">
+                {seciliTest.id === '7gun' ? (
+                  <>Önce aşağıdaki butonla ödemeyi tamamlayın, ardından satın aldığınıza dair ekran görüntüsünü{' '}
+                    <span className="text-[#0099ff] font-semibold">steamixgame@yandex.com</span> adresine
+                    <span className="text-white font-medium"> "7 günlük VIP test yayını istiyorum"</span> konulu
+                    bir mail ile gönderin. Giriş bilgileriniz en kısa sürede teslim edilecektir.</>
+                ) : (
+                  <>Aşağıdaki butona basınca mail uygulamanız açılır. Konu otomatik yazılı gelir — mailde{' '}
+                    <span className="text-white font-medium">hangi cihazda</span> deneyeceğinizi yazıp göndermeniz
+                    yeterli. Ücretsizdir, giriş bilgileriniz en kısa sürede teslim edilecektir.</>
+                )}
+              </p>
+            </div>
+            <div className="flex flex-col gap-3">
+              {seciliTest.id === '7gun' && (
+                <a href="https://shopier.com/50780303" target="_blank" rel="noopener noreferrer"
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold text-sm text-center hover:shadow-[0_0_25px_rgba(168,85,247,0.5)] transition-all flex items-center justify-center gap-2">
+                  <ShoppingCart className="w-4 h-4" />250 TL — Ödemeye Git
+                </a>
+              )}
+              <a href={`mailto:steamixgame@yandex.com?subject=${encodeURIComponent(seciliTest.konu)}&body=${encodeURIComponent(seciliTest.govde)}`}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm text-center hover:shadow-[0_0_25px_rgba(0,153,255,0.5)] transition-all flex items-center justify-center gap-2">
+                <Mail className="w-4 h-4" />{seciliTest.id === '7gun' ? 'Mail ile Bilgi İste' : seciliTest.buton}
+              </a>
+              <button onClick={() => setSeciliTest(null)}
+                className="w-full py-3 rounded-xl bg-white/10 text-white font-semibold text-sm hover:bg-white/20 transition-all">
+                Kapat
               </button>
             </div>
           </div>
