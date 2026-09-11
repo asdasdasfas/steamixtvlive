@@ -304,6 +304,21 @@ export default function Landing() {
         </div>
       </div>
 
+      {/* İstatistik barı */}
+      <div className="relative z-10 max-w-5xl mx-auto px-4 py-10 md:py-14 w-full">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {STATS.map(s => (
+            <div key={s.label} className="rounded-2xl p-5 border border-white/10 bg-white/5 text-center hover:border-[#0099ff]/40 hover:shadow-[0_0_25px_rgba(0,153,255,0.15)] transition-all" style={{ animation: 'floatGlow 3s ease-in-out infinite' }}>
+              <s.icon className="w-6 h-6 text-[#0099ff] mx-auto mb-2" />
+              <div className="text-2xl md:text-3xl font-bold text-white" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+                <Counter value={s.value} suffix={s.suffix} />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Slogan bandı */}
       <div className="relative z-10 border-y border-white/10 bg-black/40 backdrop-blur-sm overflow-hidden py-3">
         <div className="flex whitespace-nowrap gap-8 w-max" style={{ animation: 'marquee 30s linear infinite' }}>
@@ -434,21 +449,6 @@ export default function Landing() {
               biz dürüst çalışıyoruz. Test yayınlarını vermemizin sebebi budur. Donanımınızın desteklediği kanalları seçip bu sorunları aşmış bulunacaksınız.
             </p>
           </div>
-        </div>
-      </div>
-
-      {/* İstatistik barı */}
-      <div className="relative z-10 max-w-5xl mx-auto px-4 py-10 md:py-14 w-full">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {STATS.map(s => (
-            <div key={s.label} className="rounded-2xl p-5 border border-white/10 bg-white/5 text-center hover:border-[#0099ff]/40 hover:shadow-[0_0_25px_rgba(0,153,255,0.15)] transition-all" style={{ animation: 'floatGlow 3s ease-in-out infinite' }}>
-              <s.icon className="w-6 h-6 text-[#0099ff] mx-auto mb-2" />
-              <div className="text-2xl md:text-3xl font-bold text-white" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-                <Counter value={s.value} suffix={s.suffix} />
-              </div>
-              <p className="text-xs text-gray-500 mt-1">{s.label}</p>
-            </div>
-          ))}
         </div>
       </div>
 
