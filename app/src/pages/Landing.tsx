@@ -5,9 +5,9 @@ import AnimatedBackground from '@/sections/AnimatedBackground'
 const APK_URL = 'https://www.dropbox.com/scl/fi/5bw5nsyelezwrxmyb5hwt/SteamixTV_v1.0.45_release.apk?rlkey=ghc5phabjucqlrq540zjdqgaz&st=36xy08me&dl=1'
 
 const PLANS = [
-  { name: '1 AYLIK', price: '300 TL', link: 'https://www.shopier.com/platool/49623989', features: ['4K Ultra HD', 'Sınırsız İzleme', 'Tüm Kategoriler', 'VOD + Arşiv', '7/24 Destek'] },
-  { name: '3 AYLIK', price: '600 TL', link: 'https://www.shopier.com/platool/49624003', popular: true, features: ['4K Ultra HD', 'Sınırsız İzleme', 'Tüm Kategoriler', 'VOD + Arşiv', '7/24 Destek', 'En Popüler Seçim'] },
-  { name: '12 AYLIK', price: '1.200 TL', link: 'https://www.shopier.com/platool/49624023', features: ['4K Ultra HD', 'Sınırsız İzleme', 'Tüm Kategoriler', 'VOD + Arşiv', '7/24 Destek'] },
+  { name: '1 AYLIK', price: '300 TL', link: 'https://www.shopier.com/platool/49623989', features: ['4K Ultra HD görüntü', '7.500+ canlı TV kanalı', '35.000+ film & dizi arşivi', 'Süper Lig dahil tüm spor paketleri', 'EPG program rehberi', 'Tek cihaz desteği', 'Hızlı aktivasyon', '7/24 destek'] },
+  { name: '3 AYLIK', price: '600 TL', link: 'https://www.shopier.com/platool/49624003', popular: true, features: ['4K Ultra HD görüntü', '7.500+ canlı TV kanalı', '35.000+ film & dizi arşivi', 'Süper Lig dahil tüm spor paketleri', 'EPG program rehberi', 'Kesintisiz VOD + arşiv erişimi', 'Hızlı kurulum desteği', '7/24 destek', 'En Popüler Seçim'] },
+  { name: '12 AYLIK', price: '1.200 TL', link: 'https://www.shopier.com/platool/49624023', features: ['4K Ultra HD görüntü', '7.500+ canlı TV kanalı', '35.000+ film & dizi arşivi', 'Süper Lig dahil tüm spor paketleri', 'EPG program rehberi', 'Yıllık fiyat avantajı', 'Öncelikli destek', 'Hızlı aktivasyon', '7/24 destek'] },
 ]
 
 const POSTERS = ['poster01.jpg', 'poster02.jpg', 'poster03.jpg', 'poster04.jpg', 'poster05.jpg', 'poster06.jpg', 'poster07.jpg', 'poster08.jpg', 'poster10.jpg', 'poster11.jpg', 'poster12.jpg', 'poster13.jpg']
@@ -217,7 +217,7 @@ export default function Landing() {
             <a href="#cihazlar" className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">Cihazlar</a>
             <a href="#icerik" className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">İçerik</a>
             <a href="#uygulama" className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">Uygulama</a>
-            <a href="#planlar" className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">Planlar</a>
+            <button onClick={() => setPlanModal(true)} className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">Planlar</button>
             <a href="#test" className="ml-2 px-4 py-1.5 rounded-lg text-sm text-white bg-gradient-to-r from-[#0099ff] to-blue-600 hover:shadow-[0_0_20px_rgba(0,153,255,0.5)] transition-all">Test Al</a>
           </div>
           <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-gray-300">
@@ -226,9 +226,10 @@ export default function Landing() {
         </div>
         {menuOpen && (
           <div className="md:hidden border-t border-white/10 bg-black/70 px-4 py-3 space-y-1 text-sm">
-            {[['Test', '#test'], ['Cihazlar', '#cihazlar'], ['İçerik', '#icerik'], ['Uygulama', '#uygulama'], ['Planlar', '#planlar']].map(([t, h]) => (
+            {[['Test', '#test'], ['Cihazlar', '#cihazlar'], ['İçerik', '#icerik'], ['Uygulama', '#uygulama']].map(([t, h]) => (
               <a key={h} href={h} onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 rounded-lg text-gray-300 hover:text-white hover:bg-white/5">{t}</a>
             ))}
+            <button onClick={() => { setMenuOpen(false); setPlanModal(true) }} className="block w-full text-left px-3 py-2.5 rounded-lg text-gray-300 hover:text-white hover:bg-white/5">Planlar</button>
           </div>
         )}
       </nav>
@@ -462,21 +463,6 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* Planlar */}
-      <div id="planlar" className="relative z-10 max-w-5xl mx-auto px-4 py-12 md:py-16 w-full">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-            Fiyat <span className="text-[#0099ff]">Planları</span>
-          </h2>
-          <p className="text-sm text-gray-500">Size en uygun planı seçin, tüm içeriklere sınırsız erişim</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-          {PLANS.map(p => (
-            <PlanKarti key={p.name} p={p} onSec={(pl) => { setPlanModal(false); setSeciliPlan(pl) }} />
-          ))}
-        </div>
-      </div>
-
       {/* Alt bilgi */}
       <div className="relative z-10 text-center pb-10 pt-4">
         <span className="text-xs text-gray-600 tracking-widest uppercase">Steamix TV Company</span>
@@ -486,7 +472,7 @@ export default function Landing() {
       {planModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setPlanModal(false)} />
-          <div className="relative z-10 bg-gradient-to-b from-gray-900 to-gray-950 rounded-3xl p-6 md:p-8 max-w-3xl w-full border border-white/10 shadow-2xl shadow-[#0099ff]/10 max-h-[90vh] overflow-y-auto">
+          <div className="relative z-10 bg-gradient-to-b from-gray-900 to-gray-950 rounded-3xl p-6 md:p-8 max-w-4xl w-full border border-white/10 shadow-2xl shadow-[#0099ff]/10 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-white flex items-center gap-2" style={{ fontFamily: 'Orbitron, sans-serif' }}>
                 <CreditCard className="w-5 h-5 text-[#0099ff]" /> ABONELİK <span className="text-[#0099ff]">PLANLARI</span>
