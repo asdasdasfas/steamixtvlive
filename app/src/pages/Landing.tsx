@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ShoppingCart, Check, Mail, CreditCard, PlayCircle, Trophy, Clapperboard, Tv, MonitorPlay, Smartphone, Download, Gamepad2, Wifi, X, Menu, AlertTriangle, Gauge } from 'lucide-react'
+import { ShoppingCart, Check, Mail, CreditCard, PlayCircle, Trophy, Clapperboard, Tv, MonitorPlay, Smartphone, Download, Gamepad2, Wifi, X, Menu, AlertTriangle, Gauge, Star, MessageCircleQuestion } from 'lucide-react'
 import AnimatedBackground from '@/sections/AnimatedBackground'
 
 const APK_URL = 'https://www.dropbox.com/scl/fi/5bw5nsyelezwrxmyb5hwt/SteamixTV_v1.0.45_release.apk?rlkey=ghc5phabjucqlrq540zjdqgaz&st=36xy08me&dl=1'
@@ -78,10 +78,35 @@ const TESTLER = [
 ]
 
 const STATS = [
-  { icon: Tv, value: 7500, suffix: '+', label: 'Canlı TV Kanalı' },
-  { icon: Clapperboard, value: 35000, suffix: '+', label: 'Film & Dizi Arşivi' },
+  { icon: Tv, value: 1000, suffix: '+', label: 'Canlı TV Kanalı' },
+  { icon: Clapperboard, value: 20000, suffix: '+', label: 'Film & Dizi Arşivi' },
   { icon: MonitorPlay, value: 100, suffix: '%', label: '4K Maç Keyfi' },
   { icon: Wifi, value: 24, suffix: '/7', label: 'Kesintisiz Yayın' },
+]
+
+const YORUMLAR = [
+  { ad: 'Murat A.', yer: '🇩🇪 Berlin, Almanya', yazi: "Almanya'da 10 yıldır yaşıyorum, Türk kanallarını bu kadar net hiç izleyememiştim. TRT, Show, ATV, Star TV hepsi mükemmel geliyor. Fiyat da gayet makul, tavsiye ederim." },
+  { ad: 'Zeynep D.', yer: '🇹🇷 İstanbul, Türkiye', yazi: "Önce 1 aylığına denedim, beğenince 3 aylığa geçtim. Hem canlı hem arşiv var. Yıllığa da geçmeyi düşünüyorum, içerik gerçekten çok zengin." },
+  { ad: 'Hakan Y.', yer: '🇳🇱 Rotterdam, Hollanda', yazi: "Kurulum 10 dakika sürdü, destek gece 2'de bile anında yanıtladı. Hollanda'dan Süper Lig'i 4K izliyorum. Daha önce kullandıklarımın çok ötesinde." },
+  { ad: 'Serkan T.', yer: '🇩🇪 Frankfurt, Almanya', yazi: "Şampiyonlar Ligi maçlarını artık çanak anten olmadan izliyorum. Spor kanallarının hepsi var ve hiç donmuyor. Gerçekten çok iyi bir hizmet." },
+  { ad: 'Ayşe N.', yer: '🇹🇷 Ankara, Türkiye', yazi: "Samsung Smart TV'ye uygulamayı indirip giriş yaptım, oldu bitti. Eşim de çocuklar da çok memnun. Çizgi filmler, haberler, diziler — her şey var." },
+  { ad: 'Burak E.', yer: '🇫🇷 Paris, Fransa', yazi: "Paris'ten alıyorum, Avrupa paketi çok iyi. Hem Türk kanalları hem Fransız kanalları var. Fiyat makul, arkadaşlarıma da önerdim." },
+  { ad: 'Elif R.', yer: '🇹🇷 İzmir, Türkiye', yazi: "Dizi hastasıyım ve yerli dizilerin tamamını anlık takip ediyorum. Canlı yayınların yanında arşiv de var, kaçırdığım bölümleri sonradan izleyebiliyorum." },
+  { ad: 'Kadir Y.', yer: '🇧🇪 Brüksel, Belçika', yazi: "Belçika'da 4 kişilik aileyiz, herkesin farklı zevki var. Çocuklar çizgi film, eşim dizi, ben futbol — hepsini aynı abonelikle izliyoruz." },
+  { ad: 'Selin U.', yer: '🇩🇪 Münih, Almanya', yazi: "4K'yı test etmek için önce ücretsiz deneme aldım, kalite gerçekten çok iyi. Hemen yıllık pakete geçtim, pişman değilim." },
+  { ad: 'Emre O.', yer: '🇹🇷 Bursa, Türkiye', yazi: "Bir sorun yaşadım, yazdım, 10 dakika içinde çözüldü. Bu kadar hızlı destek beklemiyordum. Teknik bilgisi olmayan biri bile rahatlıkla kullanabilir." },
+  { ad: 'Özlem P.', yer: '🇳🇱 Amsterdam, Hollanda', yazi: "Diğer platformları iptal ettim, bu abonelikle devam ediyorum. İkisinden ucuz ve Türkçe kanal arşivi çok daha geniş. Tavsiye ederim." },
+  { ad: 'Deniz V.', yer: '🇹🇷 Antalya, Türkiye', yazi: "Mobilde de çok iyi çalışıyor. Telefona uygulamayı kurdum, dışarıda maç izledim. Eve döndükten sonra TV'den devam ettim." },
+]
+
+const SSS = [
+  { s: 'Aboneliği nasıl satın alırım?', c: 'Paketler bölümünden size uygun planın Satın Al butonuna basın, Shopier üzerinden ödemeyi tamamlayın ve ekran görüntüsünü mail adresimize gönderin. Onay sonrası giriş bilgileriniz en kısa sürede teslim edilir.' },
+  { s: 'Kurulum zor mu, kaç dakika sürer?', c: 'Hayır. Uygulamayı indirip size gönderilen giriş bilgileriyle oturum açmanız yeterli. Ortalama 10 dakikada izlemeye başlarsınız, takıldığınız yerde 7/24 destek yanınızda.' },
+  { s: 'Hangi cihazlarda çalışır?', c: 'Android telefon, tablet, Smart TV, TV Box, Windows PC ve Apple cihazlarda çalışır. En az 100 Mbps internet ve güncel bir cihaz önerilir.' },
+  { s: 'Yayınlar donuyor mu?', c: 'Sunucumuz 4K kapasitelidir ve donanımınıza uygun çözünürlükteki kanalı seçtiğinizde takılma yaşamazsınız. Kanallar çözünürlüğe göre sınıflandırılmıştır.' },
+  { s: 'Test yayını var mı?', c: 'Evet. 3 saatlik, 12 saatlik ve 24 saatlik ücretsiz test seçenekleri ile 7 günlük VIP test mevcuttur. Test bölümünden talebinizi iletebilirsiniz.' },
+  { s: 'Ödeme güvenli mi?', c: 'Ödemeler Shopier altyapısıyla alınır, kart bilgileriniz bize ulaşmaz. Dekontu mail ile iletmeniz yeterlidir.' },
+  { s: 'Aboneliğimi nasıl yenilerim?', c: 'Siteye gidip Paketleri İncele seçeneğine tıklayarak yeni dönem planınızı seçip aynı adımlarla yenileyebilirsiniz.' },
 ]
 
 const KANALLAR = ['beIN Sports 1', 'TRT 1', 'TV8 HD', 'ATV', 'S Sport 1', 'Tabii Spor 1', 'TLC', 'NTV']
@@ -240,7 +265,7 @@ export default function Landing() {
           <div className="flex-1 text-center md:text-left">
         <div className="inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full bg-[#0099ff]/10 border border-[#0099ff]/30">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-          <span className="text-xs text-gray-300 tracking-widest uppercase">Canlı • 7.500+ Kanal • 35.000+ Film & Dizi</span>
+          <span className="text-xs text-gray-300 tracking-widest uppercase">Canlı • 1\.000+ Kanal • 20\.000+ Film & Dizi</span>
         </div>
         <h1 className="text-4xl md:text-6xl font-bold text-white mb-4" style={{ fontFamily: 'Orbitron, sans-serif' }}>
           Steamix <span className="text-[#0099ff]">TV</span>
@@ -287,8 +312,8 @@ export default function Landing() {
               <span>⚽ Süper Lig</span><span className="text-[#0099ff]">•</span>
               <span>🏆 Şampiyonlar Ligi</span><span className="text-[#0099ff]">•</span>
               <span>🎬 Sinema Salonu</span><span className="text-[#0099ff]">•</span>
-              <span>📺 7.500+ Canlı Kanal</span><span className="text-[#0099ff]">•</span>
-              <span>🍿 35.000+ Film & Dizi</span><span className="text-[#0099ff]">•</span>
+              <span>📺 1\.000+ Canlı Kanal</span><span className="text-[#0099ff]">•</span>
+              <span>🍿 20\.000+ Film & Dizi</span><span className="text-[#0099ff]">•</span>
               <span>📡 4K Ultra HD</span><span className="text-[#0099ff]">•</span>
             </div>
           ))}
@@ -434,6 +459,58 @@ export default function Landing() {
         </div>
       </div>
 
+      {/* Müşterilerimiz Ne Diyor */}
+      <div className="relative z-10 max-w-6xl mx-auto px-4 pb-12 md:pb-16 w-full">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+            Müşterilerimiz <span className="text-[#0099ff]">Ne Diyor?</span>
+          </h2>
+          <p className="text-sm text-gray-500 max-w-xl mx-auto">Avrupa'dan Türkiye'ye binlerce mutlu izleyici — hız, kalite ve destek farkıyla.</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {YORUMLAR.map(y => (
+            <div key={y.ad} className="rounded-2xl p-5 border border-white/10 bg-white/5 hover:border-[#0099ff]/40 hover:shadow-[0_0_25px_rgba(0,153,255,0.12)] transition-all flex flex-col">
+              <div className="flex gap-1 mb-3">
+                {[0, 1, 2, 3, 4].map(i => (
+                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                ))}
+              </div>
+              <p className="text-xs text-gray-300 leading-relaxed flex-1">"{y.yazi}"</p>
+              <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/10">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#0099ff] to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                  {y.ad.split(' ').map(k => k[0]).join('')}
+                </div>
+                <div>
+                  <p className="text-xs text-white font-semibold">{y.ad}</p>
+                  <p className="text-[11px] text-gray-500">{y.yer}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* SSS */}
+      <div className="relative z-10 max-w-3xl mx-auto px-4 pb-12 md:pb-16 w-full">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+            Sık Sorulan <span className="text-[#0099ff]">Sorular</span>
+          </h2>
+        </div>
+        <div className="space-y-3">
+          {SSS.map((q, i) => (
+            <details key={i} className="group rounded-2xl border border-white/10 bg-white/5 open:border-[#0099ff]/40 transition-all">
+              <summary className="flex items-center gap-3 p-4 cursor-pointer list-none">
+                <MessageCircleQuestion className="w-5 h-5 text-[#0099ff] shrink-0" />
+                <span className="text-sm text-white font-semibold flex-1">{q.s}</span>
+                <span className="text-[#0099ff] group-open:rotate-45 transition-transform text-lg leading-none">+</span>
+              </summary>
+              <p className="px-4 pb-4 pl-12 text-xs text-gray-400 leading-relaxed">{q.c}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+
       {/* Uygulama */}
       <div id="uygulama" className="relative z-10 max-w-xl mx-auto px-4 py-12 md:py-16 w-full">
         <div className="text-center mb-8">
@@ -448,7 +525,7 @@ export default function Landing() {
             <div>
               <p className="text-sm text-gray-300 font-semibold mb-1">Steamix TV (Android)</p>
               <p className="text-xs text-gray-400 leading-relaxed">
-                Abonelik bağlantınızla giriş yapın: 7.500+ canlı kanal, 35.000+ film ve dizi,
+                Abonelik bağlantınızla giriş yapın: 1.000+ Canlı Kanal, 20.000+ film ve dizi,
                 4K kalite, kumanda ve dokunmatik uyumu. Tek dokunuşla kurun, izlemeye başlayın.
               </p>
             </div>
