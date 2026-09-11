@@ -12,6 +12,36 @@ const PLANS = [
 
 const POSTERS = ['poster01.jpg', 'poster02.jpg', 'poster03.jpg', 'poster04.jpg', 'poster05.jpg', 'poster06.jpg', 'poster07.jpg', 'poster08.jpg', 'poster10.jpg', 'poster11.jpg', 'poster12.jpg', 'poster13.jpg']
 
+function PlanKarti({ p, onSec }: { p: typeof PLANS[0]; onSec: (p: typeof PLANS[0]) => void }) {
+  return (
+    <div className={`relative rounded-3xl p-6 border transition-all duration-300 hover:-translate-y-1.5 flex flex-col ${p.popular ? 'border-[#0099ff]/60 bg-gradient-to-b from-[#0099ff]/[0.14] to-[#0099ff]/[0.02] shadow-[0_0_45px_rgba(0,153,255,0.18)]' : 'border-white/10 bg-gradient-to-b from-white/[0.07] to-white/[0.02] hover:border-white/25 hover:shadow-[0_0_30px_rgba(0,153,255,0.1)]'}`}>
+      <div className={`absolute top-0 inset-x-0 h-1 rounded-t-3xl ${p.popular ? 'bg-gradient-to-r from-[#0099ff] via-blue-400 to-purple-500' : 'bg-gradient-to-r from-white/15 to-white/5'}`} />
+      {p.popular && (
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#0099ff] to-purple-500 text-white text-[11px] font-bold tracking-wide whitespace-nowrap shadow-lg shadow-[#0099ff]/40 ring-2 ring-[#0099ff]/20">
+          En Popüler
+        </div>
+      )}
+      <div className="text-center mb-5 mt-3">
+        <p className="text-[11px] font-semibold text-gray-400 tracking-[0.25em] uppercase mb-3">{p.name}</p>
+        <div className="text-4xl font-extrabold bg-gradient-to-r from-[#0099ff] to-purple-400 bg-clip-text text-transparent mb-1 drop-shadow-[0_0_15px_rgba(0,153,255,0.35)]">{p.price}</div>
+      </div>
+      <ul className="space-y-2.5 mb-6 flex-1">
+        {p.features.map((f, i) => (
+          <li key={i} className="flex items-center gap-2.5 text-xs text-gray-300">
+            <span className="w-4 h-4 rounded-full bg-[#0099ff]/15 flex items-center justify-center shrink-0">
+              <Check className="w-2.5 h-2.5 text-[#0099ff]" />
+            </span>{f}
+          </li>
+        ))}
+      </ul>
+      <button onClick={() => onSec(p)}
+        className="block w-full py-3 rounded-xl bg-gradient-to-r from-[#0099ff] via-blue-500 to-purple-600 text-white font-bold text-xs tracking-wide text-center hover:shadow-[0_0_25px_rgba(0,153,255,0.5)] hover:scale-[1.02] active:scale-[0.97] transition-all flex items-center justify-center gap-2">
+        <ShoppingCart className="w-4 h-4" />Satın Al
+      </button>
+    </div>
+  )
+}
+
 const TESTLER = [
   {
     id: '3saat', etiket: 'Hızlı başlangıç', ad: '3 Saatlik Ücretsiz Test', fiyat: '0 TL', sure: '/ 3 saat',
@@ -140,6 +170,7 @@ function MiniEkran({ kucuk = false }: { kucuk?: boolean }) {
 export default function Landing() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [seciliPlan, setSeciliPlan] = useState<typeof PLANS[0] | null>(null)
+  const [planModal, setPlanModal] = useState(false)
   const [seciliTest, setSeciliTest] = useState<typeof TESTLER[0] | null>(null)
 
   return (
@@ -221,9 +252,9 @@ export default function Landing() {
           binlerce film, dizi ve VOD içeriği. Dilediğin zaman, dilediğin yerde izle.
         </p>
         <div className="flex items-center justify-center md:justify-start gap-4 mt-8">
-          <a href="#planlar" className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm hover:shadow-[0_0_30px_rgba(0,153,255,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all">
+          <button onClick={() => setPlanModal(true)} className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm hover:shadow-[0_0_30px_rgba(0,153,255,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all">
             Planları Gör
-          </a>
+          </button>
           <a href="#test" className="px-6 py-3 rounded-xl bg-white/10 text-white font-semibold text-sm hover:bg-white/20 transition-all flex items-center gap-2">
             <PlayCircle className="w-4 h-4" />Test Yayını Al
           </a>
@@ -441,29 +472,7 @@ export default function Landing() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {PLANS.map(p => (
-            <div key={p.name} className={`relative rounded-2xl p-6 border transition-all duration-300 hover:scale-[1.03] flex flex-col ${p.popular ? 'border-[#0099ff] bg-[#0099ff]/5 shadow-lg shadow-[#0099ff]/10' : 'border-white/10 bg-white/5'}`}>
-              {p.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-[#0099ff] to-purple-500 text-white text-xs font-semibold whitespace-nowrap shadow-lg">
-                  En Popüler
-                </div>
-              )}
-              <div className="text-center mb-4 mt-2">
-                <p className="text-xs text-gray-500 tracking-widest mb-2">{p.name}</p>
-                <div className="text-3xl md:text-4xl font-bold text-[#0099ff] mb-1">{p.price}</div>
-              </div>
-              <div className="flex-1 space-y-2 mb-6">
-                {p.features?.map(f => (
-                  <div key={f} className="flex items-center gap-2 text-xs text-gray-300">
-                    <Check className="w-3.5 h-3.5 text-green-400 shrink-0" />
-                    <span>{f}</span>
-                  </div>
-                ))}
-              </div>
-              <button onClick={() => setSeciliPlan(p)}
-                className="block w-full py-3 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm text-center hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#0099ff]/20">
-                <ShoppingCart className="w-4 h-4" />Satın Al
-              </button>
-            </div>
+            <PlanKarti key={p.name} p={p} onSec={(pl) => { setPlanModal(false); setSeciliPlan(pl) }} />
           ))}
         </div>
       </div>
@@ -472,6 +481,28 @@ export default function Landing() {
       <div className="relative z-10 text-center pb-10 pt-4">
         <span className="text-xs text-gray-600 tracking-widest uppercase">Steamix TV Company</span>
       </div>
+
+      {/* Plan modalı */}
+      {planModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setPlanModal(false)} />
+          <div className="relative z-10 bg-gradient-to-b from-gray-900 to-gray-950 rounded-3xl p-6 md:p-8 max-w-3xl w-full border border-white/10 shadow-2xl shadow-[#0099ff]/10 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+                <CreditCard className="w-5 h-5 text-[#0099ff]" /> ABONELİK <span className="text-[#0099ff]">PLANLARI</span>
+              </h2>
+              <button onClick={() => setPlanModal(false)} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/10 transition-all">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {PLANS.map(p => (
+                <PlanKarti key={p.name} p={p} onSec={(pl) => { setPlanModal(false); setSeciliPlan(pl) }} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Satın alma bilgi modalı */}
       {seciliPlan && (
