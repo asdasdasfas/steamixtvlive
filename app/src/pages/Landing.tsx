@@ -38,14 +38,6 @@ const TESTLER = [
     govde: 'Merhaba, 24 saatlik ücretsiz test yayını istiyorum.\nCihazım: ',
   },
   {
-    id: '3gun', etiket: 'Geniş test', ad: '3 Günlük Geniş Test', fiyat: '169 TL', sure: '/ 3 gün',
-    aciklama: 'Yayınları hafta içi, akşam yoğunluğunda ve farklı internet koşullarında daha ayrıntılı denemek isteyenler içindir.',
-    ozellikler: ['72 saatlik erişim süresi', 'Farklı saatlerde performans kontrolü', 'Birden fazla içerik türünü inceleme', 'Kurulum ve kullanım desteği'],
-    buton: '3 Günlük Test İste',
-    konu: '3 Günlük Test Yayını İstiyorum',
-    govde: 'Merhaba, 3 günlük test yayını istiyorum.\nCihazım: ',
-  },
-  {
     id: '7gun', etiket: 'Özel VIP deneyimi', ad: '7 Günlük VIP Strong Test', fiyat: '250 TL', sure: '/ 7 gün', vip: true,
     aciklama: 'VIP Strong altyapısını bir hafta boyunca farklı gün ve saatlerde ayrıntılı şekilde değerlendirmek isteyenler için özel test seçeneğidir.',
     ozellikler: ['7 günlük VIP Strong deneyimi', 'Yoğun saatlerde uzun süreli kontrol', 'Geniş kullanım senaryosu', 'Kurulum sırasında hızlı destek'],
