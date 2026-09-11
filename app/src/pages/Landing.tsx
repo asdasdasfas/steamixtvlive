@@ -312,8 +312,8 @@ export default function Landing() {
               <span>⚽ Süper Lig</span><span className="text-[#0099ff]">•</span>
               <span>🏆 Şampiyonlar Ligi</span><span className="text-[#0099ff]">•</span>
               <span>🎬 Sinema Salonu</span><span className="text-[#0099ff]">•</span>
-              <span>📺 1\.000+ Canlı Kanal</span><span className="text-[#0099ff]">•</span>
-              <span>🍿 20\.000+ Film & Dizi</span><span className="text-[#0099ff]">•</span>
+              <span>📺 Yüzlerce Canlı Kanal</span><span className="text-[#0099ff]">•</span>
+              <span>🍿 Yüzlerce Film & Dizi</span><span className="text-[#0099ff]">•</span>
               <span>📡 4K Ultra HD</span><span className="text-[#0099ff]">•</span>
             </div>
           ))}
@@ -430,8 +430,8 @@ export default function Landing() {
               <span className="text-[#0099ff] font-bold">📡 Çözünürlüğe göre sınıflı yayın:</span> yayınlarımız
               çözünürlük kalitesine göre sınıflandırılmıştır. Çözünürlük kanallarını kendinize göre sınıflayıp
               favorileyin — donanımınızın desteklediği kanalları favoriledikten sonra takılmaların önüne geçersiniz.
-              Hiçbir IPTV servisi yüzde yüz kesintisiz ve donmasız yayın vaat etmez; test yayınlarını vermemizin
-              sebebi budur. Donanımınızın desteklediği kanalları seçip bu sorunları aşmış bulunacaksınız.
+              Hiçbir IPTV servisi yüzde yüz kesintisiz ve donmasız yayın vaat etmez; vaat eden reklam amaçlıdır,
+              biz dürüst çalışıyoruz. Test yayınlarını vermemizin sebebi budur. Donanımınızın desteklediği kanalları seçip bu sorunları aşmış bulunacaksınız.
             </p>
           </div>
         </div>
