@@ -217,7 +217,7 @@ export default function Landing() {
             <a href="#cihazlar" className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">Cihazlar</a>
             <a href="#icerik" className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">İçerik</a>
             <a href="#uygulama" className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">Uygulama</a>
-            <button onClick={() => setPlanModal(true)} className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">Planlar</button>
+            <button onClick={() => setPlanModal(true)} className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">Paketleri İncele</button>
             <a href="#test" className="ml-2 px-4 py-1.5 rounded-lg text-sm text-white bg-gradient-to-r from-[#0099ff] to-blue-600 hover:shadow-[0_0_20px_rgba(0,153,255,0.5)] transition-all">Test Al</a>
           </div>
           <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-gray-300">
@@ -229,7 +229,7 @@ export default function Landing() {
             {[['Test', '#test'], ['Cihazlar', '#cihazlar'], ['İçerik', '#icerik'], ['Uygulama', '#uygulama']].map(([t, h]) => (
               <a key={h} href={h} onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 rounded-lg text-gray-300 hover:text-white hover:bg-white/5">{t}</a>
             ))}
-            <button onClick={() => { setMenuOpen(false); setPlanModal(true) }} className="block w-full text-left px-3 py-2.5 rounded-lg text-gray-300 hover:text-white hover:bg-white/5">Planlar</button>
+            <button onClick={() => { setMenuOpen(false); setPlanModal(true) }} className="block w-full text-left px-3 py-2.5 rounded-lg text-gray-300 hover:text-white hover:bg-white/5">Paketleri İncele</button>
           </div>
         )}
       </nav>
@@ -254,7 +254,7 @@ export default function Landing() {
         </p>
         <div className="flex items-center justify-center md:justify-start gap-4 mt-8">
           <button onClick={() => setPlanModal(true)} className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm hover:shadow-[0_0_30px_rgba(0,153,255,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all">
-            Planları Gör
+            Paketleri İncele
           </button>
           <a href="#test" className="px-6 py-3 rounded-xl bg-white/10 text-white font-semibold text-sm hover:bg-white/20 transition-all flex items-center gap-2">
             <PlayCircle className="w-4 h-4" />Test Yayını Al
@@ -475,7 +475,7 @@ export default function Landing() {
           <div className="relative z-10 bg-gradient-to-b from-gray-900 to-gray-950 rounded-3xl p-6 md:p-8 max-w-4xl w-full border border-white/10 shadow-2xl shadow-[#0099ff]/10 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-white flex items-center gap-2" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-                <CreditCard className="w-5 h-5 text-[#0099ff]" /> ABONELİK <span className="text-[#0099ff]">PLANLARI</span>
+                <CreditCard className="w-5 h-5 text-[#0099ff]" /> Paketleri İncele
               </h2>
               <button onClick={() => setPlanModal(false)} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/10 transition-all">
                 <X className="w-4 h-4" />
