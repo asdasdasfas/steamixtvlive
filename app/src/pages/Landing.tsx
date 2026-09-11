@@ -101,8 +101,8 @@ const YORUMLAR = [
 
 const SSS = [
   { s: 'Aboneliği nasıl satın alırım?', c: 'Paketler bölümünden size uygun planın Satın Al butonuna basın, Shopier üzerinden ödemeyi tamamlayın ve ekran görüntüsünü mail adresimize gönderin. Onay sonrası giriş bilgileriniz en kısa sürede teslim edilir.' },
-  { s: 'Kurulum zor mu, kaç dakika sürer?', c: 'Hayır. Uygulamayı indirip size gönderilen giriş bilgileriyle oturum açmanız yeterli. Ortalama 10 dakikada izlemeye başlarsınız, takıldığınız yerde 7/24 destek yanınızda.' },
-  { s: 'Hangi cihazlarda çalışır?', c: 'Android telefon, tablet, Smart TV, TV Box, Windows PC ve Apple cihazlarda çalışır. En az 100 Mbps internet ve güncel bir cihaz önerilir.' },
+  { s: 'Kurulum zor mu, kaç dakika sürer?', c: 'Hayır. Uygulamayı indirip size gönderilen giriş bilgileriyle oturum açmanız yeterli. Ortalama 10 dakikada rutin bir kurulum ile izlemeye başlarsınız, takıldığınız yerde 7/24 destek yanınızda.' },
+  { s: 'Hangi cihazlarda çalışır?', c: 'Android telefon, tablet, Smart TV, TV Box, Windows Bluestacks emülatör gibi cihazlarda çalışır. En az 100 Mbps internet ve donanımı iyi güncel bir cihaz önerilir.' },
   { s: 'Yayınlar donuyor mu?', c: 'Sunucumuz 4K kapasitelidir ve donanımınıza uygun çözünürlükteki kanalı seçtiğinizde takılma yaşamazsınız. Kanallar çözünürlüğe göre sınıflandırılmıştır.' },
   { s: 'Test yayını var mı?', c: 'Evet. 3 saatlik, 12 saatlik ve 24 saatlik ücretsiz test seçenekleri ile 7 günlük VIP test mevcuttur. Test bölümünden talebinizi iletebilirsiniz.' },
   { s: 'Ödeme güvenli mi?', c: 'Ödemeler Shopier altyapısıyla alınır, kart bilgileriniz bize ulaşmaz. Dekontu mail ile iletmeniz yeterlidir.' },
@@ -428,9 +428,10 @@ export default function Landing() {
           <div className="p-5 rounded-2xl bg-gradient-to-r from-[#0099ff]/[0.1] to-purple-500/[0.06] border border-[#0099ff]/30 shadow-[0_0_30px_rgba(0,153,255,0.15)]" style={{ animation: 'floatGlow 3s ease-in-out infinite' }}>
             <p className="text-xs md:text-sm text-gray-300 leading-relaxed text-center">
               <span className="text-[#0099ff] font-bold">📡 Çözünürlüğe göre sınıflı yayın:</span> yayınlarımız
-              çözünürlük kalitesine göre sınıflandırılmıştır. Donanımınıza uygun kanalları kanal listesinden
-              seçip hızlıca favorileyip kendinize göre gruplandırabilirsiniz. Bu ayar, cihazınızın desteklediği
-              çözünürlükteki kanallara göre yapılır — doğru eşleşmede donma yaşamazsınız.
+              çözünürlük kalitesine göre sınıflandırılmıştır. Çözünürlük kanallarını kendinize göre sınıflayıp
+              favorileyin — donanımınızın desteklediği kanalları favoriledikten sonra takılmaların önüne geçersiniz.
+              Hiçbir IPTV servisi yüzde yüz kesintisiz ve donmasız yayın vaat etmez; test yayınlarını vermemizin
+              sebebi budur. Donanımınızın desteklediği kanalları seçip bu sorunları aşmış bulunacaksınız.
             </p>
           </div>
         </div>
