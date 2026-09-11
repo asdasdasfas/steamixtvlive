@@ -265,7 +265,7 @@ export default function Landing() {
           <div className="flex-1 text-center md:text-left">
         <div className="inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full bg-[#0099ff]/10 border border-[#0099ff]/30">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-          <span className="text-xs text-gray-300 tracking-widest uppercase">Canlı • 1\.000+ Kanal • 20\.000+ Film & Dizi</span>
+          <span className="text-xs text-gray-300 tracking-widest uppercase">Canlı • Yüzlerce Kanal • Yüzlerce Film & Dizi</span>
         </div>
         <h1 className="text-4xl md:text-6xl font-bold text-white mb-4" style={{ fontFamily: 'Orbitron, sans-serif' }}>
           Steamix <span className="text-[#0099ff]">TV</span>
