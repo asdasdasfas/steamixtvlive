@@ -424,6 +424,16 @@ export default function Landing() {
             </div>
           </div>
         </div>
+        <div className="mt-10 max-w-2xl mx-auto">
+          <div className="p-5 rounded-2xl bg-gradient-to-r from-[#0099ff]/[0.1] to-purple-500/[0.06] border border-[#0099ff]/30 shadow-[0_0_30px_rgba(0,153,255,0.15)]" style={{ animation: 'floatGlow 3s ease-in-out infinite' }}>
+            <p className="text-xs md:text-sm text-gray-300 leading-relaxed text-center">
+              <span className="text-[#0099ff] font-bold">📡 Çözünürlüğe göre sınıflı yayın:</span> yayınlarımız
+              çözünürlük kalitesine göre sınıflandırılmıştır. Donanımınıza uygun kanalları kanal listesinden
+              seçip hızlıca favorileyip kendinize göre gruplandırabilirsiniz. Bu ayar, cihazınızın desteklediği
+              çözünürlükteki kanallara göre yapılır — doğru eşleşmede donma yaşamazsınız.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* İstatistik barı */}
