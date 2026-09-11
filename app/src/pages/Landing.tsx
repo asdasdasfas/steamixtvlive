@@ -5,9 +5,9 @@ import AnimatedBackground from '@/sections/AnimatedBackground'
 const APK_URL = 'https://www.dropbox.com/scl/fi/5bw5nsyelezwrxmyb5hwt/SteamixTV_v1.0.45_release.apk?rlkey=ghc5phabjucqlrq540zjdqgaz&st=36xy08me&dl=1'
 
 const PLANS = [
-  { name: '1 AYLIK', price: '300 TL', link: 'https://www.shopier.com/platool/49623989', features: ['4K Ultra HD görüntü', '7.500+ canlı TV kanalı', '35.000+ film & dizi arşivi', 'Süper Lig dahil tüm spor paketleri', 'EPG program rehberi', 'Tek cihaz desteği', 'Hızlı aktivasyon', '7/24 destek'] },
-  { name: '3 AYLIK', price: '600 TL', link: 'https://www.shopier.com/platool/49624003', popular: true, features: ['4K Ultra HD görüntü', '7.500+ canlı TV kanalı', '35.000+ film & dizi arşivi', 'Süper Lig dahil tüm spor paketleri', 'EPG program rehberi', 'Kesintisiz VOD + arşiv erişimi', 'Hızlı kurulum desteği', '7/24 destek', 'En Popüler Seçim'] },
-  { name: '12 AYLIK', price: '1.200 TL', link: 'https://www.shopier.com/platool/49624023', features: ['4K Ultra HD görüntü', '7.500+ canlı TV kanalı', '35.000+ film & dizi arşivi', 'Süper Lig dahil tüm spor paketleri', 'EPG program rehberi', 'Yıllık fiyat avantajı', 'Öncelikli destek', 'Hızlı aktivasyon', '7/24 destek'] },
+  { name: '1 AYLIK', price: '300 TL', link: 'https://www.shopier.com/platool/49623989', features: ['Yüzlerce canlı kanal', 'Yüzlerce film & dizi arşivi', '4K çözünürlük', 'Trailer özelliği', '3 cihaz desteği', 'EPG program rehberi', 'Hızlı aktivasyon', '7/24 destek'] },
+  { name: '3 AYLIK', price: '600 TL', link: 'https://www.shopier.com/platool/49624003', popular: true, features: ['Yüzlerce canlı kanal', 'Yüzlerce film & dizi arşivi', '4K çözünürlük', 'Trailer özelliği', '3 cihaz desteği', 'EPG program rehberi', 'Süper Lig dahil tüm spor', 'Hızlı kurulum desteği', '7/24 destek', 'En Popüler Seçim'] },
+  { name: '12 AYLIK', price: '1.200 TL', link: 'https://www.shopier.com/platool/49624023', features: ['Yüzlerce canlı kanal', 'Yüzlerce film & dizi arşivi', '4K çözünürlük', 'Trailer özelliği', '3 cihaz desteği', 'EPG program rehberi', 'Yıllık fiyat avantajı', 'Öncelikli destek', 'Hızlı aktivasyon', '7/24 destek'] },
 ]
 
 const POSTERS = ['poster01.jpg', 'poster02.jpg', 'poster03.jpg', 'poster04.jpg', 'poster05.jpg', 'poster06.jpg', 'poster07.jpg', 'poster08.jpg', 'poster10.jpg', 'poster11.jpg', 'poster12.jpg', 'poster13.jpg']
