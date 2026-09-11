@@ -203,8 +203,10 @@ export default function Landing() {
       </nav>
 
       {/* Hero */}
-      <div id="top" className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-4 py-14 md:py-20">
-        <div className="flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full bg-[#0099ff]/10 border border-[#0099ff]/30">
+      <div id="top" className="relative z-10 flex-1 flex items-center px-4 md:px-12 py-14 md:py-20">
+        <div className="w-full flex flex-col md:flex-row items-center gap-10 md:gap-14 max-w-6xl mx-auto">
+          <div className="flex-1 text-center md:text-left">
+        <div className="inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full bg-[#0099ff]/10 border border-[#0099ff]/30">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
           <span className="text-xs text-gray-300 tracking-widest uppercase">Canlı • 7.500+ Kanal • 35.000+ Film & Dizi</span>
         </div>
@@ -214,11 +216,11 @@ export default function Landing() {
         <p className="text-lg md:text-2xl text-gray-300 leading-relaxed font-light">
           Sınırsız eğlence, kesintisiz keyif.
         </p>
-        <p className="text-sm md:text-base text-gray-400 mt-3 leading-relaxed max-w-xl">
+        <p className="text-sm md:text-base text-gray-400 mt-3 leading-relaxed max-w-xl mx-auto md:mx-0">
           Süper Lig dahil dünyadan tüm kanalları izleyeceksiniz. 4K Ultra HD kalitesinde
           binlerce film, dizi ve VOD içeriği. Dilediğin zaman, dilediğin yerde izle.
         </p>
-        <div className="flex items-center gap-4 mt-8">
+        <div className="flex items-center justify-center md:justify-start gap-4 mt-8">
           <a href="#planlar" className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm hover:shadow-[0_0_30px_rgba(0,153,255,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all">
             Planları Gör
           </a>
@@ -226,13 +228,22 @@ export default function Landing() {
             <PlayCircle className="w-4 h-4" />Test Yayını Al
           </a>
         </div>
-        <div className="flex items-center gap-4 mt-10">
+        <div className="flex items-center justify-center md:justify-start gap-4 mt-10">
           <div className="relative w-16 h-[2px] bg-white/5 overflow-hidden rounded-full">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#0099ff] to-transparent opacity-80 rounded-full"
               style={{ animation: 'lightSweep 2s ease-in-out infinite' }} />
           </div>
           <span className="text-xs text-gray-600 tracking-widest uppercase">Steamix TV Company</span>
           <style>{`@keyframes lightSweep { 0%,100% { transform: translateX(-100%) } 50% { transform: translateX(100%) } }`}</style>
+        </div>
+          </div>
+          <div className="flex-1 w-full max-w-xl">
+            <div className="relative rounded-3xl overflow-hidden border border-white/15 shadow-[0_0_60px_rgba(0,153,255,0.3),0_0_120px_rgba(168,85,247,0.15)] hover:scale-[1.02] transition-transform duration-500">
+              <img src="/images/hero-aile.jpg" alt="Steamix TV" className="w-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/50 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/20 pointer-events-none" />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -273,7 +284,7 @@ export default function Landing() {
             <span key={b} className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-gray-300">{b}</span>
           ))}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
           {TESTLER.map(t => (
             <div key={t.id} className={`relative rounded-2xl p-5 border transition-all duration-300 hover:scale-[1.03] flex flex-col ${t.vip ? 'border-purple-500/60 bg-purple-500/5 shadow-lg shadow-purple-500/10' : 'border-white/10 bg-white/5'}`}>
               <p className="text-[11px] text-gray-500 tracking-widest uppercase mb-2">{t.etiket}</p>
