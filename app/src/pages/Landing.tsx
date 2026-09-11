@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ShoppingCart, Check, Mail, CreditCard, PlayCircle, Trophy, Clapperboard, Tv, MonitorPlay, Smartphone, Download, Gamepad2, Wifi } from 'lucide-react'
+import { ShoppingCart, Check, Mail, CreditCard, PlayCircle, Trophy, Clapperboard, Tv, MonitorPlay, Smartphone, Download, Gamepad2, Wifi, X, Menu, AlertTriangle, Gauge } from 'lucide-react'
 import AnimatedBackground from '@/sections/AnimatedBackground'
 
 const APK_URL = 'https://www.dropbox.com/scl/fi/5bw5nsyelezwrxmyb5hwt/SteamixTV_v1.0.45_release.apk?rlkey=ghc5phabjucqlrq540zjdqgaz&st=36xy08me&dl=1'
@@ -18,6 +18,9 @@ const STATS = [
   { icon: MonitorPlay, value: 100, suffix: '%', label: '4K Maç Keyfi' },
   { icon: Wifi, value: 24, suffix: '/7', label: 'Kesintisiz Yayın' },
 ]
+
+const KANALLAR = ['beIN Sports 1', 'TRT 1', 'TV8 HD', 'ATV', 'S Sport 1', 'Tabii Spor 1', 'TLC', 'NTV']
+const FILMLER = ['Aksiyon', 'Komedi', 'Dram', 'Korku', 'Bilim Kurgu', 'Animasyon', 'Yerli', 'Romantik']
 
 function Counter({ value, suffix }: { value: number; suffix: string }) {
   const [n, setN] = useState(0)
@@ -46,7 +49,63 @@ function Counter({ value, suffix }: { value: number; suffix: string }) {
   return <span ref={ref}>{n.toLocaleString('tr-TR')}{suffix}</span>
 }
 
+function MiniEkran({ kucuk = false }: { kucuk?: boolean }) {
+  const items = kucuk ? KANALLAR.slice(0, 4) : KANALLAR
+  return (
+    <div className="absolute inset-0">
+      {/* Ekran 1: kanallar */}
+      <div className="absolute inset-0 p-2" style={{ animation: 'ekranDon 12s ease-in-out infinite' }}>
+        <div className="flex items-center gap-1 mb-1.5">
+          <span className="text-[7px] font-bold text-white bg-[#0099ff] rounded px-1 py-0.5">CANLI TV</span>
+          <span className="text-[7px] font-bold text-gray-500 bg-white/10 rounded px-1 py-0.5">FİLMLER</span>
+          <span className="text-[7px] font-bold text-gray-500 bg-white/10 rounded px-1 py-0.5">DİZİLER</span>
+        </div>
+        <div className="space-y-1">
+          {items.map((k, i) => (
+            <div key={k} className={`flex items-center gap-1.5 rounded px-1.5 ${kucuk ? 'py-1' : 'py-1.5'} ${i === 1 ? 'bg-[#0099ff]/30 border border-[#0099ff]/50' : 'bg-white/5'}`}>
+              <div className={`rounded ${kucuk ? 'w-5 h-3.5' : 'w-8 h-5'} bg-gradient-to-br ${i % 3 === 0 ? 'from-[#0099ff] to-blue-700' : i % 3 === 1 ? 'from-purple-500 to-purple-800' : 'from-emerald-500 to-emerald-800'}`} />
+              <span className={`${kucuk ? 'text-[7px]' : 'text-[10px]'} text-gray-200 font-medium truncate`}>{k}</span>
+              {i === 1 && <PlayCircle className={`${kucuk ? 'w-2.5 h-2.5' : 'w-3.5 h-3.5'} text-[#0099ff] ml-auto shrink-0`} />}
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Ekran 2: filmler */}
+      <div className="absolute inset-0 p-2" style={{ animation: 'ekranDon 12s ease-in-out infinite', animationDelay: '4s', opacity: 0 }}>
+        <div className="flex items-center gap-1 mb-1.5">
+          <span className="text-[7px] font-bold text-gray-500 bg-white/10 rounded px-1 py-0.5">CANLI TV</span>
+          <span className="text-[7px] font-bold text-white bg-[#0099ff] rounded px-1 py-0.5">FİLMLER</span>
+          <span className="text-[7px] font-bold text-gray-500 bg-white/10 rounded px-1 py-0.5">DİZİLER</span>
+        </div>
+        <div className={`grid ${kucuk ? 'grid-cols-3' : 'grid-cols-4'} gap-1`}>
+          {FILMLER.slice(0, kucuk ? 6 : 8).map((f, i) => (
+            <div key={f} className={`rounded bg-gradient-to-br ${i % 4 === 0 ? 'from-rose-600 to-rose-900' : i % 4 === 1 ? 'from-amber-500 to-orange-800' : i % 4 === 2 ? 'from-cyan-500 to-blue-800' : 'from-violet-500 to-purple-800'} ${kucuk ? 'h-9' : 'h-14'} flex items-end p-1`}>
+              <span className={`${kucuk ? 'text-[6px]' : 'text-[8px]'} text-white font-semibold`}>{f}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Ekran 3: maç */}
+      <div className="absolute inset-0" style={{ animation: 'ekranDon 12s ease-in-out infinite', animationDelay: '8s', opacity: 0 }}>
+        <img src="/images/login.jpg" alt="" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+        <div className="absolute top-1.5 left-1.5 flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/60">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500" style={{ animation: 'livePulse 1.5s ease-in-out infinite' }} />
+          <span className={`${kucuk ? 'text-[7px]' : 'text-[9px]'} text-white font-bold tracking-widest`}>CANLI MAÇ</span>
+        </div>
+        <div className="absolute bottom-1.5 inset-x-1.5">
+          <div className="flex justify-between text-[8px] text-white font-bold mb-0.5"><span>GS 2 - 1 FB</span><span>78'</span></div>
+          <div className="h-1 rounded bg-white/20 overflow-hidden"><div className="h-full w-3/4 bg-gradient-to-r from-[#0099ff] to-purple-500" /></div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Landing() {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [seciliPlan, setSeciliPlan] = useState<typeof PLANS[0] | null>(null)
+
   return (
     <div className="min-h-screen bg-[#0f172a] flex flex-col relative overflow-hidden">
       <AnimatedBackground />
@@ -61,7 +120,9 @@ export default function Landing() {
         @keyframes floatGlow { 0%,100% { opacity: 0.5 } 50% { opacity: 1 } }
         @keyframes livePulse { 0%,100% { opacity: 1 } 50% { opacity: 0.35 } }
         @keyframes scanMove { 0% { top: -10% } 100% { top: 110% } }
-        @keyframes touchTap { 0%,100% { transform: scale(1); opacity: 0.7 } 50% { transform: scale(0.85); opacity: 1 } }`}</style>
+        @keyframes ekranDon { 0%,28% { opacity: 1 } 33%,94% { opacity: 0 } 100% { opacity: 1 } }
+        @keyframes dokunma { 0%,100% { transform: translate(0,0) scale(1); opacity: 0.8 } 25% { transform: translate(14px,10px) scale(0.9); opacity: 1 } 50% { transform: translate(-10px,16px) scale(0.9); opacity: 1 } 75% { transform: translate(6px,-8px) scale(1); opacity: 0.8 } }
+        @keyframes kumandaBas { 0%,100% { transform: translateY(0) } 10%,30% { transform: translateY(-6px) rotate(-4deg) } 40%,60% { transform: translateY(0) } 70%,90% { transform: translateY(-6px) rotate(4deg) } }`}</style>
         <div className="absolute" style={{
           top: '-165px', bottom: '-165px', left: '-165px', right: '-165px',
           backgroundImage: 'url(/images/login.jpg)',
@@ -77,27 +138,35 @@ export default function Landing() {
         <div className="absolute -bottom-40 -left-40 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[120px]" />
       </div>
 
-      {/* Üst bar */}
-      <div className="relative z-10 flex items-center justify-between p-4 md:p-6">
-        <div className="flex items-center gap-2">
-          <img src="/images/steamix-logo.jpg" alt="" className="w-8 h-8 md:w-10 md:h-10 rounded-lg" />
-          <span className="text-lg md:text-xl font-bold text-white tracking-wider" style={{ fontFamily: 'Orbitron, sans-serif' }}>Steamix <span className="text-[#0099ff]">TV</span></span>
+      {/* Navigasyon */}
+      <nav className="sticky top-[3px] z-40 backdrop-blur-md bg-black/50 border-b border-white/10">
+        <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
+          <a href="#top" className="flex items-center gap-2">
+            <img src="/images/steamix-logo.jpg" alt="" className="w-8 h-8 rounded-lg" />
+            <span className="text-base md:text-lg font-bold text-white tracking-wider" style={{ fontFamily: 'Orbitron, sans-serif' }}>Steamix <span className="text-[#0099ff]">TV</span></span>
+          </a>
+          <div className="hidden md:flex items-center gap-1 text-sm">
+            <a href="#cihazlar" className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">Cihazlar</a>
+            <a href="#icerik" className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">İçerik</a>
+            <a href="#uygulama" className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">Uygulama</a>
+            <a href="#planlar" className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">Planlar</a>
+            <a href="#test" className="ml-2 px-4 py-1.5 rounded-lg text-sm text-white bg-gradient-to-r from-[#0099ff] to-blue-600 hover:shadow-[0_0_20px_rgba(0,153,255,0.5)] transition-all">Test Al</a>
+          </div>
+          <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-gray-300">
+            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
-        <div className="flex items-center gap-2">
-          <a href="#uygulama" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-            <Download className="w-4 h-4" /><span className="hidden sm:inline">Uygulama</span>
-          </a>
-          <a href="#planlar" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-            <CreditCard className="w-4 h-4" /><span className="hidden sm:inline">Planlar</span>
-          </a>
-          <a href="#test" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-[#0099ff] border border-[#0099ff]/30 hover:bg-[#0099ff]/10 hover:border-[#0099ff] transition-all">
-            <Mail className="w-4 h-4" /><span className="hidden sm:inline">Test Al</span>
-          </a>
-        </div>
-      </div>
+        {menuOpen && (
+          <div className="md:hidden border-t border-white/10 bg-black/70 px-4 py-3 space-y-1 text-sm">
+            {[['Cihazlar', '#cihazlar'], ['İçerik', '#icerik'], ['Uygulama', '#uygulama'], ['Planlar', '#planlar'], ['Test Al', '#test']].map(([t, h]) => (
+              <a key={h} href={h} onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 rounded-lg text-gray-300 hover:text-white hover:bg-white/5">{t}</a>
+            ))}
+          </div>
+        )}
+      </nav>
 
       {/* Hero */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-4 py-14 md:py-20">
+      <div id="top" className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-4 py-14 md:py-20">
         <div className="flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full bg-[#0099ff]/10 border border-[#0099ff]/30">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
           <span className="text-xs text-gray-300 tracking-widest uppercase">Canlı • 7.500+ Kanal • 35.000+ Film & Dizi</span>
@@ -146,48 +215,57 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* Cihaz vitrini: TV + Telefon */}
-      <div className="relative z-10 max-w-6xl mx-auto px-4 py-12 md:py-16 w-full">
+      {/* Cihaz sahnesi */}
+      <div id="cihazlar" className="relative z-10 max-w-6xl mx-auto px-4 py-12 md:py-16 w-full">
         <div className="text-center mb-10">
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-            Her Ekranda <span className="text-[#0099ff]">Canlı</span>
+            Kumandayla Koltuktan, <span className="text-[#0099ff]">Dokunarak Cebinden</span>
           </h2>
-          <p className="text-sm text-gray-500 max-w-xl mx-auto">Kumandayla koltuğundan yönet, dokunmatikle cebinden devam et — yayın hiç durmaz.</p>
+          <p className="text-sm text-gray-500 max-w-xl mx-auto">TV'de maç, telefonda dizi — Steamix TV arayüzü her ekranda aynı akıcılıkta.</p>
         </div>
-        <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12">
-          {/* Smart TV */}
-          <div className="flex flex-col items-center">
-            <div className="relative rounded-2xl overflow-hidden border-2 border-white/15 shadow-[0_0_40px_rgba(0,153,255,0.2)] bg-black w-72 md:w-96">
-              <img src="/images/login.jpg" alt="" className="w-full aspect-video object-cover" style={{ filter: 'brightness(0.85)' }} />
-              <div className="absolute inset-x-0 h-10 bg-gradient-to-b from-[#0099ff]/25 to-transparent" style={{ animation: 'scanMove 4s linear infinite' }} />
-              <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded bg-black/60">
-                <span className="w-2 h-2 rounded-full bg-red-500" style={{ animation: 'livePulse 1.5s ease-in-out infinite' }} />
-                <span className="text-[10px] text-white font-bold tracking-widest">CANLI</span>
-              </div>
-              <div className="absolute bottom-2 inset-x-2 h-1 rounded bg-white/20 overflow-hidden">
-                <div className="h-full w-2/3 bg-gradient-to-r from-[#0099ff] to-purple-500" />
-              </div>
-            </div>
-            <div className="w-16 h-3 bg-white/10 rounded-b-lg" />
-            <div className="w-40 h-1.5 bg-white/10 rounded-full mt-1" />
-            <p className="text-xs text-gray-400 mt-3 flex items-center gap-2"><Gamepad2 className="w-4 h-4 text-[#0099ff]" /> Kumandayla yönet — Smart TV</p>
-          </div>
-          {/* Telefon */}
-          <div className="flex flex-col items-center">
-            <div className="relative rounded-[2rem] overflow-hidden border-2 border-white/15 shadow-[0_0_40px_rgba(168,85,247,0.25)] bg-black w-40 md:w-48">
-              <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-16 h-4 bg-black rounded-full z-10 border border-white/10" />
-              <img src="/images/poster01.jpg" alt="" className="w-full aspect-[9/19] object-cover" style={{ filter: 'brightness(0.9)' }} />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-12 h-12 rounded-full bg-[#0099ff]/80 flex items-center justify-center shadow-[0_0_25px_rgba(0,153,255,0.7)]" style={{ animation: 'touchTap 2s ease-in-out infinite' }}>
-                  <PlayCircle className="w-6 h-6 text-white" />
+        <div className="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-14">
+          {/* TV + kumanda */}
+          <div className="flex items-end gap-4">
+            <div className="flex flex-col items-center">
+              <div className="relative rounded-xl overflow-hidden bg-black border-[6px] border-gray-900 shadow-[0_0_50px_rgba(0,153,255,0.35),0_0_120px_rgba(168,85,247,0.2)] w-72 md:w-[26rem]">
+                <div className="relative aspect-video bg-[#0a0f1e]">
+                  <MiniEkran />
+                  <div className="absolute inset-x-0 h-8 bg-gradient-to-b from-[#0099ff]/20 to-transparent pointer-events-none" style={{ animation: 'scanMove 4s linear infinite' }} />
                 </div>
               </div>
-              <div className="absolute top-8 right-2 flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/60">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500" style={{ animation: 'livePulse 1.5s ease-in-out infinite' }} />
-                <span className="text-[8px] text-white font-bold">CANLI</span>
-              </div>
+              <div className="w-14 h-4 bg-gray-900 rounded-b-lg" />
+              <div className="w-44 h-1.5 bg-gray-900 rounded-full mt-1 shadow-[0_5px_20px_rgba(0,0,0,0.8)]" />
+              <p className="text-xs text-gray-400 mt-3 text-center">Kanallar değişiyor, maç başlıyor…<br />TV'de yayın hiç durmaz</p>
             </div>
-            <p className="text-xs text-gray-400 mt-3 flex items-center gap-2"><Smartphone className="w-4 h-4 text-purple-400" /> Dokunmatikle devam et — Mobil</p>
+            {/* Kumanda */}
+            <div className="hidden sm:flex flex-col items-center gap-2 pb-8" style={{ animation: 'kumandaBas 5s ease-in-out infinite' }}>
+              <div className="w-12 rounded-2xl bg-gradient-to-b from-gray-800 to-gray-950 border border-white/15 p-2 space-y-1.5 shadow-[0_0_25px_rgba(0,153,255,0.25)]">
+                <div className="w-6 h-6 mx-auto rounded-full bg-red-500/80" />
+                <div className="grid grid-cols-3 gap-1">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => (
+                    <div key={n} className={`w-2.5 h-2.5 rounded-full mx-auto ${n === 5 ? 'bg-[#0099ff] shadow-[0_0_8px_rgba(0,153,255,0.9)]' : 'bg-white/20'}`} />
+                  ))}
+                </div>
+                <div className="flex justify-center gap-1">
+                  <div className="w-2.5 h-4 rounded bg-white/20" />
+                  <div className="w-2.5 h-4 rounded bg-white/20" />
+                </div>
+              </div>
+              <p className="text-[10px] text-gray-500 text-center">Kumandayla<br />kanal değiştir</p>
+            </div>
+          </div>
+          {/* Telefon + dokunma */}
+          <div className="flex items-start gap-3">
+            <div className="flex flex-col items-center">
+              <div className="relative rounded-[2rem] overflow-hidden bg-black border-[5px] border-gray-900 shadow-[0_0_45px_rgba(168,85,247,0.35)] w-40 md:w-48">
+                <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-16 h-4 bg-black rounded-full z-10 border border-white/10" />
+                <div className="relative aspect-[9/18] bg-[#0a0f1e]">
+                  <MiniEkran kucuk />
+                </div>
+                <div className="absolute w-8 h-8 rounded-full border-2 border-[#0099ff] bg-[#0099ff]/20 shadow-[0_0_15px_rgba(0,153,255,0.8)] pointer-events-none" style={{ animation: 'dokunma 5s ease-in-out infinite', top: '55%', left: '60%' }} />
+              </div>
+              <p className="text-xs text-gray-400 mt-3 text-center">Parmağınla dokun,<br />filmler kayarak gelsin</p>
+            </div>
           </div>
         </div>
       </div>
@@ -208,7 +286,7 @@ export default function Landing() {
       </div>
 
       {/* Sinema vitrini */}
-      <div className="relative z-10 max-w-6xl mx-auto px-4 pb-12 md:pb-16 w-full">
+      <div id="icerik" className="relative z-10 max-w-6xl mx-auto px-4 pb-12 md:pb-16 w-full">
         <div className="text-center mb-8">
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
             Sinema Salonu <span className="text-[#0099ff]">Evinizde</span>
@@ -231,13 +309,13 @@ export default function Landing() {
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
             Steamix TV <span className="text-[#0099ff]">Uygulaması</span>
           </h2>
-          <p className="text-sm text-gray-500">Telefon ve TV kutusu için resmi oynatıcımız — v1.0.45</p>
+          <p className="text-sm text-gray-500">Telefon ve TV kutusu için resmi oynatıcımız</p>
         </div>
         <div className="p-5 rounded-xl bg-gradient-to-br from-[#0099ff]/10 to-purple-500/5 border border-[#0099ff]/20 space-y-3">
           <div className="flex items-start gap-3">
             <img src="/images/steamix-logo.jpg" alt="" className="w-12 h-12 rounded-xl shrink-0" />
             <div>
-              <p className="text-sm text-gray-300 font-semibold mb-1">Steamix TV v1.0.45 (Android)</p>
+              <p className="text-sm text-gray-300 font-semibold mb-1">Steamix TV (Android)</p>
               <p className="text-xs text-gray-400 leading-relaxed">
                 Abonelik bağlantınızla giriş yapın: 7.500+ canlı kanal, 35.000+ film ve dizi,
                 4K kalite, kumanda ve dokunmatik uyumu. Tek dokunuşla kurun, izlemeye başlayın.
@@ -246,7 +324,7 @@ export default function Landing() {
           </div>
           <a href={APK_URL} target="_blank" rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm hover:opacity-90 hover:shadow-[0_0_20px_rgba(0,153,255,0.3)] transition-all">
-            <Download className="w-4 h-4" /> Steamix TV v1.0.45 İndir (APK)
+            <Download className="w-4 h-4" /> Steamix TV'yi İndir
           </a>
           <p className="text-[11px] text-gray-500 text-center leading-relaxed">
             Android telefon, tablet ve TV kutularıyla uyumludur.
@@ -282,35 +360,12 @@ export default function Landing() {
                   </div>
                 ))}
               </div>
-              <a href={p.link} target="_blank" rel="noopener noreferrer"
+              <button onClick={() => setSeciliPlan(p)}
                 className="block w-full py-3 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm text-center hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#0099ff]/20">
                 <ShoppingCart className="w-4 h-4" />Satın Al
-              </a>
+              </button>
             </div>
           ))}
-        </div>
-        <div className="mt-6 space-y-3 max-w-xl mx-auto">
-          <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-            <p className="text-xs text-gray-400 leading-relaxed text-center">
-              <span className="text-yellow-400 font-semibold">📌 Önemli:</span> Satın aldıktan sonra{' '}
-              <span className="text-[#0099ff] font-medium">steamixgame@yandex.com</span> mail adresine
-              satın aldığınıza dair ekran görüntüsü atın. Yönetici tarafından onaylanıp en kısa sürede
-              abonelik giriş bilgileriniz size teslim edilecektir.
-            </p>
-          </div>
-          <div className="p-4 rounded-xl bg-[#0099ff]/5 border border-[#0099ff]/20">
-            <p className="text-xs text-gray-300 leading-relaxed text-center">
-              <span className="text-[#0099ff] font-semibold">📩 Teslimat:</span> Aboneliğiniz satın alındıktan sonra
-              size özel oynatıcı bağlantınız mail üzerinden gönderilir. Bağlantı gönderildikten sonra
-              yukarıdaki uygulamayı indirip kullanabilirsiniz.
-            </p>
-          </div>
-          <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
-            <p className="text-xs text-yellow-300 leading-relaxed text-center">
-              ⚠️ Shopier resmi kuralları gereği abonelikler sınırlıdır; satın aldığınız abonelik tamamlandıktan
-              sonra ek olarak yalnızca bir defaya mahsus tekrar alınabilir.
-            </p>
-          </div>
         </div>
       </div>
 
@@ -352,6 +407,65 @@ export default function Landing() {
       <div className="relative z-10 text-center pb-10 pt-4">
         <span className="text-xs text-gray-600 tracking-widest uppercase">Steamix TV Company</span>
       </div>
+
+      {/* Satın alma bilgi modalı */}
+      {seciliPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSeciliPlan(null)} />
+          <div className="relative z-10 bg-gradient-to-b from-gray-900 to-gray-950 rounded-3xl p-6 md:p-8 max-w-lg w-full border border-white/10 shadow-2xl shadow-[#0099ff]/10 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-11 h-11 rounded-full bg-[#0099ff]/15 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-[#0099ff]" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white" style={{ fontFamily: 'Orbitron, sans-serif' }}>LÜTFEN OKUYUN</h2>
+                <p className="text-xs text-gray-500">{seciliPlan.name} • {seciliPlan.price}</p>
+              </div>
+            </div>
+            <div className="space-y-3 mb-6">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-yellow-500/[0.07] to-transparent border border-yellow-500/15 border-l-4 border-l-yellow-500/50">
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  <span className="text-yellow-400 font-bold">📌 Önemli:</span> Satın aldıktan sonra{' '}
+                  <span className="text-[#0099ff] font-semibold">steamixgame@yandex.com</span> mail adresine
+                  satın aldığınıza dair ekran görüntüsü atın. Yönetici tarafından onaylanıp en kısa sürede
+                  abonelik giriş bilgileriniz size teslim edilecektir.
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-[#0099ff]/[0.08] to-transparent border border-[#0099ff]/20 border-l-4 border-l-[#0099ff]/60">
+                <p className="text-xs text-gray-300 leading-relaxed">
+                  <span className="text-[#0099ff] font-bold">📩 Teslimat:</span> Aboneliğiniz satın alındıktan sonra
+                  size özel oynatıcı bağlantınız mail üzerinden gönderilir. Bağlantı gönderildikten sonra
+                  yukarıdaki uygulamayı indirip kullanabilirsiniz.
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-orange-500/[0.08] to-transparent border border-orange-500/15 border-l-4 border-l-orange-500/50">
+                <p className="text-xs text-orange-300 leading-relaxed">
+                  ⚠️ Shopier resmi kuralları gereği abonelikler sınırlıdır; satın aldığınız abonelik tamamlandıktan
+                  sonra ek olarak yalnızca bir defaya mahsus tekrar alınabilir.
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-500/[0.08] to-transparent border border-purple-500/20 border-l-4 border-l-purple-500/60">
+                <p className="text-xs text-gray-300 leading-relaxed flex gap-2">
+                  <Gauge className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
+                  <span><span className="text-purple-300 font-bold">Donanım şartı:</span> Steamix TV'yi cihazlarınızda
+                    oynatabilmek için en az 100 Mbps internet hızı ve güncel donanım özelliklerine sahip bir
+                    akıllı televizyon ya da TV Box kullanmanız şarttır. Aksi halde donma ve takılmalar yaşanabilir.</span>
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <a href={seciliPlan.link} target="_blank" rel="noopener noreferrer"
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm text-center hover:shadow-[0_0_25px_rgba(0,153,255,0.5)] transition-all flex items-center justify-center gap-2">
+                <ShoppingCart className="w-4 h-4" />Onaylıyorum, Satın Al
+              </a>
+              <button onClick={() => setSeciliPlan(null)}
+                className="flex-1 py-3 rounded-xl bg-white/10 text-white font-semibold text-sm hover:bg-white/20 transition-all">
+                Hayır, Vazgeçtim
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
