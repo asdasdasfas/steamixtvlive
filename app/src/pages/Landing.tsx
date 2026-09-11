@@ -260,7 +260,7 @@ export default function Landing() {
       </nav>
 
       {/* Hero */}
-      <div id="top" className="relative z-10 flex-1 flex items-center px-4 md:px-12 py-14 md:py-20">
+      <div id="top" className="relative z-10 flex-1 flex items-center px-4 md:px-12 py-10 md:py-14">
         <div className="w-full flex flex-col md:flex-row items-center gap-10 md:gap-14 max-w-6xl mx-auto">
           <div className="flex-1 text-center md:text-left">
         <div className="inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full bg-[#0099ff]/10 border border-[#0099ff]/30">
@@ -305,7 +305,7 @@ export default function Landing() {
       </div>
 
       {/* İstatistik barı */}
-      <div className="relative z-10 max-w-5xl mx-auto px-4 py-10 md:py-14 w-full">
+      <div className="relative z-10 max-w-5xl mx-auto px-4 py-8 md:py-10 w-full">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {STATS.map(s => (
             <div key={s.label} className="rounded-2xl p-5 border border-white/10 bg-white/5 text-center hover:border-[#0099ff]/40 hover:shadow-[0_0_25px_rgba(0,153,255,0.15)] transition-all" style={{ animation: 'floatGlow 3s ease-in-out infinite' }}>
@@ -336,7 +336,7 @@ export default function Landing() {
       </div>
 
       {/* Test alanı */}
-      <div id="test" className="relative z-10 max-w-6xl mx-auto px-4 py-12 md:py-16 w-full">
+      <div id="test" className="relative z-10 max-w-6xl mx-auto px-4 py-8 md:py-10 w-full">
         <div className="flex items-center justify-center gap-2 mb-4">
           <Check className="w-4 h-4 text-green-400" />
           <span className="text-xs text-gray-300 tracking-widest uppercase">Satın almadan önce gerçek deneyim</span>
@@ -387,7 +387,7 @@ export default function Landing() {
       </div>
 
       {/* Cihaz sahnesi */}
-      <div id="cihazlar" className="relative z-10 max-w-6xl mx-auto px-4 py-12 md:py-16 w-full">
+      <div id="cihazlar" className="relative z-10 max-w-6xl mx-auto px-4 py-8 md:py-10 w-full">
         <div className="text-center mb-10">
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
             Kumandayla Koltuktan, <span className="text-[#0099ff]">Dokunarak Cebinden</span>
@@ -453,7 +453,7 @@ export default function Landing() {
       </div>
 
       {/* Sinema vitrini */}
-      <div id="icerik" className="relative z-10 max-w-6xl mx-auto px-4 pb-12 md:pb-16 w-full">
+      <div id="icerik" className="relative z-10 max-w-6xl mx-auto px-4 pb-8 md:pb-10 w-full">
         <div className="text-center mb-8">
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
             Sinema Salonu <span className="text-[#0099ff]">Evinizde</span>
@@ -471,7 +471,7 @@ export default function Landing() {
       </div>
 
       {/* Müşterilerimiz Ne Diyor */}
-      <div className="relative z-10 max-w-6xl mx-auto px-4 pb-12 md:pb-16 w-full">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 pb-8 md:pb-10 w-full">
         <div className="text-center mb-8">
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
             Müşterilerimiz <span className="text-[#0099ff]">Ne Diyor?</span>
@@ -502,7 +502,7 @@ export default function Landing() {
       </div>
 
       {/* SSS */}
-      <div className="relative z-10 max-w-3xl mx-auto px-4 pb-12 md:pb-16 w-full">
+      <div className="relative z-10 max-w-3xl mx-auto px-4 pb-8 md:pb-10 w-full">
         <div className="text-center mb-8">
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
             Sık Sorulan <span className="text-[#0099ff]">Sorular</span>
@@ -523,7 +523,7 @@ export default function Landing() {
       </div>
 
       {/* Uygulama */}
-      <div id="uygulama" className="relative z-10 max-w-xl mx-auto px-4 py-12 md:py-16 w-full">
+      <div id="uygulama" className="relative z-10 max-w-xl mx-auto px-4 py-8 md:py-10 w-full">
         <div className="text-center mb-8">
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
             Steamix TV <span className="text-[#0099ff]">Uygulaması</span>
