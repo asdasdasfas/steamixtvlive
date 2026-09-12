@@ -444,7 +444,7 @@ export default function Landing() {
             <p className="text-xs md:text-sm text-gray-300 leading-relaxed text-center">
               <span className="text-[#0099ff] font-bold">📡 Çözünürlüğe göre sınıflı yayın:</span> yayınlarımız
               çözünürlük kalitesine göre sınıflandırılmıştır. Çözünürlük kanallarını kendinize göre sınıflayıp
-              favorileyin — donanımınızın desteklediği kanalları favoriledikten sonra takılmaların önüne geçersiniz.
+              favorileyin, böylece donanımınızın desteklediği kanalları favoriledikten sonra takılmaların önüne geçersiniz.
               Hiçbir IPTV servisi yüzde yüz kesintisiz ve donmasız yayın vaat etmez; vaat eden reklam amaçlıdır,
               biz dürüst çalışıyoruz. Test yayınlarını vermemizin sebebi budur. Donanımınızın desteklediği kanalları seçip bu sorunları aşmış bulunacaksınız.
             </p>
@@ -458,7 +458,7 @@ export default function Landing() {
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
             Sinema Salonu <span className="text-[#0099ff]">Evinizde</span>
           </h2>
-          <p className="text-sm text-gray-500 max-w-xl mx-auto">Vizyondan arşive binlerce film, kaldığınız yerden devam eden diziler — hepsi tek abonelikte. Yayınlarımız çözünürlük kalitesine göre sınıflandırılmıştır: donanımınızın desteklediği çözünürlükteki kanalları kendinize göre sınıflayıp favorileyin ve donanımınızın desteklediği kanalları favoriledikten sonra takılmaların önüne geçersiniz. Hiçbir IPTV servisi yüzde yüz kesintisiz ve donmasız yayın vaat etmez; vaat eden reklam amaçlıdır inanmayınız, biz dürüst çalışıyoruz. Test yayınlarını vermemizin sebebi budur.</p>
+          <p className="text-sm text-gray-500 max-w-xl mx-auto">Vizyondan arşive binlerce film, kaldığınız yerden devam eden diziler — hepsi tek abonelikte.</p>
         </div>
         <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
           {POSTERS.map(p => (
