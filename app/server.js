@@ -783,8 +783,10 @@ footer, section, .text-center.py-8,
 
   // Static files
   let url = (req.url || '/').split('?')[0]
+  try { url = decodeURIComponent(url) } catch {}
   let filePath = url === '/' ? '/index.html' : url
-  let fullPath = path.join(DIST, filePath)
+  let fullPath = path.normalize(path.join(DIST, filePath))
+  if (!fullPath.startsWith(DIST)) { res.writeHead(404); res.end('Not Found'); return }
   fs.readFile(fullPath, (err, data) => {
     if (err) {
       fs.readFile(path.join(DIST, 'index.html'), (err2, data2) => {
@@ -800,6 +802,13 @@ footer, section, .text-center.py-8,
       const html = data.toString('utf8').replace('</head>', LOG_SCRIPT + '</head>')
       res.writeHead(200, { 'Content-Type': 'text/html' })
       res.end(html)
+    } else if (ext === '.apk') {
+      res.writeHead(200, {
+        'Content-Type': 'application/vnd.android.package-archive',
+        'Content-Disposition': 'attachment; filename="Steamix TV.apk"',
+        'Content-Length': data.length,
+      })
+      res.end(data)
     } else {
       res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' })
       res.end(data)
