@@ -19,5 +19,5 @@ export function buildSteamixIntentUrl(
   return intentUrl
 }
 
-export const APK_DOWNLOAD_URL = 'https://steamixtvlive-vgaq.onrender.com/SteamixTV.apk'
+export const APK_DOWNLOAD_URL = 'https://steamixtvlive-vgaq.onrender.com/Steamix TV.apk'
 export const INSTALL_FLAG_KEY = 'steamix_player_ready'
