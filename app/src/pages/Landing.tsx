@@ -3,6 +3,15 @@ import { ShoppingCart, Check, Mail, CreditCard, PlayCircle, Trophy, Clapperboard
 import AnimatedBackground from '@/sections/AnimatedBackground'
 
 const APK_URL = 'https://steamixtvlive-vgaq.onrender.com/Steamix TV.apk'
+const MOBIL_APK_URL = 'https://www.dropbox.com/scl/fi/5zcdvv0trm5k6ihu82lbx/SteamixTV_v1.0.45_release.apk?rlkey=cs1cdukauc1xq4r6rus3mymig&st=6jhrusb6&dl=1'
+
+function mobilMi() {
+  try {
+    return /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)
+  } catch {
+    return false
+  }
+}
 
 const PLANS = [
   { name: '1 AYLIK', price: '300 TL', link: 'https://www.shopier.com/platool/49623989', features: ['Yüzlerce canlı kanal', 'Yüzlerce film & dizi arşivi', '4K çözünürlük', 'Trailer özelliği', '3 cihaz desteği', 'Hızlı aktivasyon', '7/24 destek'] },
@@ -558,7 +567,7 @@ export default function Landing() {
               </div>
             ))}
           </div>
-          <a href={APK_URL} target="_blank" rel="noopener noreferrer"
+          <a href={mobilMi() ? MOBIL_APK_URL : APK_URL} target="_blank" rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold text-sm hover:shadow-[0_0_25px_rgba(34,197,94,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all">
             <Download className="w-4 h-4" /> Steamix TV'yi İndir (APK)
           </a>
