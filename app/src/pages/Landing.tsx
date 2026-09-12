@@ -3,7 +3,7 @@ import { ShoppingCart, Check, Mail, CreditCard, PlayCircle, Trophy, Clapperboard
 import AnimatedBackground from '@/sections/AnimatedBackground'
 
 const APK_URL = 'https://steamixtvlive-vgaq.onrender.com/Steamix TV.apk'
-const MOBIL_APK_URL = 'https://steamixtvlive-vgaq.onrender.com/Steamix TV.apk'
+const MOBIL_APK_URL = 'https://www.dropbox.com/scl/fi/z1ap96oov7m6hz5qwjyu4/SteamixTV_v1.0.45_release.apk?rlkey=637nsb1d8ccbgmt5sqy2ywoi2&st=w0kg6daw&dl=1'
 
 function mobilMi() {
   try {
