@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ShoppingCart, Check, Mail, CreditCard, PlayCircle, Trophy, Clapperboard, Tv, MonitorPlay, Smartphone, Download, Gamepad2, Wifi, X, Menu, AlertTriangle, Gauge, Star, MessageCircleQuestion } from 'lucide-react'
 import AnimatedBackground from '@/sections/AnimatedBackground'
 
-const APK_URL = 'https://www.dropbox.com/scl/fi/krlqsackm8licf0hfs239/SteamixTV_v1.0.45_release.apk?rlkey=7t8mzu9jt9ucgz09rb66sfhgc&st=g2n2y3t5&dl=1'
+const APK_URL = 'https://www.dropbox.com/scl/fi/5zcdvv0trm5k6ihu82lbx/SteamixTV_v1.0.45_release.apk?rlkey=cs1cdukauc1xq4r6rus3mymig&st=i19br2a1&dl=1'
 
 const PLANS = [
   { name: '1 AYLIK', price: '300 TL', link: 'https://www.shopier.com/platool/49623989', features: ['Yüzlerce canlı kanal', 'Yüzlerce film & dizi arşivi', '4K çözünürlük', 'Trailer özelliği', '3 cihaz desteği', 'Hızlı aktivasyon', '7/24 destek'] },
