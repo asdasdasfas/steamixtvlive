@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ShoppingCart, Check, Mail, CreditCard, PlayCircle, Trophy, Clapperboard, Tv, MonitorPlay, Smartphone, Download, Gamepad2, Wifi, X, Menu, AlertTriangle, Gauge, Star, MessageCircleQuestion } from 'lucide-react'
 import AnimatedBackground from '@/sections/AnimatedBackground'
 
-const APK_URL = 'https://www.dropbox.com/scl/fi/5bw5nsyelezwrxmyb5hwt/SteamixTV_v1.0.45_release.apk?rlkey=ghc5phabjucqlrq540zjdqgaz&st=36xy08me&dl=1'
+const APK_URL = 'https://www.dropbox.com/scl/fi/krlqsackm8licf0hfs239/SteamixTV_v1.0.45_release.apk?rlkey=7t8mzu9jt9ucgz09rb66sfhgc&st=g2n2y3t5&dl=1'
 
 const PLANS = [
   { name: '1 AYLIK', price: '300 TL', link: 'https://www.shopier.com/platool/49623989', features: ['Yüzlerce canlı kanal', 'Yüzlerce film & dizi arşivi', '4K çözünürlük', 'Trailer özelliği', '3 cihaz desteği', 'Hızlı aktivasyon', '7/24 destek'] },
@@ -530,23 +530,40 @@ export default function Landing() {
           </h2>
           <p className="text-sm text-gray-500">Telefon ve TV kutusu için resmi oynatıcımız</p>
         </div>
-        <div className="p-5 rounded-xl bg-gradient-to-br from-[#0099ff]/10 to-purple-500/5 border border-[#0099ff]/20 space-y-3">
-          <div className="flex items-start gap-3">
-            <img src="/images/steamix-logo.jpg" alt="" className="w-12 h-12 rounded-xl shrink-0" />
+        <div className="p-5 rounded-xl bg-gradient-to-br from-[#0099ff]/10 to-purple-500/5 border border-[#0099ff]/20 space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="relative shrink-0">
+              <img src="/images/steamix-logo.jpg" alt="Steamix TV" className="w-16 h-16 rounded-2xl shadow-[0_0_25px_rgba(0,153,255,0.5)]" style={{ animation: 'floatGlow 3s ease-in-out infinite' }} />
+              <span className="absolute -bottom-1.5 -right-1.5 px-1.5 py-0.5 rounded-md bg-green-500 text-white text-[9px] font-bold shadow">APK</span>
+            </div>
             <div>
-              <p className="text-sm text-gray-300 font-semibold mb-1">Steamix TV (Android)</p>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                Abonelik bağlantınızla giriş yapın: 1.000+ Canlı Kanal, 20.000+ film ve dizi,
-                4K kalite, kumanda ve dokunmatik uyumu. Tek dokunuşla kurun, izlemeye başlayın.
+              <p className="text-sm text-gray-200 font-semibold mb-1 flex items-center gap-2">Steamix TV <span className="text-[10px] text-gray-500 font-normal">Android • v1.0.45</span></p>
+              <div className="flex items-center gap-1 mb-1">
+                {[0, 1, 2, 3, 4].map(i => (
+                  <Star key={i} className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                ))}
+                <span className="text-[10px] text-gray-500 ml-1">18 MB • Türkçe</span>
+              </div>
+              <p className="text-[11px] text-gray-400 leading-relaxed">
+                Abonelik bağlantınızla giriş yapın: yüzlerce canlı kanal, yüzlerce film ve dizi,
+                4K kalite, kumanda ve dokunmatik uyumu.
               </p>
             </div>
           </div>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            {[['Android', 'Telefon & Tablet'], ['TV', 'Smart TV & Box'], ['4K', 'Ultra HD']].map(([t, a]) => (
+              <div key={t} className="rounded-lg bg-white/5 border border-white/10 py-2">
+                <p className="text-xs text-white font-bold">{t}</p>
+                <p className="text-[10px] text-gray-500">{a}</p>
+              </div>
+            ))}
+          </div>
           <a href={APK_URL} target="_blank" rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gradient-to-r from-[#0099ff] to-blue-600 text-white font-semibold text-sm hover:opacity-90 hover:shadow-[0_0_20px_rgba(0,153,255,0.3)] transition-all">
-            <Download className="w-4 h-4" /> Steamix TV'yi İndir
+            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold text-sm hover:shadow-[0_0_25px_rgba(34,197,94,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all">
+            <Download className="w-4 h-4" /> Steamix TV'yi İndir (APK)
           </a>
           <p className="text-[11px] text-gray-500 text-center leading-relaxed">
-            Android telefon, tablet ve TV kutularıyla uyumludur.
+            Bilinmeyen kaynaklara izin verip tek dokunuşla kurun, izlemeye başlayın.
           </p>
         </div>
       </div>
